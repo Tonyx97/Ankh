@@ -6,11 +6,16 @@ int main()
 {
 	setup_console();
 
-	PRINT(C_CYAN, "---------- Lexer (Lexic Analysis) ----------\n");
+	PRINT(Cyan, "---------- Lexer (Lexic Analysis) ----------\n");
 
-	lexer lexer;
+	Lexer lexer;
 
-	err_lexer = &lexer;
+	lexer.run("test.ankh");
+	lexer.print_errors();
+	lexer.print_list();
+
+	if (!mem::check_and_dump_memory_leaks())
+		std::cin.get();
 
 	return std::cin.get();
 }

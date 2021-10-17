@@ -21,10 +21,10 @@
     <ClCompile Include="gv\gv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dbg\err_handler.cpp">
+    <ClCompile Include="lexer\lexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lexer\lexer.cpp">
+    <ClCompile Include="mem\mem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,13 +38,13 @@
     <ClInclude Include="dbg\dbg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dbg\err_handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="utils\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lexer\lexer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mem\mem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

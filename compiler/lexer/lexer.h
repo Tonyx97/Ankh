@@ -2,188 +2,210 @@
 
 enum TokenID : int
 {
-	TOKEN_ID,
-	TOKEN_KEYWORD,
-	TOKEN_INT_LITERAL,
-	TOKEN_COMMENT,
+	Token_Id,
+	Token_Keyword,
+	Token_IntLiteral,
+	Token_Comment,
 
-	TOKEN_SHR_ASSIGN,
-	TOKEN_SHL_ASSIGN,
-	TOKEN_ADD_ASSIGN,
-	TOKEN_INC,
-	TOKEN_DEC,
-	TOKEN_SUB_ASSIGN,
-	TOKEN_MUL_ASSIGN,
-	TOKEN_MOD_ASSIGN,
-	TOKEN_DIV_ASSIGN,
-	TOKEN_OR_ASSIGN,
-	TOKEN_AND_ASSIGN,
-	TOKEN_XOR_ASSIGN,
-	TOKEN_GTE,
-	TOKEN_LTE,
+	Token_ShrAssign,
+	Token_ShlAssign,
+	Token_AddAssign,
+	Token_Inc,
+	Token_Dec,
+	Token_SubAssign,
+	Token_MulAssign,
+	Token_ModAssign,
+	Token_DivAssign,
+	Token_OrAssign,
+	Token_AndAssign,
+	Token_XorAssign,
+	Token_Gte,
+	Token_Lte,
 
-	TOKEN_COLON,
-	TOKEN_SEMICOLON,
-	TOKEN_COMMA,
+	Token_Colon,
+	Token_Semicolon,
+	Token_Comma,
 
-	TOKEN_PAREN_OPEN,
-	TOKEN_PAREN_CLOSE,
-	TOKEN_BRACE_OPEN,
-	TOKEN_BRACE_CLOSE,
-	TOKEN_BRACKET_OPEN,
-	TOKEN_BRACKET_CLOSE,
-	TOKEN_ADD,
-	TOKEN_SUB,
-	TOKEN_MUL,
-	TOKEN_MOD,
-	TOKEN_DIV,
-	TOKEN_SHR,
-	TOKEN_SHL,
-	TOKEN_AND,
-	TOKEN_OR,
-	TOKEN_XOR,
-	TOKEN_NOT,
-	TOKEN_ASSIGN,
+	Token_ParenOpen,
+	Token_ParenClose,
+	Token_BraceOpen,
+	Token_BraceClose,
+	Token_BracketOpen,
+	Token_BracketClose,
+	Token_Add,
+	Token_Sub,
+	Token_Mul,
+	Token_Mod,
+	Token_Div,
+	Token_Shr,
+	Token_Shl,
+	Token_And,
+	Token_Or,
+	Token_Xor,
+	Token_Not,
+	Token_Assign,
 
-	TOKEN_LOGICAL_NOT,
-	TOKEN_LOGICAL_AND,
-	TOKEN_LOGICAL_OR,
+	Token_LogicalNot,
+	Token_LogicalAnd,
+	Token_LogicalOr,
 
-	TOKEN_EQUAL,
-	TOKEN_NOT_EQUAL,
-	TOKEN_GT,
-	TOKEN_LT,
+	Token_Equal,
+	Token_NotEqual,
+	Token_Gt,
+	Token_Lt,
 
-	TOKEN_VOID,
-	TOKEN_BOOL,
-	TOKEN_TRUE,
-	TOKEN_FALSE,
-	TOKEN_U8,
-	TOKEN_U16,
-	TOKEN_U32,
-	TOKEN_U64,
-	TOKEN_I8,
-	TOKEN_I16,
-	TOKEN_I32,
-	TOKEN_I64,
-	TOKEN_M128,
-	TOKEN_FOR,
-	TOKEN_WHILE,
-	TOKEN_IF,
-	TOKEN_ELSE,
-	TOKEN_BREAK,
-	TOKEN_CONTINUE,
-	TOKEN_RETURN,
-	TOKEN_EXTERN,
+	Token_Void,
+	Token_Bool,
+	Token_True,
+	Token_False,
+	Token_U8,
+	Token_U16,
+	Token_U32,
+	Token_U64,
+	Token_I8,
+	Token_I16,
+	Token_I32,
+	Token_I64,
+	Token_M128,
+	Token_For,
+	Token_While,
+	Token_If,
+	Token_Else,
+	Token_Break,
+	Token_Continue,
+	Token_Return,
+	Token_Extern,
 
-	TOKEN_EOF,
-	TOKEN_NONE,
+	Token_Eof,
+	Token_None
 };
 
-static constexpr int LOWEST_PRECEDENCE = 16;
-
-struct token_info
+enum TokenFlag : int
 {
+	TokenFlag_None			= 0,
+	TokenFlag_Op			= (1 << 0),
+	TokenFlag_Keyword		= (1 << 1),
+	TokenFlag_KeywordType	= (1 << 2),
+};
+
+struct Token
+{
+	static constexpr int LOWEST_PRECEDENCE = 16;
+
 	std::string value;
 
-	TokenID id = TOKEN_NONE;
+	TokenID id = Token_None;
+	TokenFlag flags = TokenFlag_None;
 
 	int precedence = LOWEST_PRECEDENCE,
 		line = 0;
 
-	bool is_operator = false;
+	bool is_operator = false,
+		 valid = false;
 
 	template <typename T>
 	T get()
 	{
 		switch (id)
 		{
-		case TOKEN_INT_LITERAL: return (int)std::atol(value.c_str());
+		case Token_IntLiteral: return (int)std::atol(value.c_str());
 		}
 
 		return T {};
 	}
 
-	operator bool() { return (id != TOKEN_NONE && id != TOKEN_EOF); }
+	Token& operator = (const Token& token)
+	{
+		if (this != std::addressof(token))
+		{
+			value = token.value;
+			id = token.id;
+			precedence = token.precedence;
+			line = token.line;
+			is_operator = token.is_operator;
+
+			valid = true;
+		}
+
+		return *this;
+	}
 };
 
-inline std::unordered_map<std::string, TokenID> keywords =
+inline std::unordered_map<std::string, TokenID> g_keywords =
 {
-	{ "for",		TOKEN_FOR },
-	{ "while",		TOKEN_WHILE },
-	{ "if",			TOKEN_IF },
-	{ "else",		TOKEN_ELSE },
-	{ "break",		TOKEN_BREAK },
-	{ "continue",	TOKEN_CONTINUE },
-	{ "return",		TOKEN_RETURN },
-	{ "extern",		TOKEN_EXTERN },		// not an statement but we put it here for now
+	{ "for",		Token_For },
+	{ "while",		Token_While },
+	{ "if",			Token_If },
+	{ "else",		Token_Else },
+	{ "break",		Token_Break },
+	{ "continue",	Token_Continue },
+	{ "return",		Token_Return },
+	{ "extern",		Token_Extern },		// not an statement but we put it here for now
 };
-	
-inline std::unordered_map<std::string, TokenID> keywords_type =
+
+inline std::unordered_map<std::string, TokenID> g_keywords_type =
 {
-	{ "void",	TOKEN_VOID },
-	{ "bool",	TOKEN_BOOL },
-	{ "true",	TOKEN_TRUE },
-	{ "false",	TOKEN_FALSE },
-	{ "u8",		TOKEN_U8 },
-	{ "u16",	TOKEN_U16 },
-	{ "u32",	TOKEN_U32 },
-	{ "u64",	TOKEN_U64 },
-	{ "i8",		TOKEN_I8 },
-	{ "i16",	TOKEN_I16 },
-	{ "i32",	TOKEN_I32 },
-	{ "i64",	TOKEN_I64 },
-	{ "m128",	TOKEN_M128 },
+	{ "void",	Token_Void },
+	{ "bool",	Token_Bool },
+	{ "true",	Token_True },
+	{ "false",	Token_False },
+	{ "u8",		Token_U8 },
+	{ "u16",	Token_U16 },
+	{ "u32",	Token_U32 },
+	{ "u64",	Token_U64 },
+	{ "i8",		Token_I8 },
+	{ "i16",	Token_I16 },
+	{ "i32",	Token_I32 },
+	{ "i64",	Token_I64 },
+	{ "m128",	Token_M128 },
 };
 
-inline token_info static_tokens[] =
+inline Token g_static_tokens[] =
 {
-	{ ">>=", TOKEN_SHR_ASSIGN, 14, 0, true },
-	{ "<<=", TOKEN_SHL_ASSIGN, 14, 0, true },
+	{ ">>=", Token_ShrAssign, TokenFlag_Op, 14, 0 },
+	{ "<<=", Token_ShlAssign, TokenFlag_Op, 14, 0 },
 
-	{ "==", TOKEN_EQUAL,		 7, 0, true },
-	{ "!=", TOKEN_NOT_EQUAL,	 7, 0, true },
-	{ ">=", TOKEN_GTE,			 6, 0, true },
-	{ "<=", TOKEN_LTE,			 6, 0, true },
-	{ "+=", TOKEN_ADD_ASSIGN,	14, 0, true },
-	{ "-=", TOKEN_SUB_ASSIGN,	14, 0, true },
-	{ "++", TOKEN_INC,			 1, 0, true },
-	{ "--", TOKEN_DEC,			 1, 0, true },
-	{ "*=", TOKEN_MUL_ASSIGN,	14, 0, true },
-	{ "%=", TOKEN_MOD_ASSIGN,	14, 0, true },
-	{ "/=", TOKEN_DIV_ASSIGN,	14, 0, true },
-	{ "&=", TOKEN_AND_ASSIGN,	14, 0, true },
-	{ "|=", TOKEN_OR_ASSIGN,	14, 0, true },
-	{ "^=", TOKEN_XOR_ASSIGN,	14, 0, true },
-	{ "&&", TOKEN_LOGICAL_AND,	11, 0, true },
-	{ "||", TOKEN_LOGICAL_OR,	12, 0, true },
-	{ ">>", TOKEN_SHR,			 5, 0, true },
-	{ "<<", TOKEN_SHL,			 5, 0, true },
+	{ "==", Token_Equal,		TokenFlag_Op,  7, 0 },
+	{ "!=", Token_NotEqual,		TokenFlag_Op,  7, 0 },
+	{ ">=", Token_Gte,			TokenFlag_Op,  6, 0 },
+	{ "<=", Token_Lte,			TokenFlag_Op,  6, 0 },
+	{ "+=", Token_AddAssign,	TokenFlag_Op, 14, 0 },
+	{ "-=", Token_SubAssign,	TokenFlag_Op, 14, 0 },
+	{ "++", Token_Inc,			TokenFlag_Op,  1, 0 },
+	{ "--", Token_Dec,			TokenFlag_Op,  1, 0 },
+	{ "*=", Token_MulAssign,	TokenFlag_Op, 14, 0 },
+	{ "%=", Token_ModAssign,	TokenFlag_Op, 14, 0 },
+	{ "/=", Token_DivAssign,	TokenFlag_Op, 14, 0 },
+	{ "&=", Token_AndAssign,	TokenFlag_Op, 14, 0 },
+	{ "|=", Token_OrAssign,		TokenFlag_Op, 14, 0 },
+	{ "^=", Token_XorAssign,	TokenFlag_Op, 14, 0 },
+	{ "&&", Token_LogicalAnd,	TokenFlag_Op, 11, 0 },
+	{ "||", Token_LogicalOr,	TokenFlag_Op, 12, 0 },
+	{ ">>", Token_Shr,			TokenFlag_Op,  5, 0 },
+	{ "<<", Token_Shl,			TokenFlag_Op,  5, 0 },
 
-	{ ";", TOKEN_SEMICOLON },
-	{ ",", TOKEN_COMMA,			15 },
-	{ "(", TOKEN_PAREN_OPEN,	 1 },
-	{ ")", TOKEN_PAREN_CLOSE,	 1 },
-	{ "{", TOKEN_BRACKET_OPEN },
-	{ "}", TOKEN_BRACKET_CLOSE },
-	{ "[", TOKEN_BRACE_OPEN,	 1, 0, true },
-	{ "]", TOKEN_BRACE_CLOSE,	 1, 0, true },
-	{ "+", TOKEN_ADD,			 4, 0, true },
-	{ "-", TOKEN_SUB,			 4, 0, true },
-	{ "*", TOKEN_MUL,			 3, 0, true },
-	{ "%", TOKEN_MOD,			 3, 0, true },
-	{ "/", TOKEN_DIV,			 3, 0, true },
-	{ "&", TOKEN_AND,			 8, 0, true },
-	{ "|", TOKEN_OR,			10, 0, true },
-	{ "^", TOKEN_XOR,			 9, 0, true },
-	{ "~", TOKEN_NOT,			 2, 0, true },
-	{ "!", TOKEN_LOGICAL_NOT,	 2, 0, true },
-	{ "=", TOKEN_ASSIGN,		14, 0, true },
-	{ ">", TOKEN_GT,			 6, 0, true },
-	{ "<", TOKEN_LT,			 6, 0, true },
+	{ ";", Token_Semicolon },
+	{ ",", Token_Comma,			TokenFlag_None, 15 },
+	{ "(", Token_ParenOpen,		TokenFlag_None,  1 },
+	{ ")", Token_ParenClose,	TokenFlag_None,  1 },
+	{ "{", Token_BracketOpen },
+	{ "}", Token_BracketClose },
+	{ "[", Token_BraceOpen,		TokenFlag_Op,  1, 0 },
+	{ "]", Token_BraceClose,	TokenFlag_Op,  1, 0 },
+	{ "+", Token_Add,			TokenFlag_Op,  4, 0 },
+	{ "-", Token_Sub,			TokenFlag_Op,  4, 0 },
+	{ "*", Token_Mul,			TokenFlag_Op,  3, 0 },
+	{ "%", Token_Mod,			TokenFlag_Op,  3, 0 },
+	{ "/", Token_Div,			TokenFlag_Op,  3, 0 },
+	{ "&", Token_And,			TokenFlag_Op,  8, 0 },
+	{ "|", Token_Or,			TokenFlag_Op, 10, 0 },
+	{ "^", Token_Xor,			TokenFlag_Op,  9, 0 },
+	{ "~", Token_Not,			TokenFlag_Op,  2, 0 },
+	{ "!", Token_LogicalNot,	TokenFlag_Op,  2, 0 },
+	{ "=", Token_Assign,		TokenFlag_Op, 14, 0 },
+	{ ">", Token_Gt,			TokenFlag_Op,  6, 0 },
+	{ "<", Token_Lt,			TokenFlag_Op,  6, 0 },
 };
-
-inline std::unordered_map<std::string, token_info> static_tokens_map;
 
 namespace regex
 {
@@ -192,12 +214,12 @@ namespace regex
 								INT_LITERAL("(\\-)?[0-9]{1,20}((u|i)(8|16|32|64))?");
 }
 
-class lexer
+class Lexer
 {
 private:
 
-	std::vector<token_info> tokens,
-							eaten_tokens;
+	std::vector<Token*> tokens,
+						eaten_tokens;
 
 	std::vector<std::string> errors;
 
@@ -205,54 +227,42 @@ public:
 
 	bool run(const std::string& filename);
 
-	token_info eat();
-
-	std::optional<token_info> eat_expect(TokenID expected_token);
-	std::optional<token_info> eat_expect_keyword_declaration();
-
 	void print_list();
 	void print_errors();
-	void push_and_pop_token(const token_info& token);
-	void restore_last_eaten_token();
+	void push_and_pop_token(Token* token);
 
 	template <typename... A>
 	inline void add_error(const std::string& format, A... args)
 	{
-		errors.push_back(fmt(format, args...));
+		errors.push_back(std::format(format, args...));
 	}
 
-	bool is_token_operator(const token_info& token);
-	bool is_token_keyword(const token_info& token);
-	bool is_token_keyword_type(const token_info& token);
-		
-	bool is_token_operator()						{ return is_token_operator(current()); }
-	bool is_token_keyword()							{ return is_token_keyword(current()); }
-	bool is_token_keyword_type()					{ return is_token_keyword_type(current()); }
 	bool is_current(TokenID id)						{ return (current_token() == id); }
-	bool is_next(TokenID id)							{ return (next_token() == id); }
-	bool is(const token_info& token, TokenID id)		{ return (token.id == id); }
+	bool is_next(TokenID id)						{ return (next_token() == id); }
+	bool is(Token* token, TokenID id)				{ return (token->id == id); }
 	bool eof()										{ return tokens.empty(); }
 
-	token_info current() const						{ return (tokens.empty() ? token_info { "eof", TOKEN_EOF } : tokens.back()); }
+	Token* eat_expect(TokenID expected_token);
+	Token* eat_expect_keyword_declaration();
+	Token* eat();
+	Token* current() const							{ return (tokens.empty() ? nullptr : tokens.back()); }
 
-	TokenID current_token() const						{ return (tokens.empty() ? TOKEN_EOF : tokens.back().id); }
-	TokenID next_token() const						{ return (tokens.size() < 2 ? TOKEN_EOF : (tokens.rbegin() + 1)->id); }
+	TokenID current_token() const					{ return (tokens.empty() ? Token_Eof : tokens.back()->id); }
+	TokenID next_token() const						{ return (tokens.size() < 2 ? Token_Eof : (*(tokens.rbegin() + 1))->id); }
 		
-	std::string current_value() const				{ return (tokens.empty() ? std::string {} : tokens.back().value); }
-
 	const size_t get_tokens_count() const			{ return tokens.size(); }
 
 	// static methods
 	
 	static inline std::string STRIFY_TYPE(TokenID id)
 	{
-		auto it = std::find_if(keywords_type.begin(), keywords_type.end(), [&](const auto& p) { return p.second == id; });
-		return (it != keywords_type.end() ? it->first : "unknown_type");
+		auto it = std::find_if(g_keywords_type.begin(), g_keywords_type.end(), [&](const auto& p) { return p.second == id; });
+		return (it != g_keywords_type.end() ? it->first : "unknown_type");
 	}
 
 	static inline std::string STRIFY_OPERATOR(TokenID id)
 	{
-		for (auto&& token : static_tokens)
+		for (auto&& token : g_static_tokens)
 			if (token.id == id)
 				return token.value;
 
@@ -263,72 +273,72 @@ public:
 	{
 		switch (id)
 		{
-		case TOKEN_ID:					return "TOKEN_ID";
-		case TOKEN_KEYWORD:				return "TOKEN_KEYWORD";
-		case TOKEN_INT_LITERAL:			return "TOKEN_INT_LITERAL";
-		case TOKEN_COMMENT:				return "TOKEN_COMMENT";
-		case TOKEN_SHR_ASSIGN:			return "TOKEN_SHR_ASSIGN";
-		case TOKEN_SHL_ASSIGN:			return "TOKEN_SHL_ASSIGN";
-		case TOKEN_ADD_ASSIGN:			return "TOKEN_ADD_ASSIGN";
-		case TOKEN_INC:					return "TOKEN_INC";
-		case TOKEN_DEC:					return "TOKEN_DEC";
-		case TOKEN_SUB_ASSIGN:			return "TOKEN_SUB_ASSIGN";
-		case TOKEN_MUL_ASSIGN:			return "TOKEN_MUL_ASSIGN";
-		case TOKEN_MOD_ASSIGN:			return "TOKEN_MOD_ASSIGN";
-		case TOKEN_DIV_ASSIGN:			return "TOKEN_DIV_ASSIGN";
-		case TOKEN_OR_ASSIGN:			return "TOKEN_OR_ASSIGN";
-		case TOKEN_AND_ASSIGN:			return "TOKEN_AND_ASSIGN";
-		case TOKEN_XOR_ASSIGN:			return "TOKEN_XOR_ASSIGN";
-		case TOKEN_GTE:					return "TOKEN_GTE";
-		case TOKEN_LTE:					return "TOKEN_LTE";
-		case TOKEN_COLON:				return "TOKEN_COLON";
-		case TOKEN_SEMICOLON:			return "TOKEN_SEMICOLON";
-		case TOKEN_COMMA:				return "TOKEN_COMMA";
-		case TOKEN_PAREN_OPEN:			return "TOKEN_PAREN_OPEN";
-		case TOKEN_PAREN_CLOSE:			return "TOKEN_PAREN_CLOSE";
-		case TOKEN_BRACE_OPEN:			return "TOKEN_BRACE_OPEN";
-		case TOKEN_BRACE_CLOSE:			return "TOKEN_BRACE_CLOSE";
-		case TOKEN_BRACKET_OPEN:		return "TOKEN_BRACKET_OPEN";
-		case TOKEN_BRACKET_CLOSE:		return "TOKEN_BRACKET_CLOSE";
-		case TOKEN_ADD:					return "TOKEN_ADD";
-		case TOKEN_SUB:					return "TOKEN_SUB";
-		case TOKEN_MUL:					return "TOKEN_MUL";
-		case TOKEN_MOD:					return "TOKEN_MOD";
-		case TOKEN_DIV:					return "TOKEN_DIV";
-		case TOKEN_SHR:					return "TOKEN_SHR";
-		case TOKEN_SHL:					return "TOKEN_SHL";
-		case TOKEN_AND:					return "TOKEN_AND";
-		case TOKEN_OR:					return "TOKEN_OR";
-		case TOKEN_LOGICAL_NOT:			return "TOKEN_LOGICAL_NOT";
-		case TOKEN_LOGICAL_AND:			return "TOKEN_LOGICAL_AND";
-		case TOKEN_LOGICAL_OR:			return "TOKEN_LOGICAL_OR";
-		case TOKEN_XOR:					return "TOKEN_XOR";
-		case TOKEN_NOT:					return "TOKEN_NOT";
-		case TOKEN_ASSIGN:				return "TOKEN_ASSIGN";
-		case TOKEN_EQUAL:				return "TOKEN_EQUAL";
-		case TOKEN_NOT_EQUAL:			return "TOKEN_NOT_EQUAL";
-		case TOKEN_GT:					return "TOKEN_GT";
-		case TOKEN_LT:					return "TOKEN_LT";
-		case TOKEN_VOID:				return "TOKEN_VOID";
-		case TOKEN_BOOL:				return "TOKEN_BOOL";
-		case TOKEN_U8:					return "TOKEN_U8";
-		case TOKEN_U16:					return "TOKEN_U16";
-		case TOKEN_U32:					return "TOKEN_U32";
-		case TOKEN_U64:					return "TOKEN_U64";
-		case TOKEN_I8:					return "TOKEN_I8";
-		case TOKEN_I16:					return "TOKEN_I16";
-		case TOKEN_I32:					return "TOKEN_I32";
-		case TOKEN_I64:					return "TOKEN_I64";
-		case TOKEN_M128:				return "TOKEN_M128";
-		case TOKEN_FOR:					return "TOKEN_FOR";
-		case TOKEN_WHILE:				return "TOKEN_WHILE";
-		case TOKEN_IF:					return "TOKEN_IF";
-		case TOKEN_ELSE:				return "TOKEN_ELSE";
-		case TOKEN_BREAK:				return "TOKEN_BREAK";
-		case TOKEN_CONTINUE:			return "TOKEN_CONTINUE";
-		case TOKEN_RETURN:				return "TOKEN_RETURN";
-		case TOKEN_EXTERN:				return "TOKEN_EXTERN";
-		case TOKEN_EOF:					return "TOKEN_EOF";
+		case Token_Id:					return "Token_Id";
+		case Token_Keyword:				return "Token_Keyword";
+		case Token_IntLiteral:			return "Token_IntLiteral";
+		case Token_Comment:				return "Token_Comment";
+		case Token_ShrAssign:			return "Token_ShrAssign";
+		case Token_ShlAssign:			return "Token_ShlAssign";
+		case Token_AddAssign:			return "Token_AddAssign";
+		case Token_Inc:					return "Token_Inc";
+		case Token_Dec:					return "Token_Dec";
+		case Token_SubAssign:			return "Token_SubAssign";
+		case Token_MulAssign:			return "Token_MulAssign";
+		case Token_ModAssign:			return "Token_ModAssign";
+		case Token_DivAssign:			return "Token_DivAssign";
+		case Token_OrAssign:			return "Token_OrAssign";
+		case Token_AndAssign:			return "Token_AndAssign";
+		case Token_XorAssign:			return "Token_XorAssign";
+		case Token_Gte:					return "Token_Gte";
+		case Token_Lte:					return "Token_Lte";
+		case Token_Colon:				return "Token_Colon";
+		case Token_Semicolon:			return "Token_Semicolon";
+		case Token_Comma:				return "Token_Comma";
+		case Token_ParenOpen:			return "Token_ParenOpen";
+		case Token_ParenClose:			return "Token_ParenClose";
+		case Token_BraceOpen:			return "Token_BraceOpen";
+		case Token_BraceClose:			return "Token_BraceClose";
+		case Token_BracketOpen:			return "Token_BracketOpen";
+		case Token_BracketClose:		return "Token_BracketClose";
+		case Token_Add:					return "Token_Add";
+		case Token_Sub:					return "Token_Sub";
+		case Token_Mul:					return "Token_Mul";
+		case Token_Mod:					return "Token_Mod";
+		case Token_Div:					return "Token_Div";
+		case Token_Shr:					return "Token_Shr";
+		case Token_Shl:					return "Token_Shl";
+		case Token_And:					return "Token_And";
+		case Token_Or:					return "Token_Or";
+		case Token_LogicalNot:			return "Token_LogicalNot";
+		case Token_LogicalAnd:			return "Token_LogicalAnd";
+		case Token_LogicalOr:			return "Token_LogicalOr";
+		case Token_Xor:					return "Token_Xor";
+		case Token_Not:					return "Token_Not";
+		case Token_Assign:				return "Token_Assign";
+		case Token_Equal:				return "Token_Equal";
+		case Token_NotEqual:			return "Token_NotEqual";
+		case Token_Gt:					return "Token_Gt";
+		case Token_Lt:					return "Token_Lt";
+		case Token_Void:				return "Token_Void";
+		case Token_Bool:				return "Token_Bool";
+		case Token_U8:					return "Token_U8";
+		case Token_U16:					return "Token_U16";
+		case Token_U32:					return "Token_U32";
+		case Token_U64:					return "Token_U64";
+		case Token_I8:					return "Token_I8";
+		case Token_I16:					return "Token_I16";
+		case Token_I32:					return "Token_I32";
+		case Token_I64:					return "Token_I64";
+		case Token_M128:				return "Token_M128";
+		case Token_For:					return "Token_For";
+		case Token_While:				return "Token_While";
+		case Token_If:					return "Token_If";
+		case Token_Else:				return "Token_Else";
+		case Token_Break:				return "Token_Break";
+		case Token_Continue:			return "Token_Continue";
+		case Token_Return:				return "Token_Return";
+		case Token_Extern:				return "Token_Extern";
+		case Token_Eof:					return "Token_Eof";
 		}
 
 		return "TOKEN_NONE";

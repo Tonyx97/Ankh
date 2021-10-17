@@ -14,36 +14,36 @@ void gv::build()
 	file << "digraph " << name << " {" << std::endl;
 	file << "graph [dpi = 100]" << std::endl;
 
-	file << format(R"(graph [fontname = "%s", fontsize = %s])", font_name.c_str(), font_size.c_str()) << std::endl;
-	file << format(R"(node [fontname = "%s", fontsize = %s])", font_name.c_str(), font_size.c_str()) << std::endl;
-	file << format(R"(edge [fontname = "%s", fontsize = %s])", font_name.c_str(), font_size.c_str()) << std::endl;
-	file << format(R"(bgcolor = "%s")", bg_color.c_str()) << std::endl;
+	file << std::format(R"(graph [fontname = "%s", fontsize = %s])", font_name.c_str(), font_size.c_str()) << std::endl;
+	file << std::format(R"(node [fontname = "%s", fontsize = %s])", font_name.c_str(), font_size.c_str()) << std::endl;
+	file << std::format(R"(edge [fontname = "%s", fontsize = %s])", font_name.c_str(), font_size.c_str()) << std::endl;
+	file << std::format(R"(bgcolor = "%s")", bg_color.c_str()) << std::endl;
 	
 	int cluster_id = 0;
 
 	for (auto&& subgraph : subgraphs)
 	{
-		file << format(R"(subgraph cluster_%i {)", cluster_id++) << std::endl;
-		file << format(R"(label = "%s")", subgraph->name.c_str()) << std::endl;
+		file << std::format(R"(subgraph cluster_%i {)", cluster_id++) << std::endl;
+		file << std::format(R"(label = "%s")", subgraph->name.c_str()) << std::endl;
 
 		for (auto&& node : subgraph->nodes)
-			file << format(R"(node [label = "%s", style = %s, shape = "%s", fillcolor = "%s"] %s)", node->label.c_str(), node->style.c_str(), node->shape.c_str(), node->fillcolor.c_str(), node->name.c_str()) << std::endl;
+			file << std::format(R"(node [label = "%s", style = %s, shape = "%s", fillcolor = "%s"] %s)", node->label.c_str(), node->style.c_str(), node->shape.c_str(), node->fillcolor.c_str(), node->name.c_str()) << std::endl;
 
 		file << "}" << std::endl;
 	}
 
 	for (auto&& node : nodes)
 	{
-		file << format(R"(node [label = "%s", style = %s, shape = "%s", fillcolor = "%s"] %s)", node->label.c_str(), node->style.c_str(), node->shape.c_str(), node->fillcolor.c_str(), node->name.c_str()) << std::endl;
+		file << std::format(R"(node [label = "%s", style = %s, shape = "%s", fillcolor = "%s"] %s)", node->label.c_str(), node->style.c_str(), node->shape.c_str(), node->fillcolor.c_str(), node->name.c_str()) << std::endl;
 
 		for (auto&& link : node->links)
-			file << format(R"(%s -> %s)", node->name.c_str(), link->name.c_str()) << std::endl;
+			file << std::format(R"(%s -> %s)", node->name.c_str(), link->name.c_str()) << std::endl;
 	}
 
 	for (auto&& subgraph : subgraphs)
 		for (auto&& node : subgraph->nodes)
 			for (auto&& link : node->links)
-				file << format(R"(%s -> %s)", node->name.c_str(), link->name.c_str()) << std::endl;
+				file << std::format(R"(%s -> %s)", node->name.c_str(), link->name.c_str()) << std::endl;
 
 	file << "}" << std::endl;
 }

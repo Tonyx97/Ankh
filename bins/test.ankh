@@ -1,0 +1,7 @@
+void fn2(i8 arg1, i16 arg2, i32 arg3, bool arg5)
+{
+	i16 x;
+    i8 x;
+}
+
+void fn3() { bool x; }

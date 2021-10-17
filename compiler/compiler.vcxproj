@@ -169,17 +169,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dbg\err_handler.cpp" />
     <ClCompile Include="gv\gv.cpp" />
     <ClCompile Include="lexer\lexer.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mem\mem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dbg\dbg.h" />
-    <ClInclude Include="dbg\err_handler.h" />
     <ClInclude Include="defs.h" />
     <ClInclude Include="gv\gv.h" />
     <ClInclude Include="lexer\lexer.h" />
+    <ClInclude Include="mem\mem.h" />
     <ClInclude Include="utils\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

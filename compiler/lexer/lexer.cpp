@@ -4,7 +4,7 @@
 
 using namespace kpp;
 
-bool lexer::run(const std::string& filename)
+bool Lexer::run(const std::string& filename)
 {
 	// open the input file
 
@@ -38,14 +38,8 @@ bool lexer::run(const std::string& filename)
 		remove_spaces();
 	};
 
-	// populate static tokens map
-
-	for (const auto& token : static_tokens)
-		static_tokens_map.insert({ token.value, token });
-
-	int line_num = 1;
-
-	bool multiline_comment = false;
+	int line_num = 1,
+		multiline_comment = 0;
 
 	while (std::getline(file, line))
 	{
@@ -68,14 +62,15 @@ bool lexer::run(const std::string& filename)
 			{
 				if (multi_comment_end_pos != std::string::npos)
 				{
-					multiline_comment = false;
+					if (--multiline_comment < 0)
+						multiline_comment = 0;
 
 					if (strip_line(0, multi_comment_end_pos + 2))
 						break;
 				}
 				else if (multi_comment_begin_pos == 0)
 				{
-					multiline_comment = true;
+					++multiline_comment;
 					break;
 				}
 			}
@@ -89,9 +84,9 @@ bool lexer::run(const std::string& filename)
 				line.find(sm.str()) == 0)
 				break;
 
-			Token curr_token {};
+			auto curr_token = _ALLOC(Token);
 			
-			auto check_token_regex = [&](const std::regex& rgx, TokenID token_type)
+			/*auto check_token_regex = [&](const std::regex& rgx, TokenID token_type)
 			{
 				if (std::regex_search(line, sm, rgx))
 				{
@@ -125,31 +120,31 @@ bool lexer::run(const std::string& filename)
 				return false;
 			};
 
-			check_token_regex(regex::INT_LITERAL, TOKEN_INT_LITERAL);
+			check_token_regex(regex::INT_LITERAL, TOKEN_INT_LITERAL);*/
 
-			for (const auto& token : static_tokens)
+			for (const auto& token : g_static_tokens)
 			{
 				if (!line.compare(0, token.value.length(), token.value))
 				{
-					curr_token = token;
+					*curr_token = token;
 					break;
 				}
 			}
 
-			if (!curr_token)
-				check_token_regex(regex::WORD, TOKEN_ID);
+			/*if (!curr_token)
+				check_token_regex(regex::WORD, TOKEN_ID);*/
 
-			if (curr_token)
+			if (curr_token->valid)
 			{
-				curr_token.line = line_num;
+				curr_token->line = line_num;
 
 				tokens.push_back(curr_token);
 
-				next(curr_token.value.length());
+				next(curr_token->value.length());
 			}
 			else
 			{
-				std::string invalid_token = line;
+				auto invalid_token = line;
 				
 				if (auto next_space = invalid_token.find_first_of("\t "); next_space != std::string::npos)
 				{
@@ -158,7 +153,7 @@ bool lexer::run(const std::string& filename)
 				}
 				else next(line.length());
 				
-				add_error("%s:%i -> Unrecognized token '%s'", filename.c_str(), line_num, invalid_token.c_str());
+				add_error("{}:{} -> Unrecognized token '{}'", filename.c_str(), line_num, invalid_token.c_str());
 			}
 		}
 
@@ -170,14 +165,41 @@ bool lexer::run(const std::string& filename)
 	return true;
 }
 
-std::optional<Token> lexer::eat_expect(TokenID expected_token)
+void Lexer::print_list()
+{
+	PRINT_NL;
+
+	for (auto token : tokens)
+	{
+		PRINT_ALIGN(Yellow, 15, "'{}'", token->value.c_str());
+		PRINT_ALIGN(Yellow, 15, "->");
+		PRINT(Yellow, "type: {}", STRIFY_TOKEN(token->id).c_str());
+	}
+}
+
+void Lexer::print_errors()
+{
+	for (const auto& err : errors)
+		PRINT(Red, "{}", err);
+}
+
+void Lexer::push_and_pop_token(Token* token)
+{
+	if (tokens.empty())
+		return;
+
+	eaten_tokens.push_back(token);
+	tokens.pop_back();
+}
+
+Token* Lexer::eat_expect(TokenID expected_token)
 {
 	if (eof())
 		return {};
 
-	if (auto curr = current(); curr.id != expected_token)
+	if (auto curr = current(); curr->id != expected_token)
 	{
-		PRINT(C_RED, "Unexpected token '%s'", curr.value.c_str());
+		PRINT(Red, "Unexpected token '{}'", curr->value);
 		return {};
 	}
 	else
@@ -188,14 +210,14 @@ std::optional<Token> lexer::eat_expect(TokenID expected_token)
 	}
 }
 
-std::optional<Token> lexer::eat_expect_keyword_declaration()
+Token* Lexer::eat_expect_keyword_declaration()
 {
 	if (eof())
 		return {};
 
-	if (auto curr = current(); !is_token_keyword_type(curr))
+	if (auto curr = current(); !(curr->flags & TokenFlag_KeywordType))
 	{
-		PRINT(C_RED, "Unexpected token '%s'", curr.value.c_str());
+		PRINT(Red, "Unexpected token '{}'", curr->value);
 		return {};
 	}
 	else
@@ -206,7 +228,7 @@ std::optional<Token> lexer::eat_expect_keyword_declaration()
 	}
 }
 
-Token lexer::eat()
+Token* Lexer::eat()
 {
 	if (eof())
 		return {};
@@ -216,56 +238,4 @@ Token lexer::eat()
 	push_and_pop_token(curr);
 
 	return curr;
-}
-
-void lexer::print_list()
-{
-	PRINT_NL;
-
-	for (auto&& token : tokens)
-	{
-		PRINT_ALIGN(C_YELLOW, 15, "'%s'", token.value.c_str());
-		PRINT_ALIGN(C_YELLOW, 15, "->");
-		PRINT(C_YELLOW, "type: %s", STRIFY_TOKEN(token.id).c_str());
-	}
-}
-
-void lexer::print_errors()
-{
-	for (auto&& err : errors)
-		PRINT(C_RED, err);
-}
-
-void lexer::push_and_pop_token(const Token& token)
-{
-	if (tokens.empty())
-		return;
-
-	eaten_tokens.push_back(token);
-	tokens.pop_back();
-}
-
-void lexer::restore_last_eaten_token()
-{
-	if (eaten_tokens.empty())
-		return;
-
-	tokens.push_back(eaten_tokens.back());
-	eaten_tokens.pop_back();
-}
-
-bool lexer::is_token_operator(const Token& token)
-{
-	auto it = static_tokens_map.find(token.value);
-	return (it != static_tokens_map.end() ? it->second.is_operator : false);
-}
-
-bool lexer::is_token_keyword(const Token& token)
-{
-	return (keywords.find(token.value) != keywords.end());
-}
-
-bool lexer::is_token_keyword_type(const Token& token)
-{
-	return (keywords_type.find(token.value) != keywords_type.end());
 }

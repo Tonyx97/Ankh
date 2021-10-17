@@ -4,30 +4,30 @@
 
 #include "defs.h"
 
-enum eColor : unsigned short
+enum ColorType : unsigned short
 {
-	C_BLACK = 0x0,
-	C_DARK_BLUE = 0x1,
-	C_DARK_GREEN = 0x2,
-	C_DARK_CYAN = 0x3,
-	C_DARK_RED = 0x4,
-	C_DARK_PURPLE = 0x5,
-	C_DARK_YELLOW = 0x6,
-	C_GREY = 0x7,
-	C_DARK_GREY = 0x8,
-	C_BLUE = 0x9,
-	C_GREEN = 0xA,
-	C_CYAN = 0xB,
-	C_RED = 0xC,
-	C_PURPLE = 0xD,
-	C_YELLOW = 0xE,
-	C_WHITE = 0xF,
+	Black = 0x0,
+	DarkBlue = 0x1,
+	DarkGreen = 0x2,
+	DarkCyan = 0x3,
+	DarkRed = 0x4,
+	DarkPurple = 0x5,
+	DarkYellow = 0x6,
+	Grey = 0x7,
+	DarkGrey = 0x8,
+	Blue = 0x9,
+	Green = 0xA,
+	Cyan = 0xB,
+	Red = 0xC,
+	Purple = 0xD,
+	Yellow = 0xE,
+	White = 0xF,
 };
 
 static constexpr auto SINGLE_TEXT_MAX_LENGTH = 0x800;
 static constexpr auto SPACES_PER_TAB = 2;
 
-enum eTextSection
+enum TextSection
 {
 	HEADER,
 	FOOTER,
@@ -52,14 +52,6 @@ public:
 		return os;
 	}
 };
-
-template <typename... A>
-std::string format(const std::string& txt, A... args)
-{
-	basic_buffer buffer(SINGLE_TEXT_MAX_LENGTH);
-	sprintf_s(buffer.get(), SINGLE_TEXT_MAX_LENGTH, txt.c_str(), std::forward<A>(args)...);
-	return std::string(buffer.get());
-}
 
 struct color
 {
@@ -118,19 +110,19 @@ inline void setup_console()
 template <typename... A>
 static inline text make_text(uint16_t color, const std::string& txt, A&&... args)
 {
-	return text(color, format(txt, args...), false);
+	return text(color, std::format(txt, args...), false);
 }
 
 template <typename... A>
 static inline text make_text_nl(uint16_t color, const std::string& txt, A&&... args)
 {
-	return text(color, format(txt, args...), true);
+	return text(color, std::format(txt, args...), true);
 }
 
 template <typename... A>
 static inline text make_text_align(uint16_t color, const std::string& txt, int alignment, A&&... args)
 {
-	return text(color, format(txt, args...), false, alignment);
+	return text(color, std::format(txt, args...), false, alignment);
 }
 
 template <typename... A>
@@ -140,55 +132,55 @@ static inline text make_text_with_tabs(uint16_t color, const std::string& txt, i
 
 	std::generate(tabs_str.begin(), tabs_str.end(), [] { return ' '; });
 
-	return text(color, tabs_str + format(txt, args...), false, 0);
+	return text(color, tabs_str + std::format(txt, args...), false, 0);
 }
 
 template <typename... A>
 static inline void print(uint16_t color_id, const std::string& txt, A&&... args)
 {
 	color c(color_id);
-	std::cout << format(txt, args...);
+	std::cout << std::format(txt, args...);
 }
 
 template <typename... A>
 static inline void println(uint16_t color_id, const std::string& txt, A&&... args)
 {
 	color c(color_id);
-	std::cout << format(txt, args...) << std::endl;
+	std::cout << std::format(txt, args...) << std::endl;
 }
 
 template <typename Tx, typename T, typename F>
-static inline void print_vec_int(eColor color, const std::vector<T>& vec, const std::string& separator, const F& fn)
+static inline void print_vec_int(ColorType color, const std::vector<T>& vec, const std::string& separator, const F& fn)
 {
 	if (vec.empty())
 		return;
 
 	for (int i = 0; i < vec.size() - 1; ++i)
 	{
-		make_text(color, "%s", fn(static_cast<Tx>(vec[i])).c_str()).print();
-		make_text(C_WHITE, "%s", separator.c_str()).print();
+		make_text(color, "{}", fn(static_cast<Tx>(vec[i])).c_str()).print();
+		make_text(White, "{}", separator.c_str()).print();
 	}
 
-	make_text(color, "%s", fn(static_cast<Tx>(vec.back())).c_str()).print();
+	make_text(color, "{}", fn(static_cast<Tx>(vec.back())).c_str()).print();
 }
 
 template <typename Tx, typename T, typename F>
-static inline void print_vec(eColor color, const std::vector<T>& vec, const std::string& separator, const F& fn)
+static inline void print_vec(ColorType color, const std::vector<T>& vec, const std::string& separator, const F& fn)
 {
 	if (vec.empty())
 		return;
 
 	for (int i = 0; i < vec.size() - 1; ++i)
 	{
-		make_text(color, "%s", fn(static_cast<Tx*>(vec[i])).c_str()).print();
-		make_text(C_WHITE, "%s", separator.c_str()).print();
+		make_text(color, "{}", fn(static_cast<Tx*>(vec[i])).c_str()).print();
+		make_text(White, "{}", separator.c_str()).print();
 	}
 
-	make_text(color, "%s", fn(static_cast<Tx*>(vec.back())).c_str()).print();
+	make_text(color, "{}", fn(static_cast<Tx*>(vec.back())).c_str()).print();
 }
 
 template <typename Tx, typename T, typename F>
-static inline void print_set(eColor color, const std::set<T>& set, const std::string& separator, const F& fn)
+static inline void print_set(ColorType color, const std::set<T>& set, const std::string& separator, const F& fn)
 {
 	if (set.empty())
 	{
@@ -202,13 +194,13 @@ static inline void print_set(eColor color, const std::set<T>& set, const std::st
 	for (auto it = set.begin(); it != set.end(); ++it)
 	{
 		if (i++ == set_size - 1)
-			make_text(color, "%s", fn(*set.rbegin()).c_str()).print();
-		else make_text(color, "%s%s", fn(*it).c_str(), separator.c_str()).print();
+			make_text(color, "{}", fn(*set.rbegin()).c_str()).print();
+		else make_text(color, "{}{}", fn(*it).c_str(), separator.c_str()).print();
 	}
 }
 
 template <typename Tx, typename T, typename F>
-static inline void print_set(eColor color, const std::unordered_set<T>& set, const std::string& separator, const F& fn)
+static inline void print_set(ColorType color, const std::unordered_set<T>& set, const std::string& separator, const F& fn)
 {
 	if (set.empty())
 	{
@@ -243,12 +235,12 @@ struct TimeProfiling
 	{
 		const auto cycles_passed = __rdtsc() - cycles;
 		const auto time_passed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - m_start).count();
-		make_text_nl(C_YELLOW, "%s: %.3f ms | %i mcs | %i cycles", name.c_str(), static_cast<double>(time_passed) / 1000.f, time_passed, cycles_passed).print();
+		make_text_nl(Yellow, "{}: {:.3f} ms | {} mcs | {} cycles", name.c_str(), static_cast<double>(time_passed) / 1000.f, time_passed, cycles_passed).print();
 	}
 };
 
 #define PROFILE(x)						TimeProfiling p(x)
-#define EMPTY_NEW_LINE					C_WHITE, "\n"
+#define EMPTY_NEW_LINE					White, "\n"
 #define PRINT_NNL(x, y, ...)			make_text(x, y, __VA_ARGS__).print()
 #define PRINT(x, y, ...)				make_text_nl(x, y, __VA_ARGS__).print()
 #define PRINT_ALIGN(x, y, z, ...)		make_text_align(x, z, y, __VA_ARGS__).print()
