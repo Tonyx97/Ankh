@@ -81,14 +81,16 @@
     <OutDir>$(SolutionDir)bins\</OutDir>
     <IntDir>build\</IntDir>
     <TargetName>compiler</TargetName>
-    <IncludePath>$(ProjectDir);$(SolutionDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(SolutionDir);$(SolutionDir)\external\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)external\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bins\</OutDir>
     <IntDir>build\</IntDir>
     <TargetName>compiler</TargetName>
-    <IncludePath>$(ProjectDir);$(SolutionDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(SolutionDir);$(SolutionDir)\external\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)external\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -167,7 +169,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="dbg\err_handler.cpp" />
+    <ClCompile Include="gv\gv.cpp" />
+    <ClCompile Include="lexer\lexer.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dbg\dbg.h" />
+    <ClInclude Include="dbg\err_handler.h" />
+    <ClInclude Include="defs.h" />
+    <ClInclude Include="gv\gv.h" />
+    <ClInclude Include="lexer\lexer.h" />
+    <ClInclude Include="utils\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

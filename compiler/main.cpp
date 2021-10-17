@@ -1,6 +1,16 @@
-#include <iostream>
+#include <defs.h>
+
+#include <lexer/lexer.h>
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	setup_console();
+
+	PRINT(C_CYAN, "---------- Lexer (Lexic Analysis) ----------\n");
+
+	lexer lexer;
+
+	err_lexer = &lexer;
+
+	return std::cin.get();
 }

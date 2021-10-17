@@ -12,4 +12,5 @@
 *.log
 *.vcxproj.user
 *.user
+*.dll
 build/
