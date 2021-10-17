@@ -245,9 +245,6 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 
 		// no right associative operators yet
 
-		if (lookahead->id == Token_ParenClose)
-			g_lexer->eat();
-
 		while ((lookahead->flags & TokenFlag_Op) && lookahead->precedence < op->precedence)
 		{
 			rhs = parse_expression_precedence(rhs, lookahead->precedence);
@@ -299,7 +296,7 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, curr->value), parse_expression(), curr);	//
+			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, curr->value), parse_expression(), curr);
 		}
 		case Token_ParenOpen:
 		{
@@ -321,13 +318,8 @@ ast::Expr* Syntax::parse_primary_expression()
 	{
 		g_lexer->eat();
 
-		return parse_expression();
-	}
-	else if (g_lexer->is_current(Token_ParenClose))
-	{
-		g_lexer->eat();
-
-		//return parse_expression();
+		if (auto expr = parse_expression(); expr && g_lexer->eat_expect(Token_ParenClose))
+			return expr;
 	}
 
 	return nullptr;
