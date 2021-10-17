@@ -243,8 +243,6 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 
 		lookahead = g_lexer->current();
 
-		// no right associative operators yet
-
 		while ((lookahead->flags & TokenFlag_Op) && lookahead->precedence < op->precedence)
 		{
 			rhs = parse_expression_precedence(rhs, lookahead->precedence);
