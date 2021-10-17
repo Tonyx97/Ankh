@@ -72,7 +72,7 @@ namespace mem
 		std::string info;
 
 		for (const auto& [ptr, i] : engine_allocs)
-			info += std::format("'{}' | line {}:{} ['{}' - {}]\n\n", i.src, i.line, i.column, i.type_name, i.address);
+			info += std::format("'{}' | line {}:{} ['{}' - {}]\n", i.src, i.line, i.column, i.type_name, i.address);
 
 		PRINT(Red, "Memory leak detected.\n\n{}", info);
 

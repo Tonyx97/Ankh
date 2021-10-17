@@ -1,16 +1,13 @@
 #pragma once
 
-namespace kpp
+namespace rtti
 {
-	namespace rtti
+	template <typename T, typename Ty>
+	T* cast(Ty ptr)
 	{
-		template <typename T, typename Ty>
-		T* safe_cast(Ty ptr)
-		{
-			if (!ptr)
-				return nullptr;
+		if (!ptr)
+			return nullptr;
 
-			return (T::check_class(ptr) ? static_cast<T*>(ptr) : nullptr);
-		}
+		return (T::check_class(ptr) ? static_cast<T*>(ptr) : nullptr);
 	}
 }

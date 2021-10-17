@@ -4,6 +4,12 @@
 
 using namespace kpp;
 
+Lexer::~Lexer()
+{
+	for (auto token : tokens)		_FREE(token);
+	for (auto token : eaten_tokens) _FREE(token);
+}
+
 bool Lexer::run(const std::string& filename)
 {
 	// open the input file
@@ -86,32 +92,32 @@ bool Lexer::run(const std::string& filename)
 
 			auto curr_token = _ALLOC(Token);
 			
-			/*auto check_token_regex = [&](const std::regex& rgx, TokenID token_type)
+			auto check_token_regex = [&](const std::regex& rgx, TokenID token_type)
 			{
 				if (std::regex_search(line, sm, rgx))
 				{
-					if (auto token_found = sm.str(); line.find(token_found) == 0)
+					if (auto token_found = sm.str(); curr_token->valid = (line.find(token_found) == 0))
 					{
-						curr_token.value = token_found;
-
 						switch (token_type)
 						{
-						case TOKEN_ID:
+						case Token_Id:
 						{
-							if (auto it = keywords.find(token_found); it != keywords.end())
-								curr_token.id = it->second;
-							else if (auto it_decl = keywords_type.find(token_found); it_decl != keywords_type.end())
-								curr_token.id = it_decl->second;
-							else curr_token.id = token_type;
+							if (auto it = g_keywords.find(token_found); it != g_keywords.end())
+								curr_token->id = it->second;
+							else if (auto it_decl = g_keywords_type.find(token_found); it_decl != g_keywords_type.end())
+								curr_token->id = it_decl->second;
+							else curr_token->id = token_type;
 
 							break;
 						}
-						case TOKEN_INT_LITERAL:
+						case Token_IntLiteral:
 						{
-							curr_token.id = token_type;
+							curr_token->id = token_type;
 							break;
 						}
 						}
+
+						curr_token->value = token_found;
 
 						return true;
 					}
@@ -120,7 +126,7 @@ bool Lexer::run(const std::string& filename)
 				return false;
 			};
 
-			check_token_regex(regex::INT_LITERAL, TOKEN_INT_LITERAL);*/
+			check_token_regex(regex::INT_LITERAL, Token_IntLiteral);
 
 			for (const auto& token : g_static_tokens)
 			{
@@ -131,8 +137,8 @@ bool Lexer::run(const std::string& filename)
 				}
 			}
 
-			/*if (!curr_token)
-				check_token_regex(regex::WORD, TOKEN_ID);*/
+			if (!curr_token->valid)
+				check_token_regex(regex::WORD, Token_Id);
 
 			if (curr_token->valid)
 			{

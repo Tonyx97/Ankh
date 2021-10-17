@@ -225,6 +225,8 @@ private:
 
 public:
 
+	~Lexer();
+
 	bool run(const std::string& filename);
 
 	void print_list();
@@ -258,6 +260,11 @@ public:
 	{
 		auto it = std::find_if(g_keywords_type.begin(), g_keywords_type.end(), [&](const auto& p) { return p.second == id; });
 		return (it != g_keywords_type.end() ? it->first : "unknown_type");
+	}
+
+	static inline std::string STRIFY_TYPE(Token* token)
+	{
+		return STRIFY_TYPE(token->id);
 	}
 
 	static inline std::string STRIFY_OPERATOR(TokenID id)
@@ -342,5 +349,10 @@ public:
 		}
 
 		return "TOKEN_NONE";
+	}
+
+	static inline std::string STRIFY_TOKEN(Token* token)
+	{
+		return STRIFY_TOKEN(token->id);
 	}
 };
