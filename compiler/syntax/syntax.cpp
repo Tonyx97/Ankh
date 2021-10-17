@@ -245,6 +245,9 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 
 		// no right associative operators yet
 
+		if (lookahead->id == Token_ParenClose)
+			g_lexer->eat();
+
 		while ((lookahead->flags & TokenFlag_Op) && lookahead->precedence < op->precedence)
 		{
 			rhs = parse_expression_precedence(rhs, lookahead->precedence);
@@ -313,6 +316,18 @@ ast::Expr* Syntax::parse_primary_expression()
 		}
 
 		return _ALLOC(ast::ExprId, curr->value);
+	}
+	else if (g_lexer->is_current(Token_ParenOpen))
+	{
+		g_lexer->eat();
+
+		return parse_expression();
+	}
+	else if (g_lexer->is_current(Token_ParenClose))
+	{
+		g_lexer->eat();
+
+		//return parse_expression();
 	}
 
 	return nullptr;
