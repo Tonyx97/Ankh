@@ -35,7 +35,7 @@ namespace ast
 	{
 		Expr()								{ type = STMT_EXPR; }
 
-		virtual void set_token(Token* ty) = 0;
+		virtual void set_token(Token* v) = 0;
 		virtual Token* get_token() = 0;
 		virtual std::string get_name() = 0;
 
@@ -54,7 +54,7 @@ namespace ast
 
 		void set_token(Token* v)			{ token = v; }
 		Token* get_token()					{ return token; }
-		std::string get_name() override		{ return token->value; };
+		std::string get_name()				{ return token->value; };
 
 		static bool check_class(Base* i)	{ return i->type == EXPR_INT_LITERAL; }
 	};
@@ -73,7 +73,7 @@ namespace ast
 			
 		void set_token(Token* v)			{ token = v; }
 		Token* get_token()					{ return token; }
-		std::string get_name() override		{ return name; }
+		std::string get_name()				{ return name; }
 
 		static bool check_class(Base* i)	{ return i->type == EXPR_ID; }
 	};
@@ -97,7 +97,7 @@ namespace ast
 			
 		void set_token(Token* v)					{ token = v; }
 		Token* get_token()							{ return token; }
-		std::string get_name() override				{ return name; }
+		std::string get_name()						{ return name; }
 
 		static bool check_class(Base* i)			{ return i->type == EXPR_DECL_OR_ASSIGN; }
 	};
@@ -112,15 +112,13 @@ namespace ast
 
 		Token* token = nullptr;
 
-		bool assign = false;
-
-		ExprBinaryOp(Expr* left, Expr* right, Token* token, bool assign = false) :
-						left(left), right(right), token(token),assign(assign)
+		ExprBinaryOp(Expr* left, Expr* right, Token* token) :
+						left(left), right(right), token(token)
 											{ type = EXPR_BINARY_OP; }
 			
 		void set_token(Token* v)			{ token = v; }
 		Token* get_token()					{ return token; }
-		std::string get_name() override		{ return Lexer::STRIFY_TOKEN(token); };
+		std::string get_name()				{ return Lexer::STRIFY_TOKEN(token); };
 
 		static bool check_class(Base* i)	{ return i->type == EXPR_BINARY_OP; }
 	};
@@ -132,14 +130,14 @@ namespace ast
 	{
 		Expr* value = nullptr;
 
-		Token* op_token = nullptr;
+		Token* token = nullptr;
 
-		ExprUnaryOp(Token* op_token, Expr* value) : op_token(op_token), value(value)
+		ExprUnaryOp(Expr* value, Token* token) : value(value), token(token)
 											{ type = EXPR_UNARY_OP; }
 
-		void set_ty(Token* ty)				{}
-		Token* get_ty()						{ return nullptr; }
-		std::string get_name() override		{ return Lexer::STRIFY_TOKEN(op_token); };
+		void set_token(Token* v)			{ token = v; }
+		Token* get_token()					{ return token; }
+		std::string get_name()				{ return Lexer::STRIFY_TOKEN(token); };
 
 		static bool check_class(Base* i)	{ return i->type == EXPR_UNARY_OP; }
 	};

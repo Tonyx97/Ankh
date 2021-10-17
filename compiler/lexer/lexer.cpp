@@ -103,9 +103,15 @@ bool Lexer::run(const std::string& filename)
 						case Token_Id:
 						{
 							if (auto it = g_keywords.find(token_found); it != g_keywords.end())
+							{
 								curr_token->id = it->second;
+								curr_token->flags |= TokenFlag_Keyword;
+							}
 							else if (auto it_decl = g_keywords_type.find(token_found); it_decl != g_keywords_type.end())
+							{
 								curr_token->id = it_decl->second;
+								curr_token->flags |= TokenFlag_KeywordType;
+							}
 							else curr_token->id = token_type;
 
 							curr_token->value = token_found;
@@ -120,8 +126,6 @@ bool Lexer::run(const std::string& filename)
 									   unsigned_group = sm[3],
 									   size_group = sm[4];
 
-							const auto str_int_value = int_group.str();
-
 							if (unsigned_group.matched && size_group.matched)
 							{
 								curr_token->flags |= unsigned_group.str() == "u" ? TokenFlag_Unsigned : 0;
@@ -129,8 +133,8 @@ bool Lexer::run(const std::string& filename)
 							}
 							else curr_token->size = 32;
 
-							curr_token->value = str_int_value;
-							curr_token->int_value = std::stoull(str_int_value);
+							curr_token->value = token_found;
+							curr_token->int_value = std::stoull(int_group.str());
 
 							break;
 						}
@@ -218,12 +222,12 @@ void Lexer::push_and_pop_token(Token* token)
 Token* Lexer::eat_expect(TokenID expected_token)
 {
 	if (eof())
-		return {};
+		return nullptr;
 
 	if (auto curr = current(); curr->id != expected_token)
 	{
 		PRINT(Red, "Unexpected token '{}'", curr->value);
-		return {};
+		return nullptr;
 	}
 	else
 	{
@@ -236,12 +240,12 @@ Token* Lexer::eat_expect(TokenID expected_token)
 Token* Lexer::eat_expect_keyword_declaration()
 {
 	if (eof())
-		return {};
+		return nullptr;
 
 	if (auto curr = current(); !(curr->flags & TokenFlag_KeywordType))
 	{
 		PRINT(Red, "Unexpected token '{}'", curr->value);
-		return {};
+		return nullptr;
 	}
 	else
 	{
@@ -254,7 +258,7 @@ Token* Lexer::eat_expect_keyword_declaration()
 Token* Lexer::eat()
 {
 	if (eof())
-		return {};
+		return nullptr;
 
 	auto curr = current();
 

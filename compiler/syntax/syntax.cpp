@@ -137,7 +137,7 @@ ast::StmtBody* Syntax::parse_body(ast::StmtBody* body)
 		else break;
 	}
 
-	if (g_lexer->eat_expect(Token_BraceClose))
+	if (g_lexer->eat_expect(Token_BracketClose))
 		return curr_body;
 	
 	//parser_error("Expected a '}', got '%s'", g_lexer->eof() ? "EOF" : g_lexer->current_value().c_str());
@@ -274,8 +274,7 @@ ast::Expr* Syntax::parse_primary_expression()
 	{
 		g_lexer->eat();
 
-		return nullptr;
-		//return _ALLOC(ast::ExprUnaryOp, curr, parse_primary_expression());
+		return _ALLOC(ast::ExprUnaryOp, parse_primary_expression(), curr);
 	}
 	else if (g_lexer->is_current(Token_Id))
 	{
@@ -297,8 +296,7 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			return nullptr;
-			//return _ALLOC(ast::ExprBinaryOp, new ast::ExprId(curr->value), curr_token, Token_I32, parse_expression(), true);
+			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, curr->value), parse_expression(), curr);	//
 		}
 		case Token_ParenOpen:
 		{
