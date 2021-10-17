@@ -30,6 +30,9 @@
     <ClCompile Include="ast\ast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="syntax\syntax.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="defs.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rtti\rtti.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntax\syntax.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

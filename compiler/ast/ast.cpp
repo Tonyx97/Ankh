@@ -166,14 +166,14 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 {
 	switch (expr->token->id)
 	{
-	case Token_U8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u8", expr->value.u8);   break;
-	case Token_U16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u16", expr->value.u16); break;
-	case Token_U32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u32", expr->value.u32); break;
-	case Token_U64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u64", expr->value.u64); break;
-	case Token_I8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i8", expr->value.i8);   break;
-	case Token_I16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i16", expr->value.i16); break;
-	case Token_I32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i32", expr->value.i32); break;
-	case Token_I64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i64", expr->value.i64); break;
+	case Token_U8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u8", expr->token->u8);   break;
+	case Token_U16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u16", expr->token->u16); break;
+	case Token_U32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u32", expr->token->u32); break;
+	case Token_U64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u64", expr->token->u64); break;
+	case Token_I8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i8", expr->token->i8);   break;
+	case Token_I16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i16", expr->token->i16); break;
+	case Token_I32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i32", expr->token->i32); break;
+	case Token_I64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i64", expr->token->i64); break;
 	}
 }
 

@@ -67,6 +67,7 @@ enum TokenID : int
 	Token_I32,
 	Token_I64,
 	Token_M128,
+
 	Token_For,
 	Token_While,
 	Token_If,
@@ -80,39 +81,49 @@ enum TokenID : int
 	Token_None
 };
 
-enum TokenFlag : int
+enum TokenFlag : unsigned int
 {
 	TokenFlag_None			= 0,
 	TokenFlag_Op			= (1 << 0),
 	TokenFlag_Keyword		= (1 << 1),
 	TokenFlag_KeywordType	= (1 << 2),
+	TokenFlag_Unsigned		= (1 << 3),
 };
 
 struct Token
 {
 	static constexpr int LOWEST_PRECEDENCE = 16;
 
-	std::string value;
+	std::string value = "";
+
+	struct
+	{
+		uint64_t int_value = 0;
+
+		union
+		{
+			uint64_t u64;
+			uint32_t u32;
+			uint16_t u16;
+			uint8_t u8;
+
+			int64_t i64;
+			int32_t i32;
+			int16_t i16;
+			int8_t i8;
+		};
+	};
 
 	TokenID id = Token_None;
-	TokenFlag flags = TokenFlag_None;
+
+	uint32_t flags = TokenFlag_None;
 
 	int precedence = LOWEST_PRECEDENCE,
 		line = 0;
 
-	bool is_operator = false,
-		 valid = false;
-
-	template <typename T>
-	T get()
-	{
-		switch (id)
-		{
-		case Token_IntLiteral: return (int)std::atol(value.c_str());
-		}
-
-		return T {};
-	}
+	bool valid = false;
+	
+	int8_t size = 0;
 
 	Token& operator = (const Token& token)
 	{
@@ -120,10 +131,9 @@ struct Token
 		{
 			value = token.value;
 			id = token.id;
+			flags = token.flags;
 			precedence = token.precedence;
 			line = token.line;
-			is_operator = token.is_operator;
-
 			valid = true;
 		}
 
@@ -162,56 +172,56 @@ inline std::unordered_map<std::string, TokenID> g_keywords_type =
 
 inline Token g_static_tokens[] =
 {
-	{ ">>=", Token_ShrAssign, TokenFlag_Op, 14, 0 },
-	{ "<<=", Token_ShlAssign, TokenFlag_Op, 14, 0 },
+	{ .value = ">>=", .id = Token_ShrAssign, .flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = "<<=", .id = Token_ShlAssign, .flags = TokenFlag_Op, .precedence = 14 },
 
-	{ "==", Token_Equal,		TokenFlag_Op,  7, 0 },
-	{ "!=", Token_NotEqual,		TokenFlag_Op,  7, 0 },
-	{ ">=", Token_Gte,			TokenFlag_Op,  6, 0 },
-	{ "<=", Token_Lte,			TokenFlag_Op,  6, 0 },
-	{ "+=", Token_AddAssign,	TokenFlag_Op, 14, 0 },
-	{ "-=", Token_SubAssign,	TokenFlag_Op, 14, 0 },
-	{ "++", Token_Inc,			TokenFlag_Op,  1, 0 },
-	{ "--", Token_Dec,			TokenFlag_Op,  1, 0 },
-	{ "*=", Token_MulAssign,	TokenFlag_Op, 14, 0 },
-	{ "%=", Token_ModAssign,	TokenFlag_Op, 14, 0 },
-	{ "/=", Token_DivAssign,	TokenFlag_Op, 14, 0 },
-	{ "&=", Token_AndAssign,	TokenFlag_Op, 14, 0 },
-	{ "|=", Token_OrAssign,		TokenFlag_Op, 14, 0 },
-	{ "^=", Token_XorAssign,	TokenFlag_Op, 14, 0 },
-	{ "&&", Token_LogicalAnd,	TokenFlag_Op, 11, 0 },
-	{ "||", Token_LogicalOr,	TokenFlag_Op, 12, 0 },
-	{ ">>", Token_Shr,			TokenFlag_Op,  5, 0 },
-	{ "<<", Token_Shl,			TokenFlag_Op,  5, 0 },
+	{ .value = "==", .id = Token_Equal,			.flags = TokenFlag_Op, .precedence = 7 },
+	{ .value = "!=", .id = Token_NotEqual,		.flags = TokenFlag_Op, .precedence = 7 },
+	{ .value = ">=", .id = Token_Gte,			.flags = TokenFlag_Op, .precedence = 6 },
+	{ .value = "<=", .id = Token_Lte,			.flags = TokenFlag_Op, .precedence = 6 },
+	{ .value = "+=", .id = Token_AddAssign,		.flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = "-=", .id = Token_SubAssign,		.flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = "++", .id = Token_Inc,			.flags = TokenFlag_Op, .precedence = 1 },
+	{ .value = "--", .id = Token_Dec,			.flags = TokenFlag_Op, .precedence = 1 },
+	{ .value = "*=", .id = Token_MulAssign,		.flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = "%=", .id = Token_ModAssign,		.flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = "/=", .id = Token_DivAssign,		.flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = "&=", .id = Token_AndAssign,		.flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = "|=", .id = Token_OrAssign,		.flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = "^=", .id = Token_XorAssign,		.flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = "&&", .id = Token_LogicalAnd,	.flags = TokenFlag_Op, .precedence = 11 },
+	{ .value = "||", .id = Token_LogicalOr,		.flags = TokenFlag_Op, .precedence = 12 },
+	{ .value = ">>", .id = Token_Shr,			.flags = TokenFlag_Op, .precedence = 5 },
+	{ .value = "<<", .id = Token_Shl,			.flags = TokenFlag_Op, .precedence = 5 },
 
-	{ ";", Token_Semicolon },
-	{ ",", Token_Comma,			TokenFlag_None, 15 },
-	{ "(", Token_ParenOpen,		TokenFlag_None,  1 },
-	{ ")", Token_ParenClose,	TokenFlag_None,  1 },
-	{ "{", Token_BracketOpen },
-	{ "}", Token_BracketClose },
-	{ "[", Token_BraceOpen,		TokenFlag_Op,  1, 0 },
-	{ "]", Token_BraceClose,	TokenFlag_Op,  1, 0 },
-	{ "+", Token_Add,			TokenFlag_Op,  4, 0 },
-	{ "-", Token_Sub,			TokenFlag_Op,  4, 0 },
-	{ "*", Token_Mul,			TokenFlag_Op,  3, 0 },
-	{ "%", Token_Mod,			TokenFlag_Op,  3, 0 },
-	{ "/", Token_Div,			TokenFlag_Op,  3, 0 },
-	{ "&", Token_And,			TokenFlag_Op,  8, 0 },
-	{ "|", Token_Or,			TokenFlag_Op, 10, 0 },
-	{ "^", Token_Xor,			TokenFlag_Op,  9, 0 },
-	{ "~", Token_Not,			TokenFlag_Op,  2, 0 },
-	{ "!", Token_LogicalNot,	TokenFlag_Op,  2, 0 },
-	{ "=", Token_Assign,		TokenFlag_Op, 14, 0 },
-	{ ">", Token_Gt,			TokenFlag_Op,  6, 0 },
-	{ "<", Token_Lt,			TokenFlag_Op,  6, 0 },
+	{ .value = ";", .id = Token_Semicolon },
+	{ .value = ",", .id = Token_Comma,		.flags = TokenFlag_None, .precedence = 15 },
+	{ .value = "(", .id = Token_ParenOpen,	.flags = TokenFlag_None, .precedence = 1 },
+	{ .value = ")", .id = Token_ParenClose,	.flags = TokenFlag_None, .precedence = 1 },
+	{ .value = "{", .id = Token_BracketOpen },
+	{ .value = "}", .id = Token_BracketClose },
+	{ .value = "[", .id = Token_BraceOpen,	.flags = TokenFlag_Op, .precedence = 1 },
+	{ .value = "]", .id = Token_BraceClose,	.flags = TokenFlag_Op, .precedence = 1 },
+	{ .value = "+", .id = Token_Add,		.flags = TokenFlag_Op, .precedence = 4 },
+	{ .value = "-", .id = Token_Sub,		.flags = TokenFlag_Op, .precedence = 4 },
+	{ .value = "*", .id = Token_Mul,		.flags = TokenFlag_Op, .precedence = 3 },
+	{ .value = "%", .id = Token_Mod,		.flags = TokenFlag_Op, .precedence = 3 },
+	{ .value = "/", .id = Token_Div,		.flags = TokenFlag_Op, .precedence = 3 },
+	{ .value = "&", .id = Token_And,		.flags = TokenFlag_Op, .precedence = 8 },
+	{ .value = "|", .id = Token_Or,			.flags = TokenFlag_Op, .precedence = 10 },
+	{ .value = "^", .id = Token_Xor,		.flags = TokenFlag_Op, .precedence = 9 },
+	{ .value = "~", .id = Token_Not,		.flags = TokenFlag_Op, .precedence = 2 },
+	{ .value = "!", .id = Token_LogicalNot,	.flags = TokenFlag_Op, .precedence = 2 },
+	{ .value = "=", .id = Token_Assign,		.flags = TokenFlag_Op, .precedence = 14 },
+	{ .value = ">", .id = Token_Gt,			.flags = TokenFlag_Op, .precedence = 6 },
+	{ .value = "<", .id = Token_Lt,			.flags = TokenFlag_Op, .precedence = 6 },
 };
 
 namespace regex
 {
 	static inline std::regex SINGLE_COMMENT("\\/{2}.*$"),
-								WORD("\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"),
-								INT_LITERAL("(\\-)?[0-9]{1,20}((u|i)(8|16|32|64))?");
+							 WORD("\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"),
+							 INT_LITERAL("([0-9]{1,20})((u|i)(8|16|32|64))?");
 }
 
 class Lexer
@@ -238,8 +248,11 @@ public:
 	{
 		errors.push_back(std::format(format, args...));
 	}
-
-	bool is_current(TokenID id)						{ return (current_token() == id); }
+	
+	bool is_token_operator()						{ return (current()->flags & TokenFlag_Op); }
+	bool is_token_keyword()							{ return (current()->flags & TokenFlag_Keyword); }
+	bool is_token_keyword_type()					{ return (current()->flags & TokenFlag_KeywordType); }
+	bool is_current(TokenID id)						{ return (current_token_id() == id); }
 	bool is_next(TokenID id)						{ return (next_token() == id); }
 	bool is(Token* token, TokenID id)				{ return (token->id == id); }
 	bool eof()										{ return tokens.empty(); }
@@ -249,7 +262,7 @@ public:
 	Token* eat();
 	Token* current() const							{ return (tokens.empty() ? nullptr : tokens.back()); }
 
-	TokenID current_token() const					{ return (tokens.empty() ? Token_Eof : tokens.back()->id); }
+	TokenID current_token_id() const				{ return (tokens.empty() ? Token_Eof : tokens.back()->id); }
 	TokenID next_token() const						{ return (tokens.size() < 2 ? Token_Eof : (*(tokens.rbegin() + 1))->id); }
 		
 	const size_t get_tokens_count() const			{ return tokens.size(); }
@@ -356,3 +369,5 @@ public:
 		return STRIFY_TOKEN(token->id);
 	}
 };
+
+inline std::unique_ptr<Lexer> g_lexer;

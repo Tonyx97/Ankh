@@ -108,16 +108,33 @@ bool Lexer::run(const std::string& filename)
 								curr_token->id = it_decl->second;
 							else curr_token->id = token_type;
 
+							curr_token->value = token_found;
+
 							break;
 						}
 						case Token_IntLiteral:
 						{
 							curr_token->id = token_type;
+
+							const auto int_group = sm[1],
+									   unsigned_group = sm[3],
+									   size_group = sm[4];
+
+							const auto str_int_value = int_group.str();
+
+							if (unsigned_group.matched && size_group.matched)
+							{
+								curr_token->flags |= unsigned_group.str() == "u" ? TokenFlag_Unsigned : 0;
+								curr_token->size = std::stoi(size_group.str());
+							}
+							else curr_token->size = 32;
+
+							curr_token->value = str_int_value;
+							curr_token->int_value = std::stoull(str_int_value);
+
 							break;
 						}
 						}
-
-						curr_token->value = token_found;
 
 						return true;
 					}
