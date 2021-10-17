@@ -1,0 +1,15 @@
+.vs
+*.png
+*.fbx
+*.tga
+*.jpg
+*.tmp
+*.exe
+*.exp
+*.pdb
+*.ini
+*.zip
+*.log
+*.vcxproj.user
+*.user
+build/
