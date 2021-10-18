@@ -97,22 +97,19 @@ struct Token
 
 	std::string value = "";
 
-	struct
+	union
 	{
-		uint64_t int_value = 0;
+		uint64_t u64;
+		int64_t i64;
 
-		union
-		{
-			uint64_t u64;
-			uint32_t u32;
-			uint16_t u16;
-			uint8_t u8;
+		uint32_t u32;
+		int32_t i32;
 
-			int64_t i64;
-			int32_t i32;
-			int16_t i16;
-			int8_t i8;
-		};
+		uint16_t u16;
+		int16_t i16;
+
+		uint8_t u8;
+		int8_t i8;
 	};
 
 	TokenID id = Token_None;

@@ -23,7 +23,7 @@ void ast::Printer::print_prototype(Prototype* prototype)
 
 		print_vec<ExprDeclOrAssign>(Green, prototype->params, ", ", [](ExprDeclOrAssign* e)
 		{
-			return Lexer::STRIFY_TYPE(e->token) + " " + e->name;
+			return Lexer::STRIFY_TYPE(e->get_token()) + " " + e->get_name();
 		});
 	}
 
@@ -48,7 +48,7 @@ void ast::Printer::print_body(StmtBody* body)
 
 	PRINT_TABS_NL(Cyan, curr_level, "Body");
 
-	for (auto&& stmt_base : body->stmts)
+	for (auto stmt_base : body->stmts)
 		print_stmt(stmt_base);
 
 	PRINT_TABS_NL(Cyan, curr_level, "End");
@@ -80,7 +80,7 @@ void ast::Printer::print_if(StmtIf* stmt_if)
 
 	print_body(stmt_if->if_body);
 
-	for (auto&& else_if : stmt_if->ifs)
+	for (auto else_if : stmt_if->ifs)
 	{
 		PRINT_TABS_NL(Blue, curr_level, "Else If");
 
@@ -142,19 +142,19 @@ void ast::Printer::print_expr(Expr* expr)
 
 void ast::Printer::print_decl_or_assign(ExprDeclOrAssign* assign)
 {
-	if (assign->token)
+	if (assign->type_token)
 	{
-		PRINT_TABS_NL(Yellow, curr_level, "Declaration assignment '{}' ({})", assign->name, Lexer::STRIFY_TYPE(assign->token));
+		PRINT_TABS_NL(Yellow, curr_level, "Declaration assignment '{}' ({})", assign->get_name(), Lexer::STRIFY_TYPE(assign->get_token()));
 	}
 	else
 	{
 		if (assign->value)
 		{
-			PRINT_TABS_NL(Yellow, curr_level, "Assignment '{}'", assign->name);
+			PRINT_TABS_NL(Yellow, curr_level, "Assignment '{}'", assign->get_name());
 		}
 		else
 		{
-			PRINT_TABS_NL(Yellow, curr_level, "Declaration '{}'", assign->name);
+			PRINT_TABS_NL(Yellow, curr_level, "Declaration '{}'", assign->get_name());
 		}
 	}
 
@@ -164,22 +164,31 @@ void ast::Printer::print_decl_or_assign(ExprDeclOrAssign* assign)
 
 void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 {
-	switch (expr->token->id)
+	if (expr->token->flags & TokenFlag_Unsigned)
 	{
-	case Token_U8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u8", expr->token->u8);   break;
-	case Token_U16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u16", expr->token->u16); break;
-	case Token_U32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u32", expr->token->u32); break;
-	case Token_U64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u64", expr->token->u64); break;
-	case Token_I8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i8", expr->token->i8);   break;
-	case Token_I16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i16", expr->token->i16); break;
-	case Token_I32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i32", expr->token->i32); break;
-	case Token_I64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i64", expr->token->i64); break;
+		switch (expr->token->size)
+		{
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u8", expr->token->u8);   break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u16", expr->token->u16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u32", expr->token->u32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u64", expr->token->u64); break;
+		}
+	}
+	else
+	{
+		switch (expr->token->size)
+		{
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i8", expr->token->i8);   break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i16", expr->token->i16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i32", expr->token->i32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i64", expr->token->i64); break;
+		}
 	}
 }
 
 void ast::Printer::print_id(ast::ExprId* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Id '{}'", expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "Id '{}'", expr->get_name());
 }
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
@@ -225,9 +234,9 @@ void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 
 void ast::Printer::print_expr_call(ExprCall* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Prototype Call ({})", expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "Prototype Call ({})", expr->get_name());
 
-	for (auto&& param : expr->stmts)
+	for (auto param : expr->stmts)
 	{
 		if (auto call = rtti::cast<ExprCall>(param))
 		{

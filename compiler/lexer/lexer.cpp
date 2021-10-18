@@ -134,7 +134,7 @@ bool Lexer::run(const std::string& filename)
 							else curr_token->size = 32;
 
 							curr_token->value = token_found;
-							curr_token->int_value = std::stoull(int_group.str());
+							curr_token->u64 = std::stoull(int_group.str());
 
 							break;
 						}

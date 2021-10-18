@@ -81,7 +81,7 @@ std::vector<ast::Base*> Syntax::parse_prototype_params_decl()
 		if (!param_id)
 			break;
 
-		stmts.push_back(_ALLOC(ast::ExprDeclOrAssign, param_id->value, nullptr, param_type));
+		stmts.push_back(_ALLOC(ast::ExprDeclOrAssign, param_id, param_type));
 
 		if (!g_lexer->is_current(Token_Comma))
 			break;
@@ -154,10 +154,10 @@ ast::Base* Syntax::parse_statement()
 			if (g_lexer->is_current(Token_Assign))
 			{
 				g_lexer->eat();
-				return _ALLOC(ast::ExprDeclOrAssign, id->value, parse_expression(), type);
+				return _ALLOC(ast::ExprDeclOrAssign, id, type, parse_expression());
 			}
 
-			return _ALLOC(ast::ExprDeclOrAssign, id->value, nullptr, type);
+			return _ALLOC(ast::ExprDeclOrAssign, id, type);
 		}
 		else printf_s("[%s] SYNTAX ERROR: Expected an identifier\n", __FUNCTION__);
 	}
@@ -213,9 +213,7 @@ ast::Base* Syntax::parse_statement()
 			return _ALLOC(ast::StmtFor, condition, init, step, parse_body(nullptr));
 		}
 		else if (type->id == Token_Return)
-		{
 			return _ALLOC(ast::StmtReturn, g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression());
-		}
 	}
 	
 	return parse_expression();
@@ -284,7 +282,7 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			return _ALLOC(ast::ExprDeclOrAssign, id->value, parse_expression());
+			return _ALLOC(ast::ExprDeclOrAssign, id, nullptr, parse_expression());
 		}
 		case Token_AddAssign:
 		case Token_SubAssign:
@@ -294,13 +292,13 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, curr->value), parse_expression(), curr);
+			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, id), parse_expression(), id);
 		}
 		case Token_ParenOpen:
 		{
 			g_lexer->eat();
 
-			auto call = _ALLOC(ast::ExprCall, curr->value, false);	// todo
+			auto call = _ALLOC(ast::ExprCall, id, false);	// todo
 
 			call->stmts = parse_call_params();
 
@@ -310,7 +308,7 @@ ast::Expr* Syntax::parse_primary_expression()
 		}
 		}
 
-		return _ALLOC(ast::ExprId, curr->value);
+		return _ALLOC(ast::ExprId, id);
 	}
 	else if (g_lexer->is_current(Token_ParenOpen))
 	{

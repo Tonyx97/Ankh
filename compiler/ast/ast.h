@@ -64,16 +64,13 @@ namespace ast
 	*/
 	struct ExprId : public Expr
 	{
-		std::string name;
-
 		Token* token = nullptr;
 
-		ExprId(const std::string& name) : name(name)
-											{ type = EXPR_ID; }
+		ExprId(Token* token) : token(token) { type = EXPR_ID; }
 			
 		void set_token(Token* v)			{ token = v; }
 		Token* get_token()					{ return token; }
-		std::string get_name()				{ return name; }
+		std::string get_name()				{ return token->value; }
 
 		static bool check_class(Base* i)	{ return i->type == EXPR_ID; }
 	};
@@ -83,21 +80,20 @@ namespace ast
 	*/
 	struct ExprDeclOrAssign : public Expr
 	{
-		std::string name;
-
 		Expr* value = nullptr;
 
-		Token* token = nullptr;
+		Token* id_token = nullptr,
+			 * type_token = nullptr;
 
-		ExprDeclOrAssign(const std::string& name, Expr* value = nullptr, Token* token = nullptr) :
-							name(name), value(value), token(token)
+		ExprDeclOrAssign(Token* id_token, Token* type_token = nullptr, Expr* value = nullptr) :
+							id_token(id_token), type_token(type_token), value(value)
 													{ type = EXPR_DECL_OR_ASSIGN; }
 
-		bool is_declaration() const					{ return !!token; }
+		bool is_declaration() const					{ return !!type_token; }
 			
-		void set_token(Token* v)					{ token = v; }
-		Token* get_token()							{ return token; }
-		std::string get_name()						{ return name; }
+		void set_token(Token* v)					{ type_token = v; }
+		Token* get_token()							{ return type_token; }
+		std::string get_name()						{ return id_token->value; }
 
 		static bool check_class(Base* i)			{ return i->type == EXPR_DECL_OR_ASSIGN; }
 	};
@@ -147,22 +143,21 @@ namespace ast
 	*/
 	struct ExprCall : public Expr
 	{
-		std::string name;
-
 		std::vector<Expr*> stmts;
 
-		Token* ret_token = nullptr;
+		Token* id_token = nullptr,
+			 * ret_token = nullptr;
 
 		struct Prototype* prototype = nullptr;
 
 		bool built_in = false;
 
-		ExprCall(const std::string& name, bool built_in = false)
-					: name(name), built_in(built_in)		{ type = EXPR_CALL; }
+		ExprCall(Token* id_token, bool built_in = false) : id_token(id_token), built_in(built_in)
+														{ type = EXPR_CALL; }
 			
 		void set_token(Token* v)						{ ret_token = v;}
 		Token* get_token()								{ return ret_token; }
-		std::string get_name() override					{ return name; }
+		std::string get_name() override					{ return id_token->value; }
 
 		static bool check_class(Base* i)				{ return i->type == EXPR_CALL; }
 	};
@@ -175,6 +170,11 @@ namespace ast
 		std::vector<Base*> stmts;
 
 		StmtBody()						 { type = STMT_BODY; }
+		~StmtBody()
+		{
+			for (auto stmt : stmts)
+				_FREE(stmt);
+		}
 
 		static bool check_class(Base* i) { return i->type == STMT_BODY; }
 	};
@@ -242,6 +242,7 @@ namespace ast
 		Token* ret_token = nullptr;
 
 		Prototype(const std::string& name) : name(name)		{}
+		~Prototype()										{ _FREE(body); }
 
 		bool is_declaration() const							{ return !body; }
 	};
