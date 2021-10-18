@@ -1,8 +1,10 @@
 i32 gvar = 0;
 
-void test(i32 t)
+i32 gay() { return 0; }
+
+i32 test(i32 t)
 {
-	return t + 1;
+	return gay();
 }
 
 void main()

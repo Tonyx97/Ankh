@@ -136,7 +136,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 			if (!analyze_expr(current_param))
 				return false;
 
-			if (original_param->type_token->id != current_param->get_token()->id)
+			if (!original_param->type_token->equal_to(current_param->get_token()))
 				add_error("Argument of type '{}' is incompatible with parameter of type '{}'",
 						  Lexer::STRIFY_TYPE(current_param->get_token()),
 						  Lexer::STRIFY_TYPE(original_param->type_token));
@@ -183,10 +183,12 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 	if (stmt_return->expr && !analyze_expr(stmt_return->expr))
 		return false;
 
-	if (stmt_return->expr ? stmt_return->expr->get_token() == pi.curr_prototype->ret_token : pi.curr_prototype->ret_token->id == Token_Void)
+	if (stmt_return->expr ? pi.curr_prototype->ret_token->equal_to(stmt_return->expr->get_token()) : pi.curr_prototype->ret_token->equal_to(Token_Void))
 		return true;
 
-	add_error("There is no valid conversion from '{}' to '{}'", Lexer::STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->get_token()->id : Token_Void), Lexer::STRIFY_TYPE(pi.curr_prototype->ret_token));
+	add_error("There is no valid conversion from '{}' to '{}'",
+		Lexer::STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->get_token()->id : Token_Void),
+		Lexer::STRIFY_TYPE(pi.curr_prototype->ret_token));
 
 	return false;
 }

@@ -123,6 +123,9 @@ struct Token
 	
 	int8_t size = 0;
 
+	bool equal_to(Token* token) const	{ return id == token->id; }
+	bool equal_to(TokenID v) const		{ return id == v; }
+
 	Token& operator = (const Token& token)
 	{
 		if (this != std::addressof(token))
