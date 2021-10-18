@@ -6,11 +6,8 @@
 
 void ast::Printer::print(AST* tree)
 {
-	for (auto var : tree->global_vars)
-		print_global_var(var);
-
-	for (auto prototype : tree->prototypes)
-		print_prototype(prototype);
+	for (auto var : tree->global_vars)		print_global_var(var);
+	for (auto prototype : tree->prototypes) print_prototype(prototype);
 }
 
 void ast::Printer::print_global_var(ExprGlobalVar* var)
@@ -69,16 +66,11 @@ void ast::Printer::print_body(StmtBody* body)
 
 void ast::Printer::print_stmt(Base* stmt)
 {
-	if (auto body = rtti::cast<StmtBody>(stmt))
-		print_body(body);
-	else if (auto stmt_if = rtti::cast<StmtIf>(stmt))
-		print_if(stmt_if);
-	else if (auto stmt_for = rtti::cast<StmtFor>(stmt))
-		print_for(stmt_for);
-	else if (auto stmt_return = rtti::cast<StmtReturn>(stmt))
-		print_return(stmt_return);
-	else if (auto expr = rtti::cast<Expr>(stmt))
-		print_expr(expr);
+	if (auto body = rtti::cast<StmtBody>(stmt))					print_body(body);
+	else if (auto stmt_if = rtti::cast<StmtIf>(stmt))			print_if(stmt_if);
+	else if (auto stmt_for = rtti::cast<StmtFor>(stmt))			print_for(stmt_for);
+	else if (auto stmt_return = rtti::cast<StmtReturn>(stmt))	print_return(stmt_return);
+	else if (auto expr = rtti::cast<Expr>(stmt))				print_expr(expr);
 }
 
 void ast::Printer::print_if(StmtIf* stmt_if)
@@ -135,18 +127,12 @@ void ast::Printer::print_expr(Expr* expr)
 {
 	++curr_level;
 
-	if (auto int_literal = rtti::cast<ExprIntLiteral>(expr))
-		print_expr_int(int_literal);
-	else if (auto id = rtti::cast<ExprId>(expr))
-		print_id(id);
-	else if (auto decl_or_assign = rtti::cast<ExprDeclOrAssign>(expr))
-		print_decl_or_assign(decl_or_assign);
-	else if (auto binary_op = rtti::cast<ExprBinaryOp>(expr))
-		print_expr_binary_op(binary_op);
-	else if (auto unary_op = rtti::cast<ExprUnaryOp>(expr))
-		print_expr_unary_op(unary_op);
-	else if (auto call = rtti::cast<ExprCall>(expr))
-		print_expr_call(call);
+	if (auto int_literal = rtti::cast<ExprIntLiteral>(expr))			print_expr_int(int_literal);
+	else if (auto id = rtti::cast<ExprId>(expr))						print_id(id);
+	else if (auto decl_or_assign = rtti::cast<ExprDeclOrAssign>(expr))	print_decl_or_assign(decl_or_assign);
+	else if (auto binary_op = rtti::cast<ExprBinaryOp>(expr))			print_expr_binary_op(binary_op);
+	else if (auto unary_op = rtti::cast<ExprUnaryOp>(expr))				print_expr_unary_op(unary_op);
+	else if (auto call = rtti::cast<ExprCall>(expr))					print_expr_call(call);
 
 	--curr_level;
 }
@@ -210,10 +196,8 @@ void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 
 	PRINT_TABS_NL(Yellow, curr_level, "Value '{}'", expr->value->get_name());
 
-	if (auto value = rtti::cast<ExprBinaryOp>(expr->value))
-		print_expr_binary_op(value);
-	else if (auto value_unary = rtti::cast<ExprUnaryOp>(expr->value))
-		print_expr_unary_op(value_unary);
+	if (auto value = rtti::cast<ExprBinaryOp>(expr->value))				print_expr_binary_op(value);
+	else if (auto value_unary = rtti::cast<ExprUnaryOp>(expr->value))	print_expr_unary_op(value_unary);
 
 	--curr_level;
 }
@@ -227,18 +211,14 @@ void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 	if (expr->left)
 		PRINT_TABS_NL(Yellow, curr_level, "Left operand '{}'", expr->left->get_name());
 
-	if (auto left = rtti::cast<ExprBinaryOp>(expr->left))
-		print_expr_binary_op(left);
-	else if (auto left_unary = rtti::cast<ExprUnaryOp>(expr->left))
-		print_expr_unary_op(left_unary);
+	if (auto left = rtti::cast<ExprBinaryOp>(expr->left))			print_expr_binary_op(left);
+	else if (auto left_unary = rtti::cast<ExprUnaryOp>(expr->left)) print_expr_unary_op(left_unary);
 
 	if (expr->right)
 		PRINT_TABS_NL(Yellow, curr_level, "Right operand '{}'", expr->right->get_name());
 
-	if (auto right = rtti::cast<ExprBinaryOp>(expr->right))
-		print_expr_binary_op(right);
-	else if (auto right_unary = rtti::cast<ExprUnaryOp>(expr->right))
-		print_expr_unary_op(right_unary);
+	if (auto right = rtti::cast<ExprBinaryOp>(expr->right))				print_expr_binary_op(right);
+	else if (auto right_unary = rtti::cast<ExprUnaryOp>(expr->right))	print_expr_unary_op(right_unary);
 
 	--curr_level;
 }
