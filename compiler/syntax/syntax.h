@@ -17,9 +17,9 @@ public:
 
 	bool run();
 
-	ast::Prototype* parse_prototype();
 	std::vector<ast::Base*> parse_prototype_params_decl();
 	std::vector<ast::Expr*> parse_call_params();
+
 	ast::StmtBody* parse_body(ast::StmtBody* body);
 	ast::Base* parse_statement();
 	ast::Expr* parse_expression();

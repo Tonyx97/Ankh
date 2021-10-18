@@ -21,50 +21,47 @@ bool Syntax::run()
 {
 	while (!g_lexer->eof())
 	{
-		if (auto prototype = parse_prototype())
-			tree->prototypes.push_back(prototype);
+		if (auto type = g_lexer->eat_expect_keyword_declaration())
+		{
+			if (auto id = g_lexer->eat_expect(Token_Id))
+			{
+				if (auto next = g_lexer->eat(); next->id == Token_ParenOpen)
+				{
+					auto prototype = _ALLOC(ast::Prototype, id);
+
+					prototype->params = parse_prototype_params_decl();
+					prototype->ret_token = type;
+
+					if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
+					{
+						if (!g_lexer->is_current(Token_Semicolon))
+						{
+							if (prototype->body = parse_body(nullptr))
+								tree->prototypes.push_back(prototype);
+							else printf_s("Failed parsing main prototype body\n");
+						}
+						else
+						{
+							g_lexer->eat();
+
+							return prototype;
+						}
+					}
+				}
+				else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
+				{
+					tree->global_vars.push_back(_ALLOC(ast::ExprGlobalVar, id, type, global_var_decl ? nullptr : parse_expression()));
+
+					if (g_lexer->is_current(Token_Semicolon))
+						g_lexer->eat();
+				}
+			}
+			else printf_s("[%s] SYNTAX ERROR: Expected function id\n", __FUNCTION__);
+		}
+		else printf_s("[%s] SYNTAX ERROR: Expected a return type\n", __FUNCTION__);
 	}
 
 	return true;
-}
-
-ast::Prototype* Syntax::parse_prototype()
-{
-	if (auto ret_token = g_lexer->eat_expect_keyword_declaration())
-	{
-		if (auto id = g_lexer->eat_expect(Token_Id))
-		{
-			if (auto paren_open = g_lexer->eat_expect(Token_ParenOpen))
-			{
-				auto prototype = _ALLOC(ast::Prototype, id);
-
-				prototype->params = parse_prototype_params_decl();
-				prototype->ret_token = ret_token;
-
-				if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
-				{
-					if (!g_lexer->is_current(Token_Semicolon))
-					{
-						if (prototype->body = parse_body(nullptr))
-							return prototype;
-						else printf_s("Failed parsing main prototype body\n");
-					}
-					else
-					{
-						g_lexer->eat();
-
-						return prototype;
-					}
-				}
-
-				_FREE(prototype);
-			}
-		}
-		else printf_s("[%s] SYNTAX ERROR: Expected function id\n", __FUNCTION__);
-	}
-	else printf_s("[%s] SYNTAX ERROR: Expected a return type\n", __FUNCTION__);
-
-	return nullptr;
 }
 
 std::vector<ast::Base*> Syntax::parse_prototype_params_decl()

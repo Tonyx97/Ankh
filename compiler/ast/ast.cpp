@@ -6,8 +6,19 @@
 
 void ast::Printer::print(AST* tree)
 {
+	for (auto var : tree->global_vars)
+		print_global_var(var);
+
 	for (auto prototype : tree->prototypes)
 		print_prototype(prototype);
+}
+
+void ast::Printer::print_global_var(ExprGlobalVar* var)
+{
+	PRINT_TABS_NL(Yellow, curr_level, "Global Declaration assignment '{}' ({})", var->get_name(), Lexer::STRIFY_TYPE(var->get_token()));
+
+	if (var->value)
+		print_expr(var->value);
 }
 
 void ast::Printer::print_prototype(Prototype* prototype)

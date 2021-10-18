@@ -11,6 +11,7 @@ namespace ast
 			EXPR_INT_LITERAL,
 			EXPR_ID,
 			EXPR_DECL_OR_ASSIGN,
+			EXPR_GLOBAL_VAR,
 			EXPR_BINARY_OP,
 			EXPR_UNARY_OP,
 			EXPR_CALL,
@@ -90,10 +91,31 @@ namespace ast
 		ExprDeclOrAssign(Token* id_token, Token* type_token = nullptr, Expr* value = nullptr) :
 							id_token(id_token), type_token(type_token), value(value)
 													{ type = EXPR_DECL_OR_ASSIGN; }
-		~ExprDeclOrAssign()
-		{
-			_FREE(value);
-		}
+		~ExprDeclOrAssign()							{ _FREE(value); }
+
+		bool is_declaration() const					{ return !!type_token; }
+			
+		void set_token(Token* v)					{ type_token = v; }
+		Token* get_token()							{ return type_token; }
+		std::string get_name()						{ return id_token->value; }
+
+		static bool check_class(Base* i)			{ return i->type == EXPR_DECL_OR_ASSIGN; }
+	};
+
+	/*
+	* ExprGlobalVar (same as ExprDeclOrAssign for now, this class might be helpful in the future)
+	*/
+	struct ExprGlobalVar : public Expr
+	{
+		Expr* value = nullptr;
+
+		Token* id_token = nullptr,
+			 * type_token = nullptr;
+
+		ExprGlobalVar(Token* id_token, Token* type_token = nullptr, Expr* value = nullptr) :
+							id_token(id_token), type_token(type_token), value(value)
+													{ type = EXPR_GLOBAL_VAR; }
+		~ExprGlobalVar()							{ _FREE(value); }
 
 		bool is_declaration() const					{ return !!type_token; }
 			
@@ -270,12 +292,13 @@ namespace ast
 
 	struct AST
 	{
+		std::vector<ExprGlobalVar*> global_vars;
 		std::vector<Prototype*> prototypes;
 
 		~AST()
 		{
-			for (auto prototype : prototypes)
-				_FREE(prototype);
+			for (auto prototype : prototypes)	_FREE(prototype);
+			for (auto var : global_vars)		_FREE(var);
 		}
 	};
 
@@ -286,18 +309,19 @@ namespace ast
 		bool first_prototype_printed = false;
 
 		void print(AST* tree);
+		void print_global_var(ExprGlobalVar* var);
 		void print_prototype(Prototype* prototype);
-		void print_body(ast::StmtBody* body);
-		void print_stmt(ast::Base* stmt);
-		void print_if(ast::StmtIf* stmt_if);
-		void print_for(ast::StmtFor* stmt_for);
-		void print_return(ast::StmtReturn* stmt_return);
-		void print_expr(ast::Expr* expr);
-		void print_decl_or_assign(ast::ExprDeclOrAssign* assign);
-		void print_expr_int(ast::ExprIntLiteral* expr);
-		void print_id(ast::ExprId* expr);
-		void print_expr_unary_op(ast::ExprUnaryOp* expr);
-		void print_expr_binary_op(ast::ExprBinaryOp* expr);
-		void print_expr_call(ast::ExprCall* expr);
+		void print_body(StmtBody* body);
+		void print_stmt(Base* stmt);
+		void print_if(StmtIf* stmt_if);
+		void print_for(StmtFor* stmt_for);
+		void print_return(StmtReturn* stmt_return);
+		void print_expr(Expr* expr);
+		void print_decl_or_assign(ExprDeclOrAssign* assign);
+		void print_expr_int(ExprIntLiteral* expr);
+		void print_id(ExprId* expr);
+		void print_expr_unary_op(ExprUnaryOp* expr);
+		void print_expr_binary_op(ExprBinaryOp* expr);
+		void print_expr_call(ExprCall* expr);
 	};
 }
