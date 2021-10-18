@@ -136,10 +136,10 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 			if (!analyze_expr(current_param))
 				return false;
 
-			if (original_param->type_token != current_param->get_token())
+			if (original_param->type_token->id != current_param->get_token()->id)
 				add_error("Argument of type '{}' is incompatible with parameter of type '{}'",
-						  Lexer::STRIFY_TYPE(current_param->get_token()).c_str(),
-						  Lexer::STRIFY_TYPE(original_param->id_token).c_str());
+						  Lexer::STRIFY_TYPE(current_param->get_token()),
+						  Lexer::STRIFY_TYPE(original_param->type_token));
 		}
 
 		call->prototype = prototype;

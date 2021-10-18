@@ -253,6 +253,16 @@ ast::Expr* Syntax::parse_primary_expression()
 	{
 		g_lexer->eat();
 
+		// change the int literal type to the specific one
+
+		switch (curr->size)
+		{
+		case 8:		curr->id = (curr->flags & TokenFlag_Unsigned) ? Token_U8  : Token_I8;  break;
+		case 16:	curr->id = (curr->flags & TokenFlag_Unsigned) ? Token_U16 : Token_I16; break;
+		case 32:	curr->id = (curr->flags & TokenFlag_Unsigned) ? Token_U32 : Token_I32; break;
+		case 64:	curr->id = (curr->flags & TokenFlag_Unsigned) ? Token_U64 : Token_I64; break;
+		}
+
 		return _ALLOC(ast::ExprIntLiteral, curr);
 	}
 	else if (g_lexer->is_current(Token_Sub) ||
