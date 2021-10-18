@@ -1,8 +1,8 @@
 i32 gvar = 0;
-i32 gvar2 = 1 + 1;
 
 void main()
 {
-	i32 i = 1 * (2 + (4 + 5) * 3);
-	test(1, i);
+	i32 i = 1 + 1;
+	
+	test(i, 1);
 }

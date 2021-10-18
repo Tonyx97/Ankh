@@ -2,6 +2,7 @@
 
 #include <lexer/lexer.h>
 #include <syntax/syntax.h>
+#include <semantic/semantic.h>
 
 int main()
 {
@@ -9,6 +10,7 @@ int main()
 
 	g_lexer = std::make_unique<Lexer>();
 	g_syntax = std::make_unique<Syntax>();
+	g_semantic = std::make_unique<Semantic>();
 
 	PRINT(Cyan, "---------- Lexic Analysis ----------");
 
@@ -27,6 +29,18 @@ int main()
 
 	g_syntax->print_ast();
 
+	PRINT(Cyan, "\n---------- Semantic Analysis ----------");
+
+	if (!g_semantic->run())
+	{
+		g_semantic->print_errors();
+
+		goto finish_compiling;
+	}
+
+finish_compiling:
+
+	g_semantic.reset();
 	g_syntax.reset();
 	g_lexer.reset();
 

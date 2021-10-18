@@ -35,17 +35,11 @@ void ast::Printer::print_prototype(Prototype* prototype)
 		});
 	}
 
-	const bool declaration = prototype->is_declaration();
+	PRINT_NL;
 
-	if (declaration)
-		PRINT_TABS(White, 0, " (Declaration)");
-	else PRINT_NL;
+	print_body(prototype->body);
 
-	if (prototype->body)
-		print_body(prototype->body);
-
-	if (!declaration)
-		PRINT_TABS_NL(White, curr_level, "End");
+	PRINT_TABS_NL(White, curr_level, "End");
 
 	first_prototype_printed = true;
 }

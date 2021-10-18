@@ -286,8 +286,6 @@ namespace ast
 
 			_FREE(body);
 		}
-
-		bool is_declaration() const							{ return !body; }
 	};
 
 	struct AST

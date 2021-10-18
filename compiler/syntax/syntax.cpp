@@ -17,7 +17,7 @@ void Syntax::print_ast()
 	ast::Printer().print(tree);
 }
 
-bool Syntax::run()
+void Syntax::run()
 {
 	while (!g_lexer->eof())
 	{
@@ -34,18 +34,10 @@ bool Syntax::run()
 
 					if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
 					{
-						if (!g_lexer->is_current(Token_Semicolon))
-						{
-							if (prototype->body = parse_body(nullptr))
-								tree->prototypes.push_back(prototype);
-							else printf_s("Failed parsing main prototype body\n");
-						}
-						else
-						{
-							g_lexer->eat();
+						if (!(prototype->body = parse_body(nullptr)))
+							printf_s("[%s] SYNTAX ERROR: Error parsing prototype body\n", __FUNCTION__);
 
-							return prototype;
-						}
+						tree->prototypes.push_back(prototype);
 					}
 				}
 				else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
@@ -60,8 +52,11 @@ bool Syntax::run()
 		}
 		else printf_s("[%s] SYNTAX ERROR: Expected a return type\n", __FUNCTION__);
 	}
+}
 
-	return true;
+void Syntax::optimize_and_fix()
+{
+
 }
 
 std::vector<ast::Base*> Syntax::parse_prototype_params_decl()

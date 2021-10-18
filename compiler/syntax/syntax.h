@@ -14,8 +14,8 @@ public:
 	~Syntax();
 
 	void print_ast();
-
-	bool run();
+	void run();
+	void optimize_and_fix();
 
 	std::vector<ast::Base*> parse_prototype_params_decl();
 	std::vector<ast::Expr*> parse_call_params();
