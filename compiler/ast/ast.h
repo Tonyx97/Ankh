@@ -26,6 +26,8 @@ namespace ast
 	struct Base
 	{
 		Type type = STMT_NONE;
+
+		virtual ~Base() = default;
 	};
 
 	/*
@@ -88,6 +90,10 @@ namespace ast
 		ExprDeclOrAssign(Token* id_token, Token* type_token = nullptr, Expr* value = nullptr) :
 							id_token(id_token), type_token(type_token), value(value)
 													{ type = EXPR_DECL_OR_ASSIGN; }
+		~ExprDeclOrAssign()
+		{
+			_FREE(value);
+		}
 
 		bool is_declaration() const					{ return !!type_token; }
 			
@@ -111,6 +117,11 @@ namespace ast
 		ExprBinaryOp(Expr* left, Expr* right, Token* token) :
 						left(left), right(right), token(token)
 											{ type = EXPR_BINARY_OP; }
+		~ExprBinaryOp()
+		{
+			_FREE(left);
+			_FREE(right);
+		}
 			
 		void set_token(Token* v)			{ token = v; }
 		Token* get_token()					{ return token; }
@@ -154,6 +165,11 @@ namespace ast
 
 		ExprCall(Token* id_token, bool built_in = false) : id_token(id_token), built_in(built_in)
 														{ type = EXPR_CALL; }
+		~ExprCall()
+		{
+			for (auto stmt : stmts)
+				_FREE(stmt);
+		}
 			
 		void set_token(Token* v)						{ ret_token = v;}
 		Token* get_token()								{ return ret_token; }
@@ -194,7 +210,7 @@ namespace ast
 		StmtIf(Expr* expr, StmtBody* if_body) : expr(expr), if_body(if_body) 
 											{ type = STMT_IF; }
 			
-		static bool check_class(Base* i) { return i->type == STMT_IF; }
+		static bool check_class(Base* i)	{ return i->type == STMT_IF; }
 	};
 
 	/*
@@ -235,14 +251,19 @@ namespace ast
 	{
 		std::vector<Base*> params;
 
-		std::string name;
-
 		StmtBody* body = nullptr;
 
-		Token* ret_token = nullptr;
+		Token* id_token = nullptr,
+			 * ret_token = nullptr;
 
-		Prototype(const std::string& name) : name(name)		{}
-		~Prototype()										{ _FREE(body); }
+		Prototype(Token* id_token) : id_token(id_token)		{}
+		~Prototype()
+		{
+			for (auto param : params)
+				_FREE(param);
+
+			_FREE(body);
+		}
 
 		bool is_declaration() const							{ return !body; }
 	};
@@ -253,7 +274,8 @@ namespace ast
 
 		~AST()
 		{
-			// we need to free the whole ast tree lol
+			for (auto prototype : prototypes)
+				_FREE(prototype);
 		}
 	};
 

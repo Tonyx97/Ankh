@@ -15,7 +15,7 @@ void ast::Printer::print_prototype(Prototype* prototype)
 	if (first_prototype_printed)
 		PRINT_NL;
 
-	PRINT_TABS(White, 0, "Prototype '{}'", prototype->name);
+	PRINT_TABS(White, 0, "Prototype '{}'", prototype->id_token->value);
 
 	if (!prototype->params.empty())
 	{
@@ -166,22 +166,22 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 {
 	if (expr->token->flags & TokenFlag_Unsigned)
 	{
-		switch (expr->token->size)
+		switch (auto size = expr->token->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u8", expr->token->u8);   break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u16", expr->token->u16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u32", expr->token->u32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' u64", expr->token->u64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->u8, size);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->u16, size); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->u32, size); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->u64, size); break;
 		}
 	}
 	else
 	{
-		switch (expr->token->size)
+		switch (auto size = expr->token->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i8", expr->token->i8);   break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i16", expr->token->i16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i32", expr->token->i32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' i64", expr->token->i64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->i8, size);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->i16, size); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->i32, size); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->i64, size); break;
 		}
 	}
 }

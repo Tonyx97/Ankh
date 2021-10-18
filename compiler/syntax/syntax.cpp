@@ -36,7 +36,7 @@ ast::Prototype* Syntax::parse_prototype()
 		{
 			if (auto paren_open = g_lexer->eat_expect(Token_ParenOpen))
 			{
-				auto prototype = _ALLOC(ast::Prototype, id->value);
+				auto prototype = _ALLOC(ast::Prototype, id);
 
 				prototype->params = parse_prototype_params_decl();
 				prototype->ret_token = ret_token;
