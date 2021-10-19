@@ -10,7 +10,6 @@ i32 test(i32 t)
 
 void main()
 {
-	i32 F;
 	i32 i = 1u8;
 
 	test(i);

@@ -199,9 +199,11 @@ namespace ast
 	{
 		TokenID cast_type = Token_None;
 
-		ExprCast(Expr* rhs, TokenID cast_type) : cast_type(cast_type)
+		bool implicit = false;
+
+		ExprCast(Expr* rhs, TokenID cast_type, bool implicit = true) : cast_type(cast_type), implicit(implicit)
 											{ type = EXPR_IMPLICIT_CAST; this->rhs = rhs; }
-		~ExprCast()					{ _FREE(rhs); }
+		~ExprCast()							{ _FREE(rhs); }
 
 		Token* get_token()					{ return nullptr; }
 		std::string get_name()				{ return {}; }
@@ -351,6 +353,6 @@ namespace ast
 		void print_expr_unary_op(ExprUnaryOp* expr);
 		void print_expr_binary_op(ExprBinaryOp* expr);
 		void print_expr_call(ExprCall* expr);
-		void print_implicit_cast(ExprCast* expr);
+		void print_cast(ExprCast* expr);
 	};
 }
