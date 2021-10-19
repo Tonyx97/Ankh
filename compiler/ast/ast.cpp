@@ -159,20 +159,20 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 	{
 		switch (auto size = expr->token->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->u8, size);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->u16, size); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->u32, size); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->u64, size); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "u{} '{}'", size, expr->token->u8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "u{} '{}'", size, expr->token->u16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "u{} '{}'", size, expr->token->u32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "u{} '{}'", size, expr->token->u64); break;
 		}
 	}
 	else
 	{
 		switch (auto size = expr->token->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->i8, size);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->i16, size); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->i32, size); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "Expr '{}' {} bits", expr->token->i64, size); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "i{} '{}'", size, expr->token->i8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "i{} '{}'", size, expr->token->i16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "i{} '{}'", size, expr->token->i32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "i{} '{}'", size, expr->token->i64); break;
 		}
 	}
 }

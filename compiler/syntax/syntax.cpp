@@ -306,7 +306,7 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			auto call = _ALLOC(ast::ExprCall, id, false);	// todo
+			auto call = _ALLOC(ast::ExprCall, id, curr_prototype->ret_token, false);	// todo
 
 			call->stmts = parse_call_params();
 

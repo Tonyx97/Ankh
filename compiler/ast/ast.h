@@ -157,6 +157,7 @@ namespace ast
 
 		ExprUnaryOp(Expr* value, Token* token) : value(value), token(token)
 											{ type = EXPR_UNARY_OP; }
+		~ExprUnaryOp()						{ _FREE(value); }
 
 		Token* get_token()					{ return token; }
 		std::string get_name()				{ return Lexer::STRIFY_TOKEN(token); };
@@ -178,7 +179,7 @@ namespace ast
 
 		bool built_in = false;
 
-		ExprCall(Token* id_token, bool built_in = false) : id_token(id_token), built_in(built_in)
+		ExprCall(Token* id_token, Token* ret_token, bool built_in = false) : id_token(id_token), ret_token(ret_token), built_in(built_in)
 														{ type = EXPR_CALL; }
 		~ExprCall()
 		{
@@ -223,6 +224,16 @@ namespace ast
 
 		StmtIf(Expr* expr, StmtBody* if_body) : expr(expr), if_body(if_body) 
 											{ type = STMT_IF; }
+		~StmtIf()
+		{
+			_FREE(else_body);
+
+			for (auto _if : ifs)
+				_FREE(_if);
+
+			_FREE(if_body);
+			_FREE(expr);
+		}
 			
 		static bool check_class(Base* i)	{ return i->type == STMT_IF; }
 	};
@@ -242,6 +253,13 @@ namespace ast
 		StmtFor(Expr* condition, Base* init, Base* step, StmtBody* body)
 				: condition(condition), init(init), step(step), body(body)
 											{ type = STMT_FOR; }
+		~StmtFor()
+		{
+			_FREE(body);
+			_FREE(step);
+			_FREE(init);
+			_FREE(condition);
+		}
 
 		static bool check_class(Base* i) { return i->type == STMT_FOR; }
 	};
@@ -254,6 +272,7 @@ namespace ast
 		Expr* expr = nullptr;
 
 		StmtReturn(Expr* expr) : expr(expr) { type = STMT_RETURN; }
+		~StmtReturn()						{ _FREE(expr); }
 
 		static bool check_class(Base* i)	{ return i->type == STMT_RETURN; }
 	};
