@@ -10,6 +10,11 @@ void Semantic::print_errors()
 		PRINT(Red, err);
 }
 
+void Semantic::add_variable(ast::ExprDeclOrAssign* expr)
+{
+	pi.vars.insert({ expr->get_name(), expr });
+}
+
 bool Semantic::run()
 {
 	ast_tree = g_syntax->get_ast();
@@ -82,7 +87,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 		// for example, "i32 x = 0" would be Token_Id first and then Token_I32 after.
 
 		if (auto variable = get_declared_variable(id->token->value))
-			id->token = variable->type_token;
+			id->token->convert_to_type(variable->type_token);
 		else add_error("'{}' identifier is undefined", id->token->value);
 	}
 	else if (auto decl_or_assign = rtti::cast<ast::ExprDeclOrAssign>(expr))
@@ -197,19 +202,15 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 	if (stmt_return->expr && !analyze_expr(stmt_return->expr))
 		return false;
 
-	if (stmt_return->expr ? pi.curr_prototype->ret_token->equal_to(stmt_return->expr->get_token()) : pi.curr_prototype->ret_token->equal_to(Token_Void))
-		return true;
+	if (stmt_return->expr)
+		return pi.curr_prototype->ret_token->equal_to(stmt_return->expr->get_token());
+	else return pi.curr_prototype->ret_token->equal_to(Token_Void);
 
 	add_error("There is no valid conversion from '{}' to '{}'",
 		Lexer::STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->get_token()->id : Token_Void),
 		Lexer::STRIFY_TYPE(pi.curr_prototype->ret_token));
 
 	return false;
-}
-
-void Semantic::add_variable(ast::ExprDeclOrAssign* expr)
-{
-	pi.vars.insert({ expr->get_name(), expr});
 }
 
 ast::ExprDeclOrAssign* Semantic::get_declared_variable(const std::string& name)

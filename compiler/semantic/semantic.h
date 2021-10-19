@@ -38,6 +38,7 @@ private:
 public:
 
 	void print_errors();
+	void add_variable(ast::ExprDeclOrAssign* expr);
 
 	bool run();
 	bool analyze_prototype(ast::Prototype* prototype);
@@ -45,8 +46,6 @@ public:
 	bool analyze_expr(ast::Expr* expr);
 	bool analyze_if(ast::StmtIf* stmt_if);
 	bool analyze_return(ast::StmtReturn* stmt_return);
-
-	void add_variable(ast::ExprDeclOrAssign* expr);
 
 	ast::ExprDeclOrAssign* get_declared_variable(const std::string& name);
 	ast::Prototype* get_prototype(const std::string& name);

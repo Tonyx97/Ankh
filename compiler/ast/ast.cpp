@@ -74,7 +74,6 @@ void ast::Printer::print_if(StmtIf* stmt_if)
 	PRINT_TABS_NL(Blue, curr_level, "If");
 
 	print_expr(stmt_if->expr);
-
 	print_body(stmt_if->if_body);
 
 	for (auto else_if : stmt_if->ifs)
@@ -82,7 +81,6 @@ void ast::Printer::print_if(StmtIf* stmt_if)
 		PRINT_TABS_NL(Blue, curr_level, "Else If");
 
 		print_expr(else_if->expr);
-
 		print_body(else_if->if_body);
 	}
 
@@ -179,7 +177,7 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 
 void ast::Printer::print_id(ast::ExprId* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Id '{}'", expr->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "Id ({}) '{}'", Lexer::STRIFY_TYPE(expr->token), expr->get_name());
 }
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
@@ -203,13 +201,19 @@ void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 	++curr_level;
 
 	if (expr->left)
-		PRINT_TABS_NL(Yellow, curr_level, "Left operand '{}'", expr->left->get_name());
+	{
+		PRINT_TABS_NL(Yellow, curr_level, "Left operand:");
+		print_expr(expr->left);
+	}
 
 	if (auto left = rtti::cast<ExprBinaryOp>(expr->left))			print_expr_binary_op(left);
 	else if (auto left_unary = rtti::cast<ExprUnaryOp>(expr->left)) print_expr_unary_op(left_unary);
 
 	if (expr->right)
-		PRINT_TABS_NL(Yellow, curr_level, "Right operand '{}'", expr->right->get_name());
+	{
+		PRINT_TABS_NL(Yellow, curr_level, "Right operand:");
+		print_expr(expr->right);
+	}
 
 	if (auto right = rtti::cast<ExprBinaryOp>(expr->right))				print_expr_binary_op(right);
 	else if (auto right_unary = rtti::cast<ExprUnaryOp>(expr->right))	print_expr_unary_op(right_unary);
@@ -231,6 +235,10 @@ void ast::Printer::print_expr_call(ExprCall* expr)
 
 			--curr_level;
 		}
-		else print_expr(param);
+		else
+		{
+			PRINT_TABS_NL(Yellow, curr_level, "Param:");
+			print_expr(param);
+		}
 	}
 }

@@ -89,6 +89,7 @@ enum TokenFlag : unsigned int
 	TokenFlag_KeywordType	= (1 << 2),
 	TokenFlag_Unsigned		= (1 << 3),
 	TokenFlag_Assignation	= (1 << 4),
+	TokenFlag_Id		= (1 << 5),
 };
 
 struct Token
@@ -122,6 +123,14 @@ struct Token
 	bool valid = false;
 	
 	int8_t size = 0;
+
+	void convert_to_type(Token* token)
+	{
+		// todo - add assert here
+
+		id = token->id;
+		flags = token->flags;
+	}
 
 	bool equal_to(Token* token) const	{ return id == token->id; }
 	bool equal_to(TokenID v) const		{ return id == v; }

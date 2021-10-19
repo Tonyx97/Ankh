@@ -25,18 +25,21 @@ int main()
 		g_syntax->run();
 	}
 
+	const bool semantic_ok = g_semantic->run();
+
 	PRINT(Cyan, "\n---------- AST ----------");
 
 	g_syntax->print_ast();
 
 	PRINT(Cyan, "\n---------- Semantic Analysis ----------");
 
-	if (!g_semantic->run())
+	if (!semantic_ok)
 	{
 		g_semantic->print_errors();
 
 		goto finish_compiling;
 	}
+
 
 finish_compiling:
 

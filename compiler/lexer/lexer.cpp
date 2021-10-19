@@ -112,7 +112,11 @@ bool Lexer::run(const std::string& filename)
 								curr_token->id = it_decl->second;
 								curr_token->flags |= TokenFlag_KeywordType;
 							}
-							else curr_token->id = token_type;
+							else
+							{
+								curr_token->id = token_type;
+								curr_token->flags |= TokenFlag_Id;
+							}
 
 							curr_token->value = token_found;
 
