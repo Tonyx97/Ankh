@@ -2,13 +2,30 @@
 
 #include <ast/ast.h>
 
+namespace syntax
+{
+	struct PrototypeContext
+	{
+		std::unordered_map<std::string, Token*> id_types;
+
+		ast::Prototype* fn = nullptr;
+
+		PrototypeContext& operator = (ast::Prototype* prototype)
+		{
+			id_types.clear();
+			fn = prototype;
+			return *this;
+		}
+	};
+}
+
 class Syntax
 {
 private:
 
-	ast::AST* tree = nullptr;
+	syntax::PrototypeContext prototype_ctx {};
 
-	ast::Prototype* curr_prototype = nullptr;
+	ast::AST* tree = nullptr;
 
 public:
 
@@ -17,7 +34,8 @@ public:
 
 	void print_ast();
 	void run();
-	void optimize_and_fix();
+	void add_id_type(Token* id, Token* type);
+	void convert_id_to_type(Token* id);
 
 	std::vector<ast::Base*> parse_prototype_params_decl();
 	std::vector<ast::Expr*> parse_call_params();
@@ -29,6 +47,7 @@ public:
 	ast::Expr* parse_primary_expression();
 	ast::AST* get_ast()			{ return tree; }
 
+	Token* get_id_type(Token* id);
 	Token* parse_type();
 	Token* parse_keyword();
 	Token* parse_id();

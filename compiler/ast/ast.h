@@ -15,6 +15,7 @@ namespace ast
 			EXPR_BINARY_OP,
 			EXPR_UNARY_OP,
 			EXPR_CALL,
+			EXPR_IMPLICIT_CAST,
 		STMT_BODY,
 		STMT_IF,
 		STMT_FOR,
@@ -129,7 +130,8 @@ namespace ast
 		Expr* left = nullptr,
 			* right = nullptr;
 
-		Token* token = nullptr;
+		Token* token = nullptr,
+			 * type_token = nullptr;
 
 		ExprBinaryOp(Expr* left, Expr* right, Token* token) :
 						left(left), right(right), token(token)
@@ -188,9 +190,28 @@ namespace ast
 		}
 			
 		Token* get_token()								{ return ret_token; }
-		std::string get_name() override					{ return id_token->value; }
+		std::string get_name()							{ return id_token->value; }
 
 		static bool check_class(Base* i)				{ return i->type == EXPR_CALL; }
+	};
+
+	/*
+	* ExprImplicitCast
+	*/
+	struct ExprImplicitCast : public Expr
+	{
+		Expr* expr = nullptr;
+
+		Token* type_token = nullptr;
+
+		ExprImplicitCast(Expr* expr, Token* id_token) : expr(expr), type_token(type_token)
+											{ type = EXPR_IMPLICIT_CAST; }
+		~ExprImplicitCast()					{ _FREE(expr); }
+
+		Token* get_token()					{ return type_token; }
+		std::string get_name()				{ return type_token->value; }
+
+		static bool check_class(Base* i)	{ return i->type == EXPR_CALL; }
 	};
 
 	/*
@@ -270,8 +291,11 @@ namespace ast
 	struct StmtReturn : public Base
 	{
 		Expr* expr = nullptr;
+		
+		Token* ret_token = nullptr;
 
-		StmtReturn(Expr* expr) : expr(expr) { type = STMT_RETURN; }
+		StmtReturn(Expr* expr, Token* ret_token) : expr(expr), ret_token(ret_token)
+											{ type = STMT_RETURN; }
 		~StmtReturn()						{ _FREE(expr); }
 
 		static bool check_class(Base* i)	{ return i->type == STMT_RETURN; }
@@ -283,7 +307,6 @@ namespace ast
 	struct Prototype
 	{
 		std::vector<Base*> params;
-		std::vector<StmtReturn*> returns;
 
 		StmtBody* body = nullptr;
 

@@ -129,7 +129,7 @@ struct Token
 		// todo - add assert here
 
 		id = token->id;
-		flags = token->flags;
+		flags |= token->flags;
 	}
 
 	bool equal_to(Token* token) const	{ return id == token->id; }

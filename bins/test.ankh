@@ -4,7 +4,9 @@ i32 gay(i32 x) { return x + 1; }
 
 i32 test(i32 t)
 {
-	return gay(t) + 1;
+	u64 trash;
+	//return trash;
+	return gay(t);
 }
 
 void main()

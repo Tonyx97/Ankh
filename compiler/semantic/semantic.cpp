@@ -46,20 +46,6 @@ bool Semantic::analyze_prototype(ast::Prototype* prototype)
 		add_variable(param);
 	}
 
-	const auto& rets = prototype->returns;
-
-	if (!rets.empty())
-	{
-		//auto first_type = *rets.begin();
-
-		for (auto ret : rets)
-		{
-			if (auto int_literal = rtti::cast<ast::ExprIntLiteral>(ret->expr))
-			{
-			}
-		}
-	}
-
 	if (auto body = prototype->body)
 		analyze_body(body);
 
@@ -202,11 +188,10 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 	if (stmt_return->expr && !analyze_expr(stmt_return->expr))
 		return false;
 
-	if (stmt_return->expr)
-		return pi.curr_prototype->ret_token->equal_to(stmt_return->expr->get_token());
-	else return pi.curr_prototype->ret_token->equal_to(Token_Void);
+	if (stmt_return->expr ? pi.curr_prototype->ret_token->equal_to(stmt_return->expr->get_token()) : pi.curr_prototype->ret_token->equal_to(Token_Void))
+		return true;
 
-	add_error("There is no valid conversion from '{}' to '{}'",
+	add_error("Return type '{}' does not match with function type '{}'",
 		Lexer::STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->get_token()->id : Token_Void),
 		Lexer::STRIFY_TYPE(pi.curr_prototype->ret_token));
 

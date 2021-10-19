@@ -27,17 +27,19 @@ void Syntax::run()
 			{
 				if (auto next = g_lexer->eat(); next->id == Token_ParenOpen)
 				{
-					curr_prototype = _ALLOC(ast::Prototype, id);
+					auto prototype = _ALLOC(ast::Prototype, id);
 
-					curr_prototype->params = parse_prototype_params_decl();
-					curr_prototype->ret_token = type;
+					prototype_ctx = prototype;
+
+					prototype->params = parse_prototype_params_decl();
+					prototype->ret_token = type;
 
 					if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
 					{
-						if (!(curr_prototype->body = parse_body(nullptr)))
+						if (!(prototype->body = parse_body(nullptr)))
 							printf_s("[%s] SYNTAX ERROR: Error parsing prototype body\n", __FUNCTION__);
 
-						tree->prototypes.push_back(curr_prototype);
+						tree->prototypes.push_back(prototype);
 					}
 				}
 				else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
@@ -54,9 +56,17 @@ void Syntax::run()
 	}
 }
 
-void Syntax::optimize_and_fix()
+void Syntax::add_id_type(Token* id, Token* type)
 {
+	id->convert_to_type(type);
 
+	prototype_ctx.id_types.insert({ id->value, type });
+}
+
+void Syntax::convert_id_to_type(Token* id)
+{
+	if (auto id_type = get_id_type(id); id_type && id->id == Token_Id)
+		id->convert_to_type(id_type);
 }
 
 std::vector<ast::Base*> Syntax::parse_prototype_params_decl()
@@ -65,15 +75,17 @@ std::vector<ast::Base*> Syntax::parse_prototype_params_decl()
 
 	while (!g_lexer->eof())
 	{
-		auto param_type = parse_type();
-		if (!param_type)
+		auto type = parse_type();
+		if (!type)
 			break;
 
-		auto param_id = parse_id();
-		if (!param_id)
+		auto id = parse_id();
+		if (!id)
 			break;
 
-		stmts.push_back(_ALLOC(ast::ExprDeclOrAssign, param_id, param_type));
+		add_id_type(id, type);
+
+		stmts.push_back(_ALLOC(ast::ExprDeclOrAssign, id, type));
 
 		if (!g_lexer->is_current(Token_Comma))
 			break;
@@ -143,9 +155,12 @@ ast::Base* Syntax::parse_statement()
 	{
 		if (auto id = parse_id())
 		{
+			add_id_type(id, type);
+
 			if (g_lexer->is_current(Token_Assign))
 			{
 				g_lexer->eat();
+
 				return _ALLOC(ast::ExprDeclOrAssign, id, type, parse_expression());
 			}
 
@@ -205,13 +220,7 @@ ast::Base* Syntax::parse_statement()
 			return _ALLOC(ast::StmtFor, condition, init, step, parse_body(nullptr));
 		}
 		else if (type->id == Token_Return)
-		{
-			auto stmt_return = _ALLOC(ast::StmtReturn, g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression());
-
-			curr_prototype->returns.push_back(stmt_return);
-
-			return stmt_return;
-		}
+			return _ALLOC(ast::StmtReturn, g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression(), prototype_ctx.fn->ret_token);
 	}
 	
 	return parse_expression();
@@ -245,7 +254,7 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 			lookahead = g_lexer->current();
 		}
 
-		lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op);
+		lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op);	// add types to binary op here :o
 	}
 
 	return lhs;
@@ -284,6 +293,8 @@ ast::Expr* Syntax::parse_primary_expression()
 	{
 		auto id = g_lexer->eat();
 
+		convert_id_to_type(id);
+
 		switch (const auto curr_token = g_lexer->current_token_id())
 		{
 		case Token_Assign:
@@ -306,7 +317,7 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			auto call = _ALLOC(ast::ExprCall, id, curr_prototype->ret_token, false);	// todo
+			auto call = _ALLOC(ast::ExprCall, id, prototype_ctx.fn->ret_token, false);	// todo - get if it's intrinsic/built-in or not
 
 			call->stmts = parse_call_params();
 
@@ -327,6 +338,12 @@ ast::Expr* Syntax::parse_primary_expression()
 	}
 
 	return nullptr;
+}
+
+Token* Syntax::get_id_type(Token* id)
+{
+	auto it = prototype_ctx.id_types.find(id->value);
+	return it != prototype_ctx.id_types.end() ? it->second : nullptr;
 }
 
 Token* Syntax::parse_type()
