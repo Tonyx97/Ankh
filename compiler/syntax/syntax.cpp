@@ -27,17 +27,17 @@ void Syntax::run()
 			{
 				if (auto next = g_lexer->eat(); next->id == Token_ParenOpen)
 				{
-					auto prototype = _ALLOC(ast::Prototype, id);
+					curr_prototype = _ALLOC(ast::Prototype, id);
 
-					prototype->params = parse_prototype_params_decl();
-					prototype->ret_token = type;
+					curr_prototype->params = parse_prototype_params_decl();
+					curr_prototype->ret_token = type;
 
 					if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
 					{
-						if (!(prototype->body = parse_body(nullptr)))
+						if (!(curr_prototype->body = parse_body(nullptr)))
 							printf_s("[%s] SYNTAX ERROR: Error parsing prototype body\n", __FUNCTION__);
 
-						tree->prototypes.push_back(prototype);
+						tree->prototypes.push_back(curr_prototype);
 					}
 				}
 				else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
@@ -205,7 +205,13 @@ ast::Base* Syntax::parse_statement()
 			return _ALLOC(ast::StmtFor, condition, init, step, parse_body(nullptr));
 		}
 		else if (type->id == Token_Return)
-			return _ALLOC(ast::StmtReturn, g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression());
+		{
+			auto stmt_return = _ALLOC(ast::StmtReturn, g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression());
+
+			curr_prototype->returns.push_back(stmt_return);
+
+			return stmt_return;
+		}
 	}
 	
 	return parse_expression();

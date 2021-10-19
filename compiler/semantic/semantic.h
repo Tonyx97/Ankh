@@ -20,7 +20,6 @@ namespace semantic
 
 	struct GlobalInfo
 	{
-		std::unordered_set<std::string> prototypes;
 		std::unordered_set<std::string> calls;
 	};
 }
@@ -47,11 +46,9 @@ public:
 	bool analyze_if(ast::StmtIf* stmt_if);
 	bool analyze_return(ast::StmtReturn* stmt_return);
 
-	void add_prototype(const std::string& name);
 	void add_variable(ast::ExprDeclOrAssign* expr);
 
 	ast::ExprDeclOrAssign* get_declared_variable(const std::string& name);
-
 	ast::Prototype* get_prototype(const std::string& name);
 
 	template <typename... A>

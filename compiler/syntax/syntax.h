@@ -8,6 +8,8 @@ private:
 
 	ast::AST* tree = nullptr;
 
+	ast::Prototype* curr_prototype = nullptr;
+
 public:
 
 	Syntax();

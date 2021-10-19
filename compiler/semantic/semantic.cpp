@@ -26,13 +26,10 @@ bool Semantic::run()
 
 bool Semantic::analyze_prototype(ast::Prototype* prototype)
 {
+	// prototypes can be used anywhere in the global scope, there is no
+	// need to declare them, we should just define them.
+
 	pi = prototype;
-
-	add_prototype(prototype->id_token->value);
-
-	// we have to check if the params and their types matches with the declaration
-	// the problem is when a function tries to use a function that was declared as X
-	// and it's used as Y
 	
 	for (auto param_base : prototype->params)
 	{
@@ -42,6 +39,20 @@ bool Semantic::analyze_prototype(ast::Prototype* prototype)
 			add_error("Parameter '{}' already defined in prototype declaration", param->id_token->value);
 
 		add_variable(param);
+	}
+
+	const auto& rets = prototype->returns;
+
+	if (!rets.empty())
+	{
+		//auto first_type = *rets.begin();
+
+		for (auto ret : rets)
+		{
+			if (auto int_literal = rtti::cast<ast::ExprIntLiteral>(ret->expr))
+			{
+			}
+		}
 	}
 
 	if (auto body = prototype->body)
@@ -56,7 +67,7 @@ bool Semantic::analyze_body(ast::StmtBody* body)
 	{
 		if (auto body = rtti::cast<ast::StmtBody>(stmt))					analyze_body(body);
 		else if (auto expr = rtti::cast<ast::Expr>(stmt))					analyze_expr(expr);
-		//else if (auto stmt_if = rtti::cast<ast::StmtIf>(stmt))				analyze_if(stmt_if);
+		else if (auto stmt_if = rtti::cast<ast::StmtIf>(stmt))				analyze_if(stmt_if);
 		else if (auto stmt_return = rtti::cast<ast::StmtReturn>(stmt))		analyze_return(stmt_return);
 	}
 
@@ -67,8 +78,11 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 {
 	if (auto id = rtti::cast<ast::ExprId>(expr))
 	{
+		// check if variable is defined, if so, we assign the specific variable type
+		// for example, "i32 x = 0" would be Token_Id first and then Token_I32 after.
+
 		if (auto variable = get_declared_variable(id->token->value))
-			id->set_token(variable->type_token);
+			id->token = variable->type_token;
 		else add_error("'{}' identifier is undefined", id->token->value);
 	}
 	else if (auto decl_or_assign = rtti::cast<ast::ExprDeclOrAssign>(expr))
@@ -150,7 +164,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 	return true;
 }
 
-/*bool Semantic::analyze_if(ast::StmtIf* stmt_if)
+bool Semantic::analyze_if(ast::StmtIf* stmt_if)
 {
 	auto internal_analyze_if = [&](ast::StmtIf* curr_if)
 	{
@@ -171,12 +185,12 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 	if (!internal_analyze_if(stmt_if))
 		return false;
 
-	for (auto&& else_if : stmt_if->ifs)
+	for (auto else_if : stmt_if->ifs)
 		if (!internal_analyze_if(else_if))
 			return false;
 
 	return true;
-}*/
+}
 
 bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 {
@@ -193,11 +207,6 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 	return false;
 }
 
-void Semantic::add_prototype(const std::string& name)
-{
-	gi.prototypes.insert(name);
-}
-
 void Semantic::add_variable(ast::ExprDeclOrAssign* expr)
 {
 	pi.vars.insert({ expr->get_name(), expr});
@@ -211,7 +220,7 @@ ast::ExprDeclOrAssign* Semantic::get_declared_variable(const std::string& name)
 
 ast::Prototype* Semantic::get_prototype(const std::string& name)
 {
-	for (auto&& prototype : ast_tree->prototypes)
+	for (auto prototype : ast_tree->prototypes)
 		if (prototype->id_token->value == name)
 			return prototype;
 

@@ -38,7 +38,6 @@ namespace ast
 	{
 		Expr()								{ type = STMT_EXPR; }
 
-		virtual void set_token(Token* v) = 0;
 		virtual Token* get_token() = 0;
 		virtual std::string get_name() = 0;
 
@@ -55,7 +54,6 @@ namespace ast
 		ExprIntLiteral(Token* token) : token(token)
 											{ type = EXPR_INT_LITERAL; }
 
-		void set_token(Token* v)			{ token = v; }
 		Token* get_token()					{ return token; }
 		std::string get_name()				{ return token->value; };
 
@@ -71,7 +69,6 @@ namespace ast
 
 		ExprId(Token* token) : token(token) { type = EXPR_ID; }
 			
-		void set_token(Token* v)			{ token = v; }
 		Token* get_token()					{ return token; }
 		std::string get_name()				{ return token->value; }
 
@@ -95,7 +92,6 @@ namespace ast
 
 		bool is_declaration() const					{ return !!type_token; }
 			
-		void set_token(Token* v)					{ type_token = v; }
 		Token* get_token()							{ return type_token; }
 		std::string get_name()						{ return id_token->value; }
 
@@ -119,7 +115,6 @@ namespace ast
 
 		bool is_declaration() const					{ return !!type_token; }
 			
-		void set_token(Token* v)					{ type_token = v; }
 		Token* get_token()							{ return type_token; }
 		std::string get_name()						{ return id_token->value; }
 
@@ -145,7 +140,6 @@ namespace ast
 			_FREE(right);
 		}
 			
-		void set_token(Token* v)			{ token = v; }
 		Token* get_token()					{ return token; }
 		std::string get_name()				{ return Lexer::STRIFY_TOKEN(token); };
 
@@ -164,7 +158,6 @@ namespace ast
 		ExprUnaryOp(Expr* value, Token* token) : value(value), token(token)
 											{ type = EXPR_UNARY_OP; }
 
-		void set_token(Token* v)			{ token = v; }
 		Token* get_token()					{ return token; }
 		std::string get_name()				{ return Lexer::STRIFY_TOKEN(token); };
 
@@ -193,7 +186,6 @@ namespace ast
 				_FREE(stmt);
 		}
 			
-		void set_token(Token* v)						{ ret_token = v;}
 		Token* get_token()								{ return ret_token; }
 		std::string get_name() override					{ return id_token->value; }
 
@@ -272,6 +264,7 @@ namespace ast
 	struct Prototype
 	{
 		std::vector<Base*> params;
+		std::vector<StmtReturn*> returns;
 
 		StmtBody* body = nullptr;
 
