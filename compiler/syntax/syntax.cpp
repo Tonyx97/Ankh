@@ -44,6 +44,8 @@ void Syntax::run()
 				}
 				else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
 				{
+					add_id_type(id, type);
+
 					tree->global_decls.push_back(_ALLOC(ast::ExprDecl, id, type, global_var_decl ? nullptr : parse_expression(), true));
 
 					if (g_lexer->is_current(Token_Semicolon))
@@ -157,7 +159,11 @@ ast::Base* Syntax::parse_statement()
 		{
 			add_id_type(id, type);
 
-			return _ALLOC(ast::ExprDecl, id, type, g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr);
+			auto expr_value = g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr;
+
+			if (expr_value && !id->is_same_type(expr_value->get_token()))
+				return _ALLOC(ast::ExprDecl, id, type, _ALLOC(ast::ExprCast, expr_value, Token_I32));
+			else return _ALLOC(ast::ExprDecl, id, type, expr_value);
 		}
 		else printf_s("[%s] SYNTAX ERROR: Expected an identifier\n", __FUNCTION__);
 	}

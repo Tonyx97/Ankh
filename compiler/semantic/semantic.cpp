@@ -83,36 +83,36 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 
 		add_variable(decl);
 
-		if (decl->value)
-			return analyze_expr(decl->value);
+		if (decl->rhs)
+			return analyze_expr(decl->rhs);
 	}
 	else if (auto assign = rtti::cast<ast::ExprAssign>(expr))
 	{
 		if (!get_declared_variable(assign->id_token->value))
 			add_error("'{}' identifier is undefined", assign->id_token->value);
 
-		if (assign->value)
-			return analyze_expr(assign->value);
+		if (assign->rhs)
+			return analyze_expr(assign->rhs);
 	}
 	else if (auto binary_op = rtti::cast<ast::ExprBinaryOp>(expr))
 	{
-		if (!binary_op->left || !analyze_expr(binary_op->left))
+		if (!binary_op->lhs || !analyze_expr(binary_op->lhs))
 			add_error("Expected an expression");
 
-		if (!binary_op->right || !analyze_expr(binary_op->right))
+		if (!binary_op->rhs || !analyze_expr(binary_op->rhs))
 			add_error("Expected an expression");
 	}
 	else if (auto unary_op = rtti::cast<ast::ExprUnaryOp>(expr))
 	{
-		if (auto value_unary_op = rtti::cast<ast::ExprUnaryOp>(unary_op->value))
+		if (auto value_unary_op = rtti::cast<ast::ExprUnaryOp>(unary_op->rhs))
 			return analyze_expr(value_unary_op);
 		else
 		{
-			if (!rtti::cast<ast::ExprId>(unary_op->value) &&
-				!rtti::cast<ast::ExprIntLiteral>(unary_op->value))
+			if (!rtti::cast<ast::ExprId>(unary_op->rhs) &&
+				!rtti::cast<ast::ExprIntLiteral>(unary_op->rhs))
 				add_error("Expression must be an lvalue");
 
-			return analyze_expr(unary_op->value);
+			return analyze_expr(unary_op->rhs);
 		}
 	}
 	else if (auto call = rtti::cast<ast::ExprCall>(expr))
@@ -142,7 +142,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 			if (!analyze_expr(current_param))
 				return false;
 
-			if (!original_param->type_token->equal_to(current_param->get_token()))
+			if (!original_param->type_token->is_same_type(current_param->get_token()))
 				add_error("Argument of type '{}' is incompatible with parameter of type '{}'",
 						  Lexer::STRIFY_TYPE(current_param->get_token()),
 						  Lexer::STRIFY_TYPE(original_param->type_token));
@@ -189,7 +189,7 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 	if (stmt_return->expr && !analyze_expr(stmt_return->expr))
 		return false;
 
-	if (stmt_return->expr ? pi.pt->ret_token->equal_to(stmt_return->expr->get_token()) : pi.pt->ret_token->equal_to(Token_Void))
+	if (stmt_return->expr ? pi.pt->ret_token->is_same_type(stmt_return->expr->get_token()) : pi.pt->ret_token->is_same_type(Token_Void))
 		return true;
 
 	add_error("Return type '{}' does not match with function type '{}'",

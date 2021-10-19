@@ -132,8 +132,8 @@ struct Token
 		flags |= token->flags;
 	}
 
-	bool equal_to(Token* token) const	{ return id == token->id; }
-	bool equal_to(TokenID v) const		{ return id == v; }
+	bool is_same_type(Token* token) const	{ return id == token->id; }
+	bool is_same_type(TokenID v) const		{ return id == v; }
 
 	Token& operator = (const Token& token)
 	{

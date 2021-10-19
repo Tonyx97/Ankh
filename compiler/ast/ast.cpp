@@ -111,13 +111,14 @@ void ast::Printer::print_expr(Expr* expr)
 {
 	++curr_level;
 
-	if (auto int_literal = rtti::cast<ExprIntLiteral>(expr))			print_expr_int(int_literal);
-	else if (auto id = rtti::cast<ExprId>(expr))						print_id(id);
-	else if (auto decl = rtti::cast<ExprDecl>(expr))					print_decl(decl);
-	else if (auto assign = rtti::cast<ExprAssign>(expr))				print_assign(assign);
-	else if (auto binary_op = rtti::cast<ExprBinaryOp>(expr))			print_expr_binary_op(binary_op);
-	else if (auto unary_op = rtti::cast<ExprUnaryOp>(expr))				print_expr_unary_op(unary_op);
-	else if (auto call = rtti::cast<ExprCall>(expr))					print_expr_call(call);
+	if (auto int_literal = rtti::cast<ExprIntLiteral>(expr))	print_expr_int(int_literal);
+	else if (auto id = rtti::cast<ExprId>(expr))				print_id(id);
+	else if (auto decl = rtti::cast<ExprDecl>(expr))			print_decl(decl);
+	else if (auto assign = rtti::cast<ExprAssign>(expr))		print_assign(assign);
+	else if (auto binary_op = rtti::cast<ExprBinaryOp>(expr))	print_expr_binary_op(binary_op);
+	else if (auto unary_op = rtti::cast<ExprUnaryOp>(expr))		print_expr_unary_op(unary_op);
+	else if (auto call = rtti::cast<ExprCall>(expr))			print_expr_call(call);
+	else if (auto cast = rtti::cast<ExprCast>(expr))			print_cast(cast);
 
 	--curr_level;
 }
@@ -126,15 +127,15 @@ void ast::Printer::print_decl(ExprDecl* decl)
 {
 	PRINT_TABS_NL(Yellow, curr_level, "{}ecl. assignment ({}) '{}'", decl->global ? "Global d" : "D", Lexer::STRIFY_TYPE(decl->get_token()), decl->get_name());
 
-	if (decl->value)
-		print_expr(decl->value);
+	if (decl->rhs)
+		print_expr(decl->rhs);
 }
 
 void ast::Printer::print_assign(ExprAssign* assign)
 {
 	PRINT_TABS_NL(Yellow, curr_level, "Assignment '{}'", assign->get_name());
 
-	print_expr(assign->value);
+	print_expr(assign->rhs);
 }
 
 void ast::Printer::print_expr_int(ExprIntLiteral* expr)
@@ -143,20 +144,20 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 	{
 		switch (auto size = expr->token->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "u{} '{}'", size, expr->token->u8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "u{} '{}'", size, expr->token->u16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "u{} '{}'", size, expr->token->u32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "u{} '{}'", size, expr->token->u64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->token->u8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->token->u16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->token->u32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->token->u64); break;
 		}
 	}
 	else
 	{
 		switch (auto size = expr->token->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "i{} '{}'", size, expr->token->i8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "i{} '{}'", size, expr->token->i16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "i{} '{}'", size, expr->token->i32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "i{} '{}'", size, expr->token->i64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->token->i8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->token->i16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->token->i32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->token->i64); break;
 		}
 	}
 }
@@ -172,10 +173,10 @@ void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 
 	++curr_level;
 
-	PRINT_TABS_NL(Yellow, curr_level, "Value '{}'", expr->value->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "Value '{}'", expr->rhs->get_name());
 
-	if (auto value = rtti::cast<ExprBinaryOp>(expr->value))				print_expr_binary_op(value);
-	else if (auto value_unary = rtti::cast<ExprUnaryOp>(expr->value))	print_expr_unary_op(value_unary);
+	if (auto value = rtti::cast<ExprBinaryOp>(expr->rhs))			print_expr_binary_op(value);
+	else if (auto value_unary = rtti::cast<ExprUnaryOp>(expr->rhs))	print_expr_unary_op(value_unary);
 
 	--curr_level;
 }
@@ -186,23 +187,23 @@ void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 
 	++curr_level;
 
-	if (expr->left)
+	if (expr->lhs)
 	{
 		PRINT_TABS_NL(Yellow, curr_level, "Left operand:");
-		print_expr(expr->left);
+		print_expr(expr->lhs);
 	}
 
-	if (auto left = rtti::cast<ExprBinaryOp>(expr->left))			print_expr_binary_op(left);
-	else if (auto left_unary = rtti::cast<ExprUnaryOp>(expr->left)) print_expr_unary_op(left_unary);
+	if (auto left = rtti::cast<ExprBinaryOp>(expr->lhs))			print_expr_binary_op(left);
+	else if (auto left_unary = rtti::cast<ExprUnaryOp>(expr->lhs)) print_expr_unary_op(left_unary);
 
-	if (expr->right)
+	if (expr->rhs)
 	{
 		PRINT_TABS_NL(Yellow, curr_level, "Right operand:");
-		print_expr(expr->right);
+		print_expr(expr->rhs);
 	}
 
-	if (auto right = rtti::cast<ExprBinaryOp>(expr->right))				print_expr_binary_op(right);
-	else if (auto right_unary = rtti::cast<ExprUnaryOp>(expr->right))	print_expr_unary_op(right_unary);
+	if (auto right = rtti::cast<ExprBinaryOp>(expr->rhs))			print_expr_binary_op(right);
+	else if (auto right_unary = rtti::cast<ExprUnaryOp>(expr->rhs))	print_expr_unary_op(right_unary);
 
 	--curr_level;
 }
@@ -227,4 +228,11 @@ void ast::Printer::print_expr_call(ExprCall* expr)
 			print_expr(param);
 		}
 	}
+}
+
+void ast::Printer::print_cast(ExprCast* expr)
+{
+	PRINT_TABS_NL(Yellow, curr_level, "Implicit cast {} {} to {}", Lexer::STRIFY_TYPE(expr->rhs->get_token()), expr->rhs->get_name(), Lexer::STRIFY_TYPE(expr->cast_type));
+
+	print_expr(expr->rhs);
 }

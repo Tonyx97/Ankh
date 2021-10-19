@@ -8,6 +8,7 @@ namespace ast
 	{
 		STMT_NONE,
 		STMT_EXPR,
+			EXPR_BEGIN,
 			EXPR_INT_LITERAL,
 			EXPR_ID,
 			EXPR_DECL,
@@ -16,6 +17,7 @@ namespace ast
 			EXPR_UNARY_OP,
 			EXPR_CALL,
 			EXPR_IMPLICIT_CAST,
+			EXPR_END,
 		STMT_BODY,
 		STMT_IF,
 		STMT_FOR,
@@ -37,12 +39,16 @@ namespace ast
 	*/
 	struct Expr : public Base
 	{
+		Expr* lhs = nullptr,
+			* rhs = nullptr;
+
 		Expr()								{ type = STMT_EXPR; }
+		~Expr()								{}
 
 		virtual Token* get_token() = 0;
 		virtual std::string get_name() = 0;
 
-		static bool check_class(Base* i)	{ return i->type >= STMT_EXPR && i->type <= EXPR_CALL; }
+		static bool check_class(Base* i)	{ return i->type > EXPR_BEGIN && i->type < EXPR_END; }
 	};
 
 	/*
@@ -81,17 +87,15 @@ namespace ast
 	*/
 	struct ExprDecl : public Expr
 	{
-		Expr* value = nullptr;
-
 		Token* id_token = nullptr,
 			 * type_token = nullptr;
 
 		bool global = false;
 
-		ExprDecl(Token* id_token, Token* type_token = nullptr, Expr* value = nullptr, bool global = false) :
-				id_token(id_token), type_token(type_token), value(value), global(global)
-											{ type = EXPR_DECL; }
-		~ExprDecl()							{ _FREE(value); }
+		ExprDecl(Token* id_token, Token* type_token = nullptr, Expr* rhs = nullptr, bool global = false) :
+				id_token(id_token), type_token(type_token), global(global)
+											{ type = EXPR_DECL; this->rhs = rhs; }
+		~ExprDecl()							{ _FREE(rhs); }
 
 		Token* get_token()					{ return type_token; }
 		std::string get_name()				{ return id_token->value; }
@@ -104,18 +108,16 @@ namespace ast
 	*/
 	struct ExprAssign : public Expr
 	{
-		Expr* value = nullptr;
-
 		Token* id_token = nullptr;
 
-		ExprAssign(Token* id_token, Expr* value) : id_token(id_token), value(value)
-													{ type = EXPR_ASSIGN; }
-		~ExprAssign()								{ _FREE(value); }
+		ExprAssign(Token* id_token, Expr* expr) : id_token(id_token)
+											{ type = EXPR_ASSIGN; this->rhs = rhs; }
+		~ExprAssign()						{ _FREE(rhs); }
 
-		Token* get_token()							{ return id_token; }
-		std::string get_name()						{ return id_token->value; }
+		Token* get_token()					{ return id_token; }
+		std::string get_name()				{ return id_token->value; }
 
-		static bool check_class(Base* i)			{ return i->type == EXPR_ASSIGN; }
+		static bool check_class(Base* i)	{ return i->type == EXPR_ASSIGN; }
 	};
 
 	/*
@@ -123,19 +125,20 @@ namespace ast
 	*/
 	struct ExprBinaryOp : public Expr
 	{
-		Expr* left = nullptr,
-			* right = nullptr;
-
 		Token* token = nullptr,
 			 * type_token = nullptr;
 
-		ExprBinaryOp(Expr* left, Expr* right, Token* token) :
-						left(left), right(right), token(token)
-											{ type = EXPR_BINARY_OP; }
+		ExprBinaryOp(Expr* lhs, Expr* rhs, Token* token) : token(token)
+		{
+			type = EXPR_BINARY_OP;
+			this->lhs = lhs;
+			this->rhs = rhs;
+		}
+
 		~ExprBinaryOp()
 		{
-			_FREE(left);
-			_FREE(right);
+			_FREE(lhs);
+			_FREE(rhs);
 		}
 			
 		Token* get_token()					{ return token; }
@@ -149,13 +152,11 @@ namespace ast
 	*/
 	struct ExprUnaryOp : public Expr
 	{
-		Expr* value = nullptr;
-
 		Token* token = nullptr;
 
-		ExprUnaryOp(Expr* value, Token* token) : value(value), token(token)
-											{ type = EXPR_UNARY_OP; }
-		~ExprUnaryOp()						{ _FREE(value); }
+		ExprUnaryOp(Expr* rhs, Token* token) : token(token)
+											{ type = EXPR_UNARY_OP; this->rhs = rhs; }
+		~ExprUnaryOp()						{ _FREE(rhs); }
 
 		Token* get_token()					{ return token; }
 		std::string get_name()				{ return Lexer::STRIFY_TOKEN(token); };
@@ -192,22 +193,20 @@ namespace ast
 	};
 
 	/*
-	* ExprImplicitCast
+	* ExprCast
 	*/
-	struct ExprImplicitCast : public Expr
+	struct ExprCast : public Expr
 	{
-		Expr* expr = nullptr;
+		TokenID cast_type = Token_None;
 
-		Token* type_token = nullptr;
+		ExprCast(Expr* rhs, TokenID cast_type) : cast_type(cast_type)
+											{ type = EXPR_IMPLICIT_CAST; this->rhs = rhs; }
+		~ExprCast()					{ _FREE(rhs); }
 
-		ExprImplicitCast(Expr* expr, Token* id_token) : expr(expr), type_token(type_token)
-											{ type = EXPR_IMPLICIT_CAST; }
-		~ExprImplicitCast()					{ _FREE(expr); }
+		Token* get_token()					{ return nullptr; }
+		std::string get_name()				{ return {}; }
 
-		Token* get_token()					{ return type_token; }
-		std::string get_name()				{ return type_token->value; }
-
-		static bool check_class(Base* i)	{ return i->type == EXPR_CALL; }
+		static bool check_class(Base* i)	{ return i->type == EXPR_IMPLICIT_CAST; }
 	};
 
 	/*
@@ -352,5 +351,6 @@ namespace ast
 		void print_expr_unary_op(ExprUnaryOp* expr);
 		void print_expr_binary_op(ExprBinaryOp* expr);
 		void print_expr_call(ExprCall* expr);
+		void print_implicit_cast(ExprCast* expr);
 	};
 }
