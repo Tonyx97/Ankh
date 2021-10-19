@@ -270,6 +270,7 @@ public:
 	Token* eat_expect(TokenID expected_token);
 	Token* eat_expect_keyword_declaration();
 	Token* eat();
+	Token* eat_if_current_is(TokenID id)			{ return (is_current(id) ? eat() : nullptr); }
 	Token* current() const							{ return (tokens.empty() ? nullptr : tokens.back()); }
 
 	TokenID current_token_id() const				{ return (tokens.empty() ? Token_Eof : tokens.back()->id); }

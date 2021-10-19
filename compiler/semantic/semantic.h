@@ -6,14 +6,14 @@ namespace semantic
 {
 	struct PrototypeInfo
 	{
-		std::unordered_map<std::string, ast::ExprDeclOrAssign*> vars;
+		std::unordered_map<std::string, ast::ExprDecl*> decls;
 
-		ast::Prototype* curr_prototype = nullptr;
+		ast::Prototype* pt = nullptr;
 
 		PrototypeInfo& operator = (ast::Prototype* prototype)
 		{
-			vars.clear();
-			curr_prototype = prototype;
+			decls.clear();
+			pt = prototype;
 			return *this;
 		}
 	};
@@ -38,7 +38,7 @@ private:
 public:
 
 	void print_errors();
-	void add_variable(ast::ExprDeclOrAssign* expr);
+	void add_variable(ast::ExprDecl* expr);
 
 	bool run();
 	bool analyze_prototype(ast::Prototype* prototype);
@@ -47,7 +47,7 @@ public:
 	bool analyze_if(ast::StmtIf* stmt_if);
 	bool analyze_return(ast::StmtReturn* stmt_return);
 
-	ast::ExprDeclOrAssign* get_declared_variable(const std::string& name);
+	ast::ExprDecl* get_declared_variable(const std::string& name);
 	ast::Prototype* get_prototype(const std::string& name);
 
 	template <typename... A>

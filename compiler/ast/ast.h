@@ -10,8 +10,8 @@ namespace ast
 		STMT_EXPR,
 			EXPR_INT_LITERAL,
 			EXPR_ID,
-			EXPR_DECL_OR_ASSIGN,
-			EXPR_GLOBAL_VAR,
+			EXPR_DECL,
+			EXPR_ASSIGN,
 			EXPR_BINARY_OP,
 			EXPR_UNARY_OP,
 			EXPR_CALL,
@@ -77,49 +77,45 @@ namespace ast
 	};
 
 	/*
-	* ExprDeclOrAssign
+	* ExprDecl
 	*/
-	struct ExprDeclOrAssign : public Expr
+	struct ExprDecl : public Expr
 	{
 		Expr* value = nullptr;
 
 		Token* id_token = nullptr,
 			 * type_token = nullptr;
 
-		ExprDeclOrAssign(Token* id_token, Token* type_token = nullptr, Expr* value = nullptr) :
-							id_token(id_token), type_token(type_token), value(value)
-													{ type = EXPR_DECL_OR_ASSIGN; }
-		~ExprDeclOrAssign()							{ _FREE(value); }
+		bool global = false;
 
-		bool is_declaration() const					{ return !!type_token; }
-			
-		Token* get_token()							{ return type_token; }
-		std::string get_name()						{ return id_token->value; }
+		ExprDecl(Token* id_token, Token* type_token = nullptr, Expr* value = nullptr, bool global = false) :
+				id_token(id_token), type_token(type_token), value(value), global(global)
+											{ type = EXPR_DECL; }
+		~ExprDecl()							{ _FREE(value); }
 
-		static bool check_class(Base* i)			{ return i->type == EXPR_DECL_OR_ASSIGN; }
+		Token* get_token()					{ return type_token; }
+		std::string get_name()				{ return id_token->value; }
+
+		static bool check_class(Base* i)	{ return i->type == EXPR_DECL; }
 	};
 
 	/*
-	* ExprGlobalVar (same as ExprDeclOrAssign for now, this class might be helpful in the future)
+	* ExprAssign
 	*/
-	struct ExprGlobalVar : public Expr
+	struct ExprAssign : public Expr
 	{
 		Expr* value = nullptr;
 
-		Token* id_token = nullptr,
-			 * type_token = nullptr;
+		Token* id_token = nullptr;
 
-		ExprGlobalVar(Token* id_token, Token* type_token = nullptr, Expr* value = nullptr) :
-							id_token(id_token), type_token(type_token), value(value)
-													{ type = EXPR_GLOBAL_VAR; }
-		~ExprGlobalVar()							{ _FREE(value); }
+		ExprAssign(Token* id_token, Expr* value) : id_token(id_token), value(value)
+													{ type = EXPR_ASSIGN; }
+		~ExprAssign()								{ _FREE(value); }
 
-		bool is_declaration() const					{ return !!type_token; }
-			
-		Token* get_token()							{ return type_token; }
+		Token* get_token()							{ return id_token; }
 		std::string get_name()						{ return id_token->value; }
 
-		static bool check_class(Base* i)			{ return i->type == EXPR_DECL_OR_ASSIGN; }
+		static bool check_class(Base* i)			{ return i->type == EXPR_ASSIGN; }
 	};
 
 	/*
@@ -325,13 +321,13 @@ namespace ast
 
 	struct AST
 	{
-		std::vector<ExprGlobalVar*> global_vars;
+		std::vector<ExprDecl*> global_decls;
 		std::vector<Prototype*> prototypes;
 
 		~AST()
 		{
 			for (auto prototype : prototypes)	_FREE(prototype);
-			for (auto var : global_vars)		_FREE(var);
+			for (auto decl : global_decls)		_FREE(decl);
 		}
 	};
 
@@ -342,7 +338,6 @@ namespace ast
 		bool first_prototype_printed = false;
 
 		void print(AST* tree);
-		void print_global_var(ExprGlobalVar* var);
 		void print_prototype(Prototype* prototype);
 		void print_body(StmtBody* body);
 		void print_stmt(Base* stmt);
@@ -350,7 +345,8 @@ namespace ast
 		void print_for(StmtFor* stmt_for);
 		void print_return(StmtReturn* stmt_return);
 		void print_expr(Expr* expr);
-		void print_decl_or_assign(ExprDeclOrAssign* assign);
+		void print_decl(ExprDecl* decl);
+		void print_assign(ExprAssign* assign);
 		void print_expr_int(ExprIntLiteral* expr);
 		void print_id(ExprId* expr);
 		void print_expr_unary_op(ExprUnaryOp* expr);

@@ -44,7 +44,7 @@ void Syntax::run()
 				}
 				else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
 				{
-					tree->global_vars.push_back(_ALLOC(ast::ExprGlobalVar, id, type, global_var_decl ? nullptr : parse_expression()));
+					tree->global_decls.push_back(_ALLOC(ast::ExprDecl, id, type, global_var_decl ? nullptr : parse_expression(), true));
 
 					if (g_lexer->is_current(Token_Semicolon))
 						g_lexer->eat();
@@ -79,13 +79,13 @@ std::vector<ast::Base*> Syntax::parse_prototype_params_decl()
 		if (!type)
 			break;
 
-		auto id = parse_id();
+		auto id = g_lexer->eat_if_current_is(Token_Id);
 		if (!id)
 			break;
 
 		add_id_type(id, type);
 
-		stmts.push_back(_ALLOC(ast::ExprDeclOrAssign, id, type));
+		stmts.push_back(_ALLOC(ast::ExprDecl, id, type));
 
 		if (!g_lexer->is_current(Token_Comma))
 			break;
@@ -153,18 +153,11 @@ ast::Base* Syntax::parse_statement()
 {
 	if (auto type = parse_type())
 	{
-		if (auto id = parse_id())
+		if (auto id = g_lexer->eat_if_current_is(Token_Id))
 		{
 			add_id_type(id, type);
 
-			if (g_lexer->is_current(Token_Assign))
-			{
-				g_lexer->eat();
-
-				return _ALLOC(ast::ExprDeclOrAssign, id, type, parse_expression());
-			}
-
-			return _ALLOC(ast::ExprDeclOrAssign, id, type);
+			return _ALLOC(ast::ExprDecl, id, type, g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr);
 		}
 		else printf_s("[%s] SYNTAX ERROR: Expected an identifier\n", __FUNCTION__);
 	}
@@ -254,7 +247,7 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 			lookahead = g_lexer->current();
 		}
 
-		lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op);	// add types to binary op here :o
+		lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op);	// todo - add types to binary op here :o
 	}
 
 	return lhs;
@@ -264,10 +257,8 @@ ast::Expr* Syntax::parse_primary_expression()
 {
 	auto curr = g_lexer->current();
 
-	if (g_lexer->is_current(Token_IntLiteral))
+	if (g_lexer->eat_if_current_is(Token_IntLiteral))
 	{
-		g_lexer->eat();
-
 		// change the int literal type to the specific one
 
 		switch (curr->size)
@@ -280,19 +271,15 @@ ast::Expr* Syntax::parse_primary_expression()
 
 		return _ALLOC(ast::ExprIntLiteral, curr);
 	}
-	else if (g_lexer->is_current(Token_Sub) ||
-			 g_lexer->is_current(Token_Mul) ||
-			 g_lexer->is_current(Token_And) ||
-			 g_lexer->is_current(Token_LogicalNot))
+	else if (g_lexer->eat_if_current_is(Token_Sub) ||
+			 g_lexer->eat_if_current_is(Token_Mul) ||
+			 g_lexer->eat_if_current_is(Token_And) ||
+			 g_lexer->eat_if_current_is(Token_LogicalNot))
 	{
-		g_lexer->eat();
-
 		return _ALLOC(ast::ExprUnaryOp, parse_primary_expression(), curr);
 	}
-	else if (g_lexer->is_current(Token_Id))
+	else if (auto id = g_lexer->eat_if_current_is(Token_Id))
 	{
-		auto id = g_lexer->eat();
-
 		convert_id_to_type(id);
 
 		switch (const auto curr_token = g_lexer->current_token_id())
@@ -301,7 +288,7 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			return _ALLOC(ast::ExprDeclOrAssign, id, nullptr, parse_expression());
+			return _ALLOC(ast::ExprAssign, id, parse_expression());
 		}
 		case Token_AddAssign:
 		case Token_SubAssign:
@@ -329,10 +316,8 @@ ast::Expr* Syntax::parse_primary_expression()
 
 		return _ALLOC(ast::ExprId, id);
 	}
-	else if (g_lexer->is_current(Token_ParenOpen))
+	else if (g_lexer->eat_if_current_is(Token_ParenOpen))
 	{
-		g_lexer->eat();
-
 		if (auto expr = parse_expression(); expr && g_lexer->eat_expect(Token_ParenClose))
 			return expr;
 	}
@@ -354,9 +339,4 @@ Token* Syntax::parse_type()
 Token* Syntax::parse_keyword()
 {
 	return (g_lexer->is_token_keyword() ? g_lexer->eat() : nullptr);
-}
-
-Token* Syntax::parse_id()
-{
-	return (g_lexer->is_current(Token_Id) ? g_lexer->eat() : nullptr);
 }

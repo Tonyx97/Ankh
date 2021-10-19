@@ -50,7 +50,6 @@ public:
 	Token* get_id_type(Token* id);
 	Token* parse_type();
 	Token* parse_keyword();
-	Token* parse_id();
 };
 
 inline std::unique_ptr<Syntax> g_syntax;

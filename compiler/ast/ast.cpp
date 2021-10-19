@@ -6,16 +6,8 @@
 
 void ast::Printer::print(AST* tree)
 {
-	for (auto var : tree->global_vars)		print_global_var(var);
+	for (auto decl : tree->global_decls)	print_decl(decl);
 	for (auto prototype : tree->prototypes) print_prototype(prototype);
-}
-
-void ast::Printer::print_global_var(ExprGlobalVar* var)
-{
-	PRINT_TABS_NL(Yellow, curr_level, "Global Declaration assignment '{}' ({})", var->get_name(), Lexer::STRIFY_TYPE(var->get_token()));
-
-	if (var->value)
-		print_expr(var->value);
 }
 
 void ast::Printer::print_prototype(Prototype* prototype)
@@ -29,7 +21,7 @@ void ast::Printer::print_prototype(Prototype* prototype)
 	{
 		PRINT_TABS(White, 0, " | Arguments: ");
 
-		print_vec<ExprDeclOrAssign>(Green, prototype->params, ", ", [](ExprDeclOrAssign* e)
+		print_vec<ExprDecl>(Green, prototype->params, ", ", [](ExprDecl* e)
 		{
 			return Lexer::STRIFY_TYPE(e->get_token()) + " " + e->get_name();
 		});
@@ -121,7 +113,8 @@ void ast::Printer::print_expr(Expr* expr)
 
 	if (auto int_literal = rtti::cast<ExprIntLiteral>(expr))			print_expr_int(int_literal);
 	else if (auto id = rtti::cast<ExprId>(expr))						print_id(id);
-	else if (auto decl_or_assign = rtti::cast<ExprDeclOrAssign>(expr))	print_decl_or_assign(decl_or_assign);
+	else if (auto decl = rtti::cast<ExprDecl>(expr))					print_decl(decl);
+	else if (auto assign = rtti::cast<ExprAssign>(expr))				print_assign(assign);
 	else if (auto binary_op = rtti::cast<ExprBinaryOp>(expr))			print_expr_binary_op(binary_op);
 	else if (auto unary_op = rtti::cast<ExprUnaryOp>(expr))				print_expr_unary_op(unary_op);
 	else if (auto call = rtti::cast<ExprCall>(expr))					print_expr_call(call);
@@ -129,26 +122,19 @@ void ast::Printer::print_expr(Expr* expr)
 	--curr_level;
 }
 
-void ast::Printer::print_decl_or_assign(ExprDeclOrAssign* assign)
+void ast::Printer::print_decl(ExprDecl* decl)
 {
-	if (assign->type_token)
-	{
-		PRINT_TABS_NL(Yellow, curr_level, "Declaration assignment '{}' ({})", assign->get_name(), Lexer::STRIFY_TYPE(assign->get_token()));
-	}
-	else
-	{
-		if (assign->value)
-		{
-			PRINT_TABS_NL(Yellow, curr_level, "Assignment '{}'", assign->get_name());
-		}
-		else
-		{
-			PRINT_TABS_NL(Yellow, curr_level, "Declaration '{}'", assign->get_name());
-		}
-	}
+	PRINT_TABS_NL(Yellow, curr_level, "{}ecl. assignment ({}) '{}'", decl->global ? "Global d" : "D", Lexer::STRIFY_TYPE(decl->get_token()), decl->get_name());
 
-	if (assign->value)
-		print_expr(assign->value);
+	if (decl->value)
+		print_expr(decl->value);
+}
+
+void ast::Printer::print_assign(ExprAssign* assign)
+{
+	PRINT_TABS_NL(Yellow, curr_level, "Assignment '{}'", assign->get_name());
+
+	print_expr(assign->value);
 }
 
 void ast::Printer::print_expr_int(ExprIntLiteral* expr)

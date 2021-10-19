@@ -10,9 +10,9 @@ void Semantic::print_errors()
 		PRINT(Red, err);
 }
 
-void Semantic::add_variable(ast::ExprDeclOrAssign* expr)
+void Semantic::add_variable(ast::ExprDecl* expr)
 {
-	pi.vars.insert({ expr->get_name(), expr });
+	pi.decls.insert({ expr->get_name(), expr });
 }
 
 bool Semantic::run()
@@ -38,12 +38,12 @@ bool Semantic::analyze_prototype(ast::Prototype* prototype)
 	
 	for (auto param_base : prototype->params)
 	{
-		auto param = rtti::cast<ast::ExprDeclOrAssign>(param_base);
+		auto param_decl = rtti::cast<ast::ExprDecl>(param_base);
 
-		if (pi.vars.find(param->id_token->value) != pi.vars.end())
-			add_error("Parameter '{}' already defined in prototype declaration", param->id_token->value);
+		if (pi.decls.find(param_decl->id_token->value) != pi.decls.end())
+			add_error("Parameter '{}' already defined in prototype declaration", param_decl->id_token->value);
 
-		add_variable(param);
+		add_variable(param_decl);
 	}
 
 	if (auto body = prototype->body)
@@ -76,22 +76,23 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 			id->token->convert_to_type(variable->type_token);
 		else add_error("'{}' identifier is undefined", id->token->value);
 	}
-	else if (auto decl_or_assign = rtti::cast<ast::ExprDeclOrAssign>(expr))
+	else if (auto decl = rtti::cast<ast::ExprDecl>(expr))
 	{
-		auto declared_var = get_declared_variable(decl_or_assign->id_token->value);
+		if (get_declared_variable(decl->id_token->value))
+			add_error("'{} {}' redefinition", Lexer::STRIFY_TYPE(decl->type_token), decl->id_token->value);
 
-		if (decl_or_assign->is_declaration())
-		{
-			if (declared_var)
-				add_error("'{} {}' redefinition", Lexer::STRIFY_TYPE(decl_or_assign->type_token), decl_or_assign->id_token->value);
+		add_variable(decl);
 
-			add_variable(decl_or_assign);
-		}
-		else if (!declared_var)
-			add_error("'{}' identifier is undefined", decl_or_assign->id_token->value);
+		if (decl->value)
+			return analyze_expr(decl->value);
+	}
+	else if (auto assign = rtti::cast<ast::ExprAssign>(expr))
+	{
+		if (!get_declared_variable(assign->id_token->value))
+			add_error("'{}' identifier is undefined", assign->id_token->value);
 
-		if (decl_or_assign->value)
-			return analyze_expr(decl_or_assign->value);
+		if (assign->value)
+			return analyze_expr(assign->value);
 	}
 	else if (auto binary_op = rtti::cast<ast::ExprBinaryOp>(expr))
 	{
@@ -135,7 +136,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 
 		for (size_t i = 0ull; i < call->stmts.size() && i < prototype->params.size(); ++i)
 		{
-			const auto& original_param = rtti::cast<ast::ExprDeclOrAssign>(prototype->params[i]);
+			const auto& original_param = rtti::cast<ast::ExprDecl>(prototype->params[i]);
 			const auto& current_param = call->stmts[i];
 
 			if (!analyze_expr(current_param))
@@ -188,20 +189,20 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 	if (stmt_return->expr && !analyze_expr(stmt_return->expr))
 		return false;
 
-	if (stmt_return->expr ? pi.curr_prototype->ret_token->equal_to(stmt_return->expr->get_token()) : pi.curr_prototype->ret_token->equal_to(Token_Void))
+	if (stmt_return->expr ? pi.pt->ret_token->equal_to(stmt_return->expr->get_token()) : pi.pt->ret_token->equal_to(Token_Void))
 		return true;
 
 	add_error("Return type '{}' does not match with function type '{}'",
 		Lexer::STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->get_token()->id : Token_Void),
-		Lexer::STRIFY_TYPE(pi.curr_prototype->ret_token));
+		Lexer::STRIFY_TYPE(pi.pt->ret_token));
 
 	return false;
 }
 
-ast::ExprDeclOrAssign* Semantic::get_declared_variable(const std::string& name)
+ast::ExprDecl* Semantic::get_declared_variable(const std::string& name)
 {
-	auto it = pi.vars.find(name);
-	return (it != pi.vars.end() ? it->second : nullptr);
+	auto it = pi.decls.find(name);
+	return (it != pi.decls.end() ? it->second : nullptr);
 }
 
 ast::Prototype* Semantic::get_prototype(const std::string& name)
