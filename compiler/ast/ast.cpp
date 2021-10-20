@@ -55,6 +55,7 @@ void ast::Printer::print_stmt(Base* stmt)
 	if (auto body = rtti::cast<StmtBody>(stmt))					print_body(body);
 	else if (auto stmt_if = rtti::cast<StmtIf>(stmt))			print_if(stmt_if);
 	else if (auto stmt_for = rtti::cast<StmtFor>(stmt))			print_for(stmt_for);
+	else if (auto stmt_while = rtti::cast<StmtWhile>(stmt))		print_while(stmt_while);
 	else if (auto stmt_return = rtti::cast<StmtReturn>(stmt))	print_return(stmt_return);
 	else if (auto expr = rtti::cast<Expr>(stmt))				print_expr(expr);
 }
@@ -96,6 +97,18 @@ void ast::Printer::print_for(ast::StmtFor* stmt_for)
 	print_expr(stmt_for->condition);
 	print_stmt(stmt_for->step);
 	print_body(stmt_for->body);
+
+	--curr_level;
+}
+
+void ast::Printer::print_while(StmtWhile* stmt_while)
+{
+	++curr_level;
+
+	PRINT_TABS_NL(Blue, curr_level, "While");
+
+	print_expr(stmt_while->condition);
+	print_body(stmt_while->body);
 
 	--curr_level;
 }

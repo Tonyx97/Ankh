@@ -218,6 +218,14 @@ ast::Base* Syntax::parse_statement()
 
 			return _ALLOC(ast::StmtFor, condition, init, step, parse_body(nullptr));
 		}
+		else if (type->id == Token_While)
+		{
+			g_lexer->eat_expect(Token_ParenOpen);
+
+			auto condition = parse_expression(); g_lexer->eat_expect(Token_ParenClose);
+
+			return _ALLOC(ast::StmtWhile, condition, parse_body(nullptr));
+		}
 		else if (type->id == Token_Return)
 			return _ALLOC(ast::StmtReturn, g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression(), prototype_ctx.fn->ret_token);
 	}

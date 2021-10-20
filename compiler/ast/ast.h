@@ -21,6 +21,7 @@ namespace ast
 		STMT_BODY,
 		STMT_IF,
 		STMT_FOR,
+		STMT_WHILE,
 		STMT_RETURN,
 	};
 
@@ -283,6 +284,26 @@ namespace ast
 	};
 
 	/*
+	* StmtFor
+	*/
+	struct StmtWhile : public Base
+	{
+		Expr* condition = nullptr;
+
+		StmtBody* body = nullptr;
+
+		StmtWhile(Expr* condition, StmtBody* body) : condition(condition), body(body)
+						{ type = STMT_WHILE; }
+		~StmtWhile()
+		{
+			_FREE(body);
+			_FREE(condition);
+		}
+
+		static bool check_class(Base* i) { return i->type == STMT_WHILE; }
+	};
+
+	/*
 	* StmtReturn
 	*/
 	struct StmtReturn : public Base
@@ -344,6 +365,7 @@ namespace ast
 		void print_stmt(Base* stmt);
 		void print_if(StmtIf* stmt_if);
 		void print_for(StmtFor* stmt_for);
+		void print_while(StmtWhile* stmt_while);
 		void print_return(StmtReturn* stmt_return);
 		void print_expr(Expr* expr);
 		void print_decl(ExprDecl* decl);
