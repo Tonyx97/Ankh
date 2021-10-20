@@ -156,10 +156,10 @@ ast::Base* Syntax::parse_statement()
 		add_id_type(id, type);
 
 		auto expr_value = g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr;
-		auto cast_type_target = id->normal_implicit_cast(expr_value->get_token());
+		auto casted_type = id->normal_implicit_cast(expr_value->type);
 
-		return (cast_type_target != Token_None ? _ALLOC(ast::ExprDecl, id, type, _ALLOC(ast::ExprCast, expr_value, cast_type_target))
-											   : _ALLOC(ast::ExprDecl, id, type, expr_value));
+		return (casted_type != Token_None ? _ALLOC(ast::ExprDecl, id, type, _ALLOC(ast::ExprCast, expr_value, casted_type))
+										  : _ALLOC(ast::ExprDecl, id, type, expr_value));
 	}
 	else if (type = g_lexer->eat_if_current_is_keyword())
 	{
@@ -255,7 +255,13 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 			lookahead = g_lexer->current();
 		}
 
-		lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op);	// todo - add types to binary op here :o
+		if (auto casted_type = lhs->type->binary_implicit_cast(rhs->type))
+		{
+			if (lhs->type->id == casted_type)
+				lhs = _ALLOC(ast::ExprBinaryOp, lhs, _ALLOC(ast::ExprCast, rhs, casted_type), op, lhs->type);
+			else lhs = _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprCast, lhs, casted_type), rhs, op, rhs->type);
+		}
+		else lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op, lhs->type);
 	}
 
 	return lhs;
@@ -296,7 +302,11 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			return _ALLOC(ast::ExprAssign, id, parse_expression());
+			auto expr_value = parse_expression();
+			auto casted_type = id->normal_implicit_cast(expr_value->get_token());
+
+			return (casted_type != Token_None ? _ALLOC(ast::ExprAssign, id, _ALLOC(ast::ExprCast, expr_value, casted_type))
+											  : _ALLOC(ast::ExprAssign, id, expr_value));
 		}
 		case Token_AddAssign:
 		case Token_SubAssign:
@@ -306,7 +316,7 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, id), parse_expression(), id);
+			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, id), parse_expression(), id, nullptr);	// todo - add proper binary op type
 		}
 		case Token_ParenOpen:
 		{

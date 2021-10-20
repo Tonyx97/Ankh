@@ -40,8 +40,8 @@ bool Semantic::analyze_prototype(ast::Prototype* prototype)
 	{
 		auto param_decl = rtti::cast<ast::ExprDecl>(param_base);
 
-		if (pi.decls.find(param_decl->id_token->value) != pi.decls.end())
-			add_error("Parameter '{}' already defined in prototype declaration", param_decl->id_token->value);
+		if (pi.decls.find(param_decl->id->value) != pi.decls.end())
+			add_error("Parameter '{}' already defined in prototype declaration", param_decl->id->value);
 
 		add_variable(param_decl);
 	}
@@ -69,13 +69,13 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 {
 	if (auto id = rtti::cast<ast::ExprId>(expr))
 	{
-		if (!get_declared_variable(id->token->value))
-			add_error("'{}' identifier is undefined", id->token->value);
+		if (!get_declared_variable(id->id->value))
+			add_error("'{}' identifier is undefined", id->id->value);
 	}
 	else if (auto decl = rtti::cast<ast::ExprDecl>(expr))
 	{
-		if (get_declared_variable(decl->id_token->value))
-			add_error("'{} {}' redefinition", Lexer::STRIFY_TYPE(decl->type_token), decl->id_token->value);
+		if (get_declared_variable(decl->id->value))
+			add_error("'{} {}' redefinition", Lexer::STRIFY_TYPE(decl->id), decl->id->value);
 
 		add_variable(decl);
 
@@ -84,8 +84,8 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 	}
 	else if (auto assign = rtti::cast<ast::ExprAssign>(expr))
 	{
-		if (!get_declared_variable(assign->id_token->value))
-			add_error("'{}' identifier is undefined", assign->id_token->value);
+		if (!get_declared_variable(assign->id->value))
+			add_error("'{}' identifier is undefined", assign->id->value);
 
 		if (assign->rhs)
 			return analyze_expr(assign->rhs);
@@ -116,7 +116,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 		if (call->built_in)
 			return true;
 
-		const auto& prototype_name = call->id_token->value;
+		const auto& prototype_name = call->id->value;
 
 		auto prototype = get_prototype(prototype_name);
 		if (!prototype)
@@ -138,10 +138,10 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 			if (!analyze_expr(current_param))
 				return false;
 
-			if (!original_param->type_token->is_same_type(current_param->get_token()))
+			if (!original_param->type->is_same_type(current_param->get_token()))
 				add_error("Argument of type '{}' is incompatible with parameter of type '{}'",
 						  Lexer::STRIFY_TYPE(current_param->get_token()),
-						  Lexer::STRIFY_TYPE(original_param->type_token));
+						  Lexer::STRIFY_TYPE(original_param->type));
 		}
 
 		call->prototype = prototype;

@@ -1,15 +1,15 @@
-i32 gvar = 0;
+/*i32 gvar = 0;
 
 i32 gay(i32 x) { return x + 1; }
 
 i32 test(i32 t)
 {
 	return gay(t);
-}
+}*/
 
 void main()
 {
-	i32 i = 1;
+	i32 i = 1i16 + (2i8 + 3i64) * 5i32;
 
-	test(i);
+	//test(i);
 }

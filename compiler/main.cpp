@@ -37,11 +37,10 @@ int main()
 	{
 		g_semantic->print_errors();
 
-		goto finish_compiling;
+		goto finish;
 	}
 
-
-finish_compiling:
+finish:
 
 	g_semantic.reset();
 	g_syntax.reset();

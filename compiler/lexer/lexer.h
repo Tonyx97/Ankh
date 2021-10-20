@@ -2,6 +2,9 @@
 
 enum TokenID : int
 {
+	Token_None = 0,
+	Token_Eof,
+
 	Token_Id,
 	Token_Keyword,
 	Token_IntLiteral,
@@ -76,9 +79,6 @@ enum TokenID : int
 	Token_Continue,
 	Token_Return,
 	Token_Extern,
-
-	Token_Eof,
-	Token_None
 };
 
 enum TokenFlag : unsigned int

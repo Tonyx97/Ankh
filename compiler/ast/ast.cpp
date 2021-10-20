@@ -153,31 +153,31 @@ void ast::Printer::print_assign(ExprAssign* assign)
 
 void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 {
-	if (expr->token->flags & TokenFlag_Unsigned)
+	if (expr->type->flags & TokenFlag_Unsigned)
 	{
-		switch (auto size = expr->token->size)
+		switch (auto size = expr->type->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->token->u8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->token->u16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->token->u32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->token->u64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->type->u8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->type->u16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->type->u32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->type->u64); break;
 		}
 	}
 	else
 	{
-		switch (auto size = expr->token->size)
+		switch (auto size = expr->type->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->token->i8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->token->i16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->token->i32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->token->i64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->type->i8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->type->i16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->type->i32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->type->i64); break;
 		}
 	}
 }
 
 void ast::Printer::print_id(ast::ExprId* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Id ({}) '{}'", Lexer::STRIFY_TYPE(expr->token), expr->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "Id ({}) '{}'", Lexer::STRIFY_TYPE(expr->id), expr->get_name());
 }
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
@@ -206,17 +206,11 @@ void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 		print_expr(expr->lhs);
 	}
 
-	if (auto left = rtti::cast<ExprBinaryOp>(expr->lhs))			print_expr_binary_op(left);
-	else if (auto left_unary = rtti::cast<ExprUnaryOp>(expr->lhs)) print_expr_unary_op(left_unary);
-
 	if (expr->rhs)
 	{
 		PRINT_TABS_NL(Yellow, curr_level, "Right operand:");
 		print_expr(expr->rhs);
 	}
-
-	if (auto right = rtti::cast<ExprBinaryOp>(expr->rhs))			print_expr_binary_op(right);
-	else if (auto right_unary = rtti::cast<ExprUnaryOp>(expr->rhs))	print_expr_unary_op(right_unary);
 
 	--curr_level;
 }
@@ -247,7 +241,7 @@ void ast::Printer::print_cast(ExprCast* expr)
 {
 	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} {} to {}",
 		expr->implicit ? "Implicit" : "Explicit",
-		Lexer::STRIFY_TYPE(expr->rhs->get_token()),
+		Lexer::STRIFY_TYPE(expr->rhs->type),
 		expr->rhs->get_name(),
 		Lexer::STRIFY_TYPE(expr->cast_type));
 
