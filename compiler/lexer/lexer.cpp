@@ -109,7 +109,8 @@ bool Lexer::run(const std::string& filename)
 							}
 							else if (auto it_decl = g_keywords_type.find(token_found); it_decl != g_keywords_type.end())
 							{
-								curr_token->id = it_decl->second;
+								curr_token->id = std::get<0>(it_decl->second);
+								curr_token->size = std::get<1>(it_decl->second);
 								curr_token->flags |= TokenFlag_KeywordType;
 							}
 							else
@@ -225,44 +226,33 @@ void Lexer::push_and_pop_token(Token* token)
 
 Token* Lexer::eat_expect(TokenID expected_token)
 {
-	if (eof())
-		return nullptr;
+	check(!eof(), "Expected a keyword, EOF found");
 
-	if (auto curr = current(); curr->id != expected_token)
-	{
-		PRINT(Red, "Unexpected token '{}'", curr->value);
-		return nullptr;
-	}
-	else
-	{
-		push_and_pop_token(curr);
+	auto curr = current();
 
-		return curr;
-	}
+	check(curr->id == expected_token, "Unexpected token '{}'", curr->value);
+
+	push_and_pop_token(curr);
+
+	return curr;
 }
 
 Token* Lexer::eat_expect_keyword_declaration()
 {
-	if (eof())
-		return nullptr;
+	check(!eof(), "Expected a keyword, EOF found");
 
-	if (auto curr = current(); !(curr->flags & TokenFlag_KeywordType))
-	{
-		PRINT(Red, "Unexpected token '{}'", curr->value);
-		return nullptr;
-	}
-	else
-	{
-		push_and_pop_token(curr);
+	auto curr = current();
 
-		return curr;
-	}
+	check(curr->flags & TokenFlag_KeywordType, "Unexpected token '{}'", curr->value);
+
+	push_and_pop_token(curr);
+
+	return curr;
 }
 
 Token* Lexer::eat()
 {
-	if (eof())
-		return nullptr;
+	check(!eof(), "Expected a keyword, EOF found");
 
 	auto curr = current();
 

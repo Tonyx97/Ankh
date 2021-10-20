@@ -248,3 +248,35 @@ struct TimeProfiling
 #define PRINT_TABS(x, y, z, ...)		make_text_with_tabs(x, z, y, __VA_ARGS__).print()
 #define PRINT_TABS_NL(x, y, z, ...)		make_text_with_tabs(x, z, y, __VA_ARGS__).print(); make_text(EMPTY_NEW_LINE).print()
 #define PRINT_NL						make_text(EMPTY_NEW_LINE).print()
+
+class compiler_exception : public std::exception
+{
+private:
+
+	std::string msg;
+
+public:
+
+	compiler_exception(const std::string& msg) : msg(msg), exception() {}
+
+	~compiler_exception() throw() {}
+
+	const char* what() const throw () { return msg.c_str(); }
+};
+
+template <typename... A>
+inline void global_error(const char* text, A... args)
+{
+	const std::string error_msg = std::format(text, args...);
+
+	throw compiler_exception(error_msg);
+}
+
+template <typename... A>
+inline void check(bool condition, const char* text, A... args)
+{
+	if (condition)
+		return;
+
+	global_error(text, args...);
+}

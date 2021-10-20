@@ -21,54 +21,53 @@ void Syntax::run()
 {
 	while (!g_lexer->eof())
 	{
-		if (auto type = g_lexer->eat_expect_keyword_declaration())
+		auto type = g_lexer->eat_expect_keyword_declaration();
+
+		check(type, "Expected a type, got '{}'", type->value);
+
+		auto id = g_lexer->eat_expect(Token_Id);
+
+		check(id, "Expected an id, got '{}'", id->value);
+		
+		if (auto next = g_lexer->eat(); next->id == Token_ParenOpen)
 		{
-			if (auto id = g_lexer->eat_expect(Token_Id))
+			auto prototype = _ALLOC(ast::Prototype, id);
+
+			prototype_ctx = prototype;
+
+			prototype->params = parse_prototype_params_decl();
+			prototype->ret_token = type;
+
+			if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
 			{
-				if (auto next = g_lexer->eat(); next->id == Token_ParenOpen)
-				{
-					auto prototype = _ALLOC(ast::Prototype, id);
+				prototype->body = parse_body(nullptr);
 
-					prototype_ctx = prototype;
-
-					prototype->params = parse_prototype_params_decl();
-					prototype->ret_token = type;
-
-					if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
-					{
-						if (!(prototype->body = parse_body(nullptr)))
-							printf_s("[%s] SYNTAX ERROR: Error parsing prototype body\n", __FUNCTION__);
-
-						tree->prototypes.push_back(prototype);
-					}
-				}
-				else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
-				{
-					add_id_type(id, type);
-
-					tree->global_decls.push_back(_ALLOC(ast::ExprDecl, id, type, global_var_decl ? nullptr : parse_expression(), true));
-
-					if (g_lexer->is_current(Token_Semicolon))
-						g_lexer->eat();
-				}
+				tree->prototypes.push_back(prototype);
 			}
-			else printf_s("[%s] SYNTAX ERROR: Expected function id\n", __FUNCTION__);
 		}
-		else printf_s("[%s] SYNTAX ERROR: Expected a return type\n", __FUNCTION__);
+		else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
+		{
+			add_id_type(id, type);
+
+			tree->global_decls.push_back(_ALLOC(ast::ExprDecl, id, type, global_var_decl ? nullptr : parse_expression(), true));
+
+			if (g_lexer->is_current(Token_Semicolon))
+				g_lexer->eat();
+		}
 	}
 }
 
 void Syntax::add_id_type(Token* id, Token* type)
 {
-	id->convert_to_type(type);
+	id->set_id_type(type);
 
 	prototype_ctx.id_types.insert({ id->value, type });
 }
 
-void Syntax::convert_id_to_type(Token* id)
+void Syntax::set_id_type(Token* id)
 {
 	if (auto id_type = get_id_type(id); id_type && id->id == Token_Id)
-		id->convert_to_type(id_type);
+		id->set_id_type(id_type);
 }
 
 std::vector<ast::Base*> Syntax::parse_prototype_params_decl()
@@ -77,7 +76,7 @@ std::vector<ast::Base*> Syntax::parse_prototype_params_decl()
 
 	while (!g_lexer->eof())
 	{
-		auto type = parse_type();
+		auto type = g_lexer->eat_if_current_is_type();
 		if (!type)
 			break;
 
@@ -121,10 +120,8 @@ std::vector<ast::Expr*> Syntax::parse_call_params()
 
 ast::StmtBody* Syntax::parse_body(ast::StmtBody* body)
 {
-	if (!g_lexer->is_current(Token_BracketOpen))
+	if (!g_lexer->eat_if_current_is(Token_BracketOpen))
 		return nullptr;
-
-	g_lexer->eat();
 
 	auto curr_body = _ALLOC(ast::StmtBody);
 
@@ -143,31 +140,28 @@ ast::StmtBody* Syntax::parse_body(ast::StmtBody* body)
 		else break;
 	}
 
-	if (g_lexer->eat_expect(Token_BracketClose))
-		return curr_body;
+	check(g_lexer->eat_expect(Token_BracketClose), "Expected a '}}', got '{}'", g_lexer->eof() ? "EOF" : g_lexer->current()->value);
 	
-	//parser_error("Expected a '}', got '%s'", g_lexer->eof() ? "EOF" : g_lexer->current_value().c_str());
-	
-	return nullptr;
+	return curr_body;
 }
 
 ast::Base* Syntax::parse_statement()
 {
-	if (auto type = parse_type())
+	if (auto type = g_lexer->eat_if_current_is_type())
 	{
-		if (auto id = g_lexer->eat_if_current_is(Token_Id))
-		{
-			add_id_type(id, type);
+		auto id = g_lexer->eat_if_current_is(Token_Id);
 
-			auto expr_value = g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr;
+		check(id, "Expected an identifier, got '{}'", id->value);
 
-			if (expr_value && !id->is_same_type(expr_value->get_token()))
-				return _ALLOC(ast::ExprDecl, id, type, _ALLOC(ast::ExprCast, expr_value, Token_I32));
-			else return _ALLOC(ast::ExprDecl, id, type, expr_value);
-		}
-		else printf_s("[%s] SYNTAX ERROR: Expected an identifier\n", __FUNCTION__);
+		add_id_type(id, type);
+
+		auto expr_value = g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr;
+		auto cast_type_target = id->normal_implicit_cast(expr_value->get_token());
+
+		return (cast_type_target != Token_None ? _ALLOC(ast::ExprDecl, id, type, _ALLOC(ast::ExprCast, expr_value, cast_type_target))
+											   : _ALLOC(ast::ExprDecl, id, type, expr_value));
 	}
-	else if (type = parse_keyword())
+	else if (type = g_lexer->eat_if_current_is_keyword())
 	{
 		if (type->id == Token_If)
 		{
@@ -294,7 +288,7 @@ ast::Expr* Syntax::parse_primary_expression()
 	}
 	else if (auto id = g_lexer->eat_if_current_is(Token_Id))
 	{
-		convert_id_to_type(id);
+		set_id_type(id);
 
 		switch (const auto curr_token = g_lexer->current_token_id())
 		{
@@ -332,8 +326,12 @@ ast::Expr* Syntax::parse_primary_expression()
 	}
 	else if (g_lexer->eat_if_current_is(Token_ParenOpen))
 	{
-		if (auto expr = parse_expression(); expr && g_lexer->eat_expect(Token_ParenClose))
-			return expr;
+		auto expr = parse_expression();
+
+		check(expr, "Expected expression");
+		check(g_lexer->eat_if_current_is(Token_ParenClose), "Expected ')', got '{}'", g_lexer->current()->value);
+
+		return expr;
 	}
 
 	return nullptr;
@@ -343,14 +341,4 @@ Token* Syntax::get_id_type(Token* id)
 {
 	auto it = prototype_ctx.id_types.find(id->value);
 	return it != prototype_ctx.id_types.end() ? it->second : nullptr;
-}
-
-Token* Syntax::parse_type()
-{
-	return (g_lexer->is_token_keyword_type() ? g_lexer->eat() : nullptr);
-}
-
-Token* Syntax::parse_keyword()
-{
-	return (g_lexer->is_token_keyword() ? g_lexer->eat() : nullptr);
 }

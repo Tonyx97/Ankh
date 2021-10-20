@@ -69,12 +69,8 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 {
 	if (auto id = rtti::cast<ast::ExprId>(expr))
 	{
-		// check if variable is defined, if so, we assign the specific variable type
-		// for example, "i32 x = 0" would be Token_Id first and then Token_I32 after.
-
-		if (auto variable = get_declared_variable(id->token->value))
-			id->token->convert_to_type(variable->type_token);
-		else add_error("'{}' identifier is undefined", id->token->value);
+		if (!get_declared_variable(id->token->value))
+			add_error("'{}' identifier is undefined", id->token->value);
 	}
 	else if (auto decl = rtti::cast<ast::ExprDecl>(expr))
 	{

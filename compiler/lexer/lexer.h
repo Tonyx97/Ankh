@@ -89,7 +89,7 @@ enum TokenFlag : unsigned int
 	TokenFlag_KeywordType	= (1 << 2),
 	TokenFlag_Unsigned		= (1 << 3),
 	TokenFlag_Assignation	= (1 << 4),
-	TokenFlag_Id		= (1 << 5),
+	TokenFlag_Id			= (1 << 5),
 };
 
 struct Token
@@ -122,14 +122,69 @@ struct Token
 
 	bool valid = false;
 	
-	int8_t size = 0;
+	uint8_t size = 0;
 
-	void convert_to_type(Token* token)
+	void set_id_type(Token* token)
 	{
-		// todo - add assert here
+		check(id == Token_Id, "Cannot change the type of a token that isn't an ID");
 
 		id = token->id;
+		size = token->size;
 		flags |= token->flags;
+	}
+
+	TokenID binary_implicit_cast(Token* rhs)
+	{
+		if (!rhs)
+			return Token_None;
+		
+		auto lhs = this;
+		
+		auto lhs_type = id;
+		auto rhs_type = rhs->id;
+
+		if (lhs_type == rhs_type)
+			return Token_None;
+
+		const bool lhs_signed = !(lhs->flags & TokenFlag_Unsigned),
+				   rhs_signed = !(rhs->flags & TokenFlag_Unsigned);
+
+		if (lhs_signed == rhs_signed)
+		{
+			if (lhs->size > rhs->size)		return lhs_type;
+			else if (lhs->size < rhs->size) return rhs_type;
+
+			global_error("Invalid sides sizes while casting");
+		}
+		else
+		{
+			Token* signed_t = nullptr,
+				 * unsigned_t = nullptr;
+
+			if (lhs_signed)
+			{
+				signed_t = lhs;
+				unsigned_t = rhs;
+			}
+			else
+			{
+				signed_t = rhs;
+				unsigned_t = lhs;
+			}
+
+			if (unsigned_t->size >= signed_t->size) return unsigned_t->id;
+			else									return signed_t->id;
+		}
+
+		return Token_None;
+	}
+
+	TokenID normal_implicit_cast(Token* rhs)
+	{
+		if (!rhs)
+			return Token_None;
+
+		return (id == rhs->id ? Token_None : id);
 	}
 
 	bool is_same_type(Token* token) const	{ return id == token->id; }
@@ -163,21 +218,21 @@ inline std::unordered_map<std::string, TokenID> g_keywords =
 	{ "extern",		Token_Extern },		// not an statement but we put it here for now
 };
 
-inline std::unordered_map<std::string, TokenID> g_keywords_type =
+inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t>> g_keywords_type =
 {
-	{ "void",	Token_Void },
-	{ "bool",	Token_Bool },
-	{ "true",	Token_True },
-	{ "false",	Token_False },
-	{ "u8",		Token_U8 },
-	{ "u16",	Token_U16 },
-	{ "u32",	Token_U32 },
-	{ "u64",	Token_U64 },
-	{ "i8",		Token_I8 },
-	{ "i16",	Token_I16 },
-	{ "i32",	Token_I32 },
-	{ "i64",	Token_I64 },
-	{ "m128",	Token_M128 },
+	{ "void",	{ Token_Void,	0 } },
+	{ "bool",	{ Token_Bool,	8 } },
+	{ "true",	{ Token_True,	8 } },
+	{ "false",	{ Token_False,	8 } },
+	{ "u8",		{ Token_U8,		8 } },
+	{ "u16",	{ Token_U16,	16 } },
+	{ "u32",	{ Token_U32,	32 } },
+	{ "u64",	{ Token_U64,	64 } },
+	{ "i8",		{ Token_I8,		8 } },
+	{ "i16",	{ Token_I16,	16 } },
+	{ "i32",	{ Token_I32,	32 } },
+	{ "i64",	{ Token_I64,	64 } },
+	{ "m128",	{ Token_M128,	128 } },
 };
 
 inline Token g_static_tokens[] =
@@ -271,6 +326,8 @@ public:
 	Token* eat_expect_keyword_declaration();
 	Token* eat();
 	Token* eat_if_current_is(TokenID id)			{ return (is_current(id) ? eat() : nullptr); }
+	Token* eat_if_current_is_type()					{ return (is_token_keyword_type() ? eat() : nullptr); }
+	Token* eat_if_current_is_keyword()				{ return (is_token_keyword() ? eat() : nullptr); }
 	Token* current() const							{ return (tokens.empty() ? nullptr : tokens.back()); }
 
 	TokenID current_token_id() const				{ return (tokens.empty() ? Token_Eof : tokens.back()->id); }
@@ -282,7 +339,7 @@ public:
 	
 	static inline std::string STRIFY_TYPE(TokenID id)
 	{
-		auto it = std::find_if(g_keywords_type.begin(), g_keywords_type.end(), [&](const auto& p) { return p.second == id; });
+		auto it = std::find_if(g_keywords_type.begin(), g_keywords_type.end(), [&](const auto& p) { return std::get<0>(p.second) == id; });
 		return (it != g_keywords_type.end() ? it->first : "unknown_type");
 	}
 

@@ -35,7 +35,7 @@ public:
 	void print_ast();
 	void run();
 	void add_id_type(Token* id, Token* type);
-	void convert_id_to_type(Token* id);
+	void set_id_type(Token* id);
 
 	std::vector<ast::Base*> parse_prototype_params_decl();
 	std::vector<ast::Expr*> parse_call_params();
@@ -48,8 +48,6 @@ public:
 	ast::AST* get_ast()			{ return tree; }
 
 	Token* get_id_type(Token* id);
-	Token* parse_type();
-	Token* parse_keyword();
 };
 
 inline std::unique_ptr<Syntax> g_syntax;

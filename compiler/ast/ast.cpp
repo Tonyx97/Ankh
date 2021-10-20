@@ -245,7 +245,11 @@ void ast::Printer::print_expr_call(ExprCall* expr)
 
 void ast::Printer::print_cast(ExprCast* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} {} to {}", expr->implicit ? "Implicit" : "Explicit", Lexer::STRIFY_TYPE(expr->rhs->get_token()), expr->rhs->get_name(), Lexer::STRIFY_TYPE(expr->cast_type));
+	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} {} to {}",
+		expr->implicit ? "Implicit" : "Explicit",
+		Lexer::STRIFY_TYPE(expr->rhs->get_token()),
+		expr->rhs->get_name(),
+		Lexer::STRIFY_TYPE(expr->cast_type));
 
 	print_expr(expr->rhs);
 }
