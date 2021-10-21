@@ -313,30 +313,34 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 
 ast::Expr* Syntax::parse_primary_expression()
 {
-	auto curr = g_lexer->current();
+	auto first = g_lexer->current();
 
 	if (g_lexer->eat_if_current_is(Token_IntLiteral))
 	{
-		switch (curr->size)
+		switch (first->size)
 		{
-		case 8:		curr->id = (curr->flags & TokenFlag_Unsigned) ? Token_U8  : Token_I8;  break;
-		case 16:	curr->id = (curr->flags & TokenFlag_Unsigned) ? Token_U16 : Token_I16; break;
-		case 32:	curr->id = (curr->flags & TokenFlag_Unsigned) ? Token_U32 : Token_I32; break;
-		case 64:	curr->id = (curr->flags & TokenFlag_Unsigned) ? Token_U64 : Token_I64; break;
+		case 8:		first->id = (first->flags & TokenFlag_Unsigned) ? Token_U8  : Token_I8;  break;
+		case 16:	first->id = (first->flags & TokenFlag_Unsigned) ? Token_U16 : Token_I16; break;
+		case 32:	first->id = (first->flags & TokenFlag_Unsigned) ? Token_U32 : Token_I32; break;
+		case 64:	first->id = (first->flags & TokenFlag_Unsigned) ? Token_U64 : Token_I64; break;
 		}
 
-		return _ALLOC(ast::ExprIntLiteral, curr);
+		return _ALLOC(ast::ExprIntLiteral, first);
 	}
 	else if (g_lexer->eat_if_current_is(Token_Sub) ||
 			 g_lexer->eat_if_current_is(Token_Mul) ||
 			 g_lexer->eat_if_current_is(Token_And) ||
+			 g_lexer->eat_if_current_is(Token_Inc) ||
+			 g_lexer->eat_if_current_is(Token_Dec) ||
 			 g_lexer->eat_if_current_is(Token_LogicalNot))
 	{
-		return _ALLOC(ast::ExprUnaryOp, parse_primary_expression(), curr);
+		return _ALLOC(ast::ExprUnaryOp, parse_primary_expression(), first);
 	}
 	else if (auto id = g_lexer->eat_if_current_is(Token_Id))
 	{
 		apply_id_type(id);
+
+		auto curr = g_lexer->current();
 
 		switch (const auto curr_token = g_lexer->current_token_id())
 		{
@@ -349,6 +353,13 @@ ast::Expr* Syntax::parse_primary_expression()
 
 			return (casted_type ? _ALLOC(ast::ExprAssign, id, _ALLOC(ast::ExprCast, expr_value, casted_type))
 								: _ALLOC(ast::ExprAssign, id, expr_value));
+		}
+		case Token_Inc:
+		case Token_Dec:
+		{
+			g_lexer->eat();
+
+			return _ALLOC(ast::ExprUnaryOp, _ALLOC(ast::ExprId, id), curr, false);
 		}
 		case Token_AddAssign:
 		case Token_SubAssign:

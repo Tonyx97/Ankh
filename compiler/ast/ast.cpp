@@ -231,7 +231,7 @@ void ast::Printer::print_id(ast::ExprId* expr)
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "unary op ({})", expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "unary op {} ({})", expr->on_left ? "on left side" : "on right side", expr->name);
 
 	++curr_level;
 

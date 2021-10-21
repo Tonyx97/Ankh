@@ -172,7 +172,9 @@ namespace ast
 	*/
 	struct ExprUnaryOp : public Expr
 	{
-		ExprUnaryOp(Expr* rhs, Token* type)
+		bool on_left = false;
+
+		ExprUnaryOp(Expr* rhs, Token* type, bool on_left = true) : on_left(on_left)
 		{
 			base_type = EXPR_UNARY_OP;
 			name = Lexer::STRIFY_TOKEN(type);

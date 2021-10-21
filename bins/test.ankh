@@ -11,10 +11,21 @@ i32 main()
 
 	bool b = true;
 
-	do
+	while (true)
 	{
-		i += b + 1i8;
-	} while (i > 10);
+		while (true)
+		{
+			while (true)
+			{
+				while (true)
+				{
+					while (true)
+					{
+					}
+				}
+			}
+		}
+	}
 
-	return test(1);
+	return test(b);
 }
