@@ -39,6 +39,7 @@ bool Semantic::analyze_prototype(ast::Prototype* prototype)
 {
 	p_ctx = prototype;
 
+
 	// todo - allow prototype overloads
 
 	for (auto param_base : prototype->params)

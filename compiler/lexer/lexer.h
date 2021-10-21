@@ -74,6 +74,7 @@ enum TokenID : int
 
 	Token_For,
 	Token_While,
+	Token_Do,
 	Token_If,
 	Token_Else,
 	Token_Break,
@@ -212,6 +213,7 @@ inline std::unordered_map<std::string, TokenID> g_keywords =
 {
 	{ "for",		Token_For },
 	{ "while",		Token_While },
+	{ "do",			Token_Do },
 	{ "if",			Token_If },
 	{ "else",		Token_Else },
 	{ "break",		Token_Break },

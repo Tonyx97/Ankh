@@ -15,11 +15,11 @@ void ast::Printer::print_prototype(Prototype* prototype)
 	if (first_prototype_printed)
 		PRINT_NL;
 
-	PRINT_TABS(White, 0, "Prototype '{}'", prototype->id_token->value);
+	PRINT_TABS(White, 0, "prototype '{}'", prototype->id_token->value);
 
 	if (!prototype->params.empty())
 	{
-		PRINT_TABS(White, 0, " | Arguments: ");
+		PRINT_TABS(White, 0, " | arguments: ");
 
 		print_vec<ExprDecl>(Green, prototype->params, ", ", [](ExprDecl* e)
 		{
@@ -29,7 +29,7 @@ void ast::Printer::print_prototype(Prototype* prototype)
 
 	if (prototype->is_decl())
 	{
-		PRINT_TABS_NL(White, 0, " (Decl)");
+		PRINT_TABS_NL(White, 0, " (decl)");
 	}
 	else
 	{
@@ -37,7 +37,7 @@ void ast::Printer::print_prototype(Prototype* prototype)
 
 		print_body(prototype->body);
 
-		PRINT_TABS_NL(White, curr_level, "End");
+		PRINT_TABS_NL(White, curr_level, "end");
 	}
 
 	first_prototype_printed = true;
@@ -47,38 +47,41 @@ void ast::Printer::print_body(StmtBody* body)
 {
 	++curr_level;
 
-	PRINT_TABS_NL(Cyan, curr_level, "Body");
+	PRINT_TABS_NL(Cyan, curr_level, "body");
 
 	for (auto stmt_base : body->stmts)
 		print_stmt(stmt_base);
 
-	PRINT_TABS_NL(Cyan, curr_level, "End");
+	PRINT_TABS_NL(Cyan, curr_level, "end");
 
 	--curr_level;
 }
 
 void ast::Printer::print_stmt(Base* stmt)
 {
-	if (auto body = rtti::cast<StmtBody>(stmt))					print_body(body);
-	else if (auto stmt_if = rtti::cast<StmtIf>(stmt))			print_if(stmt_if);
-	else if (auto stmt_for = rtti::cast<StmtFor>(stmt))			print_for(stmt_for);
-	else if (auto stmt_while = rtti::cast<StmtWhile>(stmt))		print_while(stmt_while);
-	else if (auto stmt_return = rtti::cast<StmtReturn>(stmt))	print_return(stmt_return);
-	else if (auto expr = rtti::cast<Expr>(stmt))				print_expr(expr);
+	if (auto body = rtti::cast<StmtBody>(stmt))						print_body(body);
+	else if (auto stmt_if = rtti::cast<StmtIf>(stmt))				print_if(stmt_if);
+	else if (auto stmt_for = rtti::cast<StmtFor>(stmt))				print_for(stmt_for);
+	else if (auto stmt_while = rtti::cast<StmtWhile>(stmt))			print_while(stmt_while);
+	else if (auto stmt_do_while = rtti::cast<StmtDoWhile>(stmt))	print_do_while(stmt_do_while);
+	else if (auto stmt_break = rtti::cast<StmtBreak>(stmt))			print_break(stmt_break);
+	else if (auto stmt_continue = rtti::cast<StmtContinue>(stmt))	print_continue(stmt_continue);
+	else if (auto stmt_return = rtti::cast<StmtReturn>(stmt))		print_return(stmt_return);
+	else if (auto expr = rtti::cast<Expr>(stmt))					print_expr(expr);
 }
 
 void ast::Printer::print_if(StmtIf* stmt_if)
 {
 	++curr_level;
 
-	PRINT_TABS_NL(Blue, curr_level, "If");
+	PRINT_TABS_NL(Blue, curr_level, "if");
 
 	print_expr(stmt_if->expr);
 	print_body(stmt_if->if_body);
 
 	for (auto else_if : stmt_if->ifs)
 	{
-		PRINT_TABS_NL(Blue, curr_level, "Else If");
+		PRINT_TABS_NL(Blue, curr_level, "else if");
 
 		print_expr(else_if->expr);
 		print_body(else_if->if_body);
@@ -86,7 +89,7 @@ void ast::Printer::print_if(StmtIf* stmt_if)
 
 	if (stmt_if->else_body)
 	{
-		PRINT_TABS_NL(Blue, curr_level, "Else");
+		PRINT_TABS_NL(Blue, curr_level, "else");
 
 		print_body(stmt_if->else_body);
 	}
@@ -98,7 +101,7 @@ void ast::Printer::print_for(ast::StmtFor* stmt_for)
 {
 	++curr_level;
 
-	PRINT_TABS_NL(Blue, curr_level, "For");
+	PRINT_TABS_NL(Blue, curr_level, "for");
 
 	print_stmt(stmt_for->init);
 	print_expr(stmt_for->condition);
@@ -112,7 +115,7 @@ void ast::Printer::print_while(StmtWhile* stmt_while)
 {
 	++curr_level;
 
-	PRINT_TABS_NL(Blue, curr_level, "While");
+	PRINT_TABS_NL(Blue, curr_level, "while");
 
 	print_expr(stmt_while->condition);
 	print_body(stmt_while->body);
@@ -120,9 +123,42 @@ void ast::Printer::print_while(StmtWhile* stmt_while)
 	--curr_level;
 }
 
+void ast::Printer::print_do_while(StmtDoWhile* stmt_do_while)
+{
+	++curr_level;
+
+	PRINT_TABS_NL(Blue, curr_level, "do");
+
+	print_body(stmt_do_while->body);
+
+	PRINT_TABS_NL(Blue, curr_level, "while");
+
+	print_expr(stmt_do_while->condition);
+
+	--curr_level;
+}
+
+void ast::Printer::print_break(StmtBreak* stmt_break)
+{
+	++curr_level;
+
+	PRINT_TABS_NL(Blue, curr_level, "break");
+
+	--curr_level;
+}
+
+void ast::Printer::print_continue(StmtContinue* stmt_continue)
+{
+	++curr_level;
+
+	PRINT_TABS_NL(Blue, curr_level, "continue");
+
+	--curr_level;
+}
+
 void ast::Printer::print_return(ast::StmtReturn* stmt_return)
 {
-	PRINT_TABS_NL(Blue, curr_level, "Return");
+	PRINT_TABS_NL(Blue, curr_level, "return");
 
 	print_expr(stmt_return->expr);
 }
@@ -146,7 +182,7 @@ void ast::Printer::print_expr(Expr* expr)
 
 void ast::Printer::print_decl(ExprDecl* decl)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{}ecl.{} ({}) '{}'", decl->global ? "Global d" : "D", decl->rhs ? " assignment" : "", Lexer::STRIFY_TYPE(decl->type), decl->id->value);
+	PRINT_TABS_NL(Yellow, curr_level, "{}{} ({}) '{}'", decl->global ? "global" : "decl.", decl->rhs ? " assignment" : "", Lexer::STRIFY_TYPE(decl->type), decl->id->value);
 
 	if (decl->rhs)
 		print_expr(decl->rhs);
@@ -154,7 +190,7 @@ void ast::Printer::print_decl(ExprDecl* decl)
 
 void ast::Printer::print_assign(ExprAssign* assign)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Assignment '{}'", assign->id->value);
+	PRINT_TABS_NL(Yellow, curr_level, "assignment '{}'", assign->id->value);
 
 	print_expr(assign->rhs);
 }
@@ -190,16 +226,16 @@ void ast::Printer::print_static_val(ExprStaticValue* expr)
 
 void ast::Printer::print_id(ast::ExprId* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Id ({}) '{}'", Lexer::STRIFY_TYPE(expr->id), expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "id ({}) '{}'", Lexer::STRIFY_TYPE(expr->id), expr->name);
 }
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Unary Op ({})", expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "unary op ({})", expr->name);
 
 	++curr_level;
 
-	PRINT_TABS_NL(Yellow, curr_level, "Value '{}'", expr->rhs->name);
+	PRINT_TABS_NL(Yellow, curr_level, "value '{}'", expr->rhs->name);
 
 	if (auto value = rtti::cast<ExprBinaryOp>(expr->rhs))			print_expr_binary_op(value);
 	else if (auto value_unary = rtti::cast<ExprUnaryOp>(expr->rhs))	print_expr_unary_op(value_unary);
@@ -209,19 +245,19 @@ void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 
 void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Binary Op ({})", expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "binary op ({})", expr->name);
 
 	++curr_level;
 
 	if (expr->lhs)
 	{
-		PRINT_TABS_NL(Yellow, curr_level, "Left operand:");
+		PRINT_TABS_NL(Yellow, curr_level, "left operand:");
 		print_expr(expr->lhs);
 	}
 
 	if (expr->rhs)
 	{
-		PRINT_TABS_NL(Yellow, curr_level, "Right operand:");
+		PRINT_TABS_NL(Yellow, curr_level, "right operand:");
 		print_expr(expr->rhs);
 	}
 
@@ -230,7 +266,7 @@ void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 
 void ast::Printer::print_expr_call(ExprCall* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Prototype Call ({})", expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "prototype Call ({})", expr->name);
 
 	for (auto param : expr->stmts)
 	{
@@ -244,7 +280,7 @@ void ast::Printer::print_expr_call(ExprCall* expr)
 		}
 		else
 		{
-			PRINT_TABS_NL(Yellow, curr_level, "Param:");
+			PRINT_TABS_NL(Yellow, curr_level, "param:");
 			print_expr(param);
 		}
 	}
@@ -253,7 +289,7 @@ void ast::Printer::print_expr_call(ExprCall* expr)
 void ast::Printer::print_cast(ExprCast* expr)
 {
 	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} {} to {}",
-		expr->implicit ? "Implicit" : "Explicit",
+		expr->implicit ? "implicit" : "explicit",
 		Lexer::STRIFY_TYPE(expr->rhs->type),
 		expr->rhs->name,
 		Lexer::STRIFY_TYPE(expr->type));

@@ -242,6 +242,19 @@ ast::Base* Syntax::parse_statement()
 
 			return _ALLOC(ast::StmtWhile, condition, parse_body(nullptr));
 		}
+		else if (type->id == Token_Do)
+		{
+			auto body = parse_body(nullptr);
+
+			g_lexer->eat_expect(Token_While);
+			g_lexer->eat_expect(Token_ParenOpen);
+
+			auto condition = parse_expression(); g_lexer->eat_expect(Token_ParenClose);
+
+			return _ALLOC(ast::StmtDoWhile, condition, body);
+		}
+		else if (type->id == Token_Break)		return _ALLOC(ast::StmtBreak);
+		else if (type->id == Token_Continue)	return _ALLOC(ast::StmtContinue);
 		else if (type->id == Token_Return)
 		{
 			auto ret = p_ctx.fn->ret_token;
@@ -345,7 +358,11 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, id), parse_expression(), id, nullptr);		// todo - add proper binary op type
+			auto expr_value = parse_expression();
+			auto casted_type = id->normal_implicit_cast(expr_value->type);
+
+			return (casted_type ? _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, id), _ALLOC(ast::ExprCast, expr_value, casted_type), id, casted_type)
+								: _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, id), expr_value, id, expr_value->type));
 		}
 		case Token_ParenOpen:
 		{

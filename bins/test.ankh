@@ -11,5 +11,10 @@ i32 main()
 
 	bool b = true;
 
+	do
+	{
+		i += b;
+	} while (i > 10);
+
 	return test(1);
 }

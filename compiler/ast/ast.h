@@ -23,6 +23,9 @@ namespace ast
 		STMT_IF,
 		STMT_FOR,
 		STMT_WHILE,
+		STMT_DO_WHILE,
+		STMT_BREAK,
+		STMT_CONTINUE,
 		STMT_RETURN,
 	};
 
@@ -297,7 +300,7 @@ namespace ast
 	};
 
 	/*
-	* StmtFor
+	* StmtWhile
 	*/
 	struct StmtWhile : public Base
 	{
@@ -314,6 +317,46 @@ namespace ast
 		}
 
 		static bool check_class(Base* i) { return i->base_type == STMT_WHILE; }
+	};
+
+	/*
+	* StmtDoWhile
+	*/
+	struct StmtDoWhile : public Base
+	{
+		Expr* condition = nullptr;
+
+		StmtBody* body = nullptr;
+
+		StmtDoWhile(Expr* condition, StmtBody* body) : condition(condition), body(body)
+											{ base_type = STMT_DO_WHILE; }
+		~StmtDoWhile()
+		{
+			_FREE(body);
+			_FREE(condition);
+		}
+
+		static bool check_class(Base* i)	{ return i->base_type == STMT_DO_WHILE; }
+	};
+
+	/*
+	* StmtBreak
+	*/
+	struct StmtBreak : public Base
+	{
+		StmtBreak()							{ base_type = STMT_BREAK; }
+
+		static bool check_class(Base* i)	{ return i->base_type == STMT_BREAK; }
+	};
+
+	/*
+	* StmtContinue
+	*/
+	struct StmtContinue : public Base
+	{
+		StmtContinue()						{ base_type = STMT_CONTINUE; }
+
+		static bool check_class(Base* i)	{ return i->base_type == STMT_CONTINUE; }
 	};
 
 	/*
@@ -389,6 +432,9 @@ namespace ast
 		void print_if(StmtIf* stmt_if);
 		void print_for(StmtFor* stmt_for);
 		void print_while(StmtWhile* stmt_while);
+		void print_do_while(StmtDoWhile* stmt_do_while);
+		void print_break(StmtBreak* stmt_break);
+		void print_continue(StmtContinue* stmt_continue);
 		void print_return(StmtReturn* stmt_return);
 		void print_expr(Expr* expr);
 		void print_decl(ExprDecl* decl);
