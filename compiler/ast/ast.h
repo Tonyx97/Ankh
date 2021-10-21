@@ -174,7 +174,8 @@ namespace ast
 			base_type = EXPR_UNARY_OP;
 			name = Lexer::STRIFY_TOKEN(type);
 			this->rhs = rhs;
-			this->type = type;
+			this->id = type;
+			this->type = rhs->type;
 		}
 
 		~ExprUnaryOp()						{ _FREE(rhs); }
