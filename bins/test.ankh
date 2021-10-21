@@ -7,9 +7,13 @@ i32 test(i32 t)
 	return gay(t);
 }*/
 
-void main()
-{
-	i32 i = 1i16 + (2i8 + 3i64) * 5i32;
+i32 main_ret();
 
-	//test(i);
+i32 main()
+{
+	i32 i = 1;
+
+	return main_ret();
 }
+
+i64 main_ret() { return 1i64; }

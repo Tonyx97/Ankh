@@ -167,8 +167,13 @@ namespace ast
 
 		bool built_in = false;
 
-		ExprCall(Token* id_token, Token* type, bool built_in = false) : built_in(built_in)
-														{ base_type = EXPR_CALL; this->id = id; this->type = type; }
+		ExprCall(Prototype* prototype, Token* id, Token* type, bool built_in = false) : prototype(prototype), built_in(built_in)
+		{
+			base_type = EXPR_CALL;
+			this->id = id;
+			this->type = type;
+		}
+
 		~ExprCall()
 		{
 			for (auto stmt : stmts)
@@ -186,12 +191,10 @@ namespace ast
 	*/
 	struct ExprCast : public Expr
 	{
-		TokenID cast_type = Token_None;
-
 		bool implicit = false;
 
-		ExprCast(Expr* rhs, TokenID cast_type, bool implicit = true) : cast_type(cast_type), implicit(implicit)
-											{ base_type = EXPR_IMPLICIT_CAST; this->rhs = rhs; }
+		ExprCast(Expr* rhs, Token* type, bool implicit = true) : implicit(implicit)
+											{ base_type = EXPR_IMPLICIT_CAST; this->rhs = rhs; this->type = type; }
 		~ExprCast()							{ _FREE(rhs); }
 
 		Token* get_token()					{ return nullptr; }
@@ -319,7 +322,7 @@ namespace ast
 		Token* id_token = nullptr,
 			 * ret_token = nullptr;
 
-		Prototype(Token* id_token) : id_token(id_token)		{}
+		Prototype(Token* id_token) : id_token(id_token)	{}
 		~Prototype()
 		{
 			for (auto param : params)
@@ -327,6 +330,8 @@ namespace ast
 
 			_FREE(body);
 		}
+
+		bool is_decl() const							{ return !body; }
 	};
 
 	struct AST

@@ -12,7 +12,7 @@ void Semantic::print_errors()
 
 void Semantic::add_variable(ast::ExprDecl* expr)
 {
-	pi.decls.insert({ expr->get_name(), expr });
+	p_ctx.decls.insert({ expr->get_name(), expr });
 }
 
 bool Semantic::run()
@@ -22,32 +22,43 @@ bool Semantic::run()
 	for (auto prototype : ast_tree->prototypes)
 		analyze_prototype(prototype);
 
-	for (const auto& call_name : gi.calls)
-		if (!gi.calls.contains(call_name))
-			add_error("Prototype '{}' does not exist", call_name.c_str());
+	for (const auto& [name, prototype_decl] : g_ctx.prototype_decls)
+		if (auto it = g_ctx.prototype_defs.find(name); it == g_ctx.prototype_defs.end())
+		{
+			if (g_ctx.calls.find(name) == g_ctx.calls.end())
+				add_error("Unresolved prototype '{}' declared", name);
+			else add_error("Unresolved prototype '{}' referenced", name);
+		}
+		else if (auto prototype_def = it->second; !prototype_def->ret_token->is_same_type(prototype_decl->ret_token))
+			add_error("Cannot overload prototype '{}' by return type alone", name);
 
 	return errors.empty();
 }
 
 bool Semantic::analyze_prototype(ast::Prototype* prototype)
 {
-	// prototypes can be used anywhere in the global scope, there is no
-	// need to declare them, we should just define them.
+	p_ctx = prototype;
 
-	pi = prototype;
-	
+	// todo - allow prototype overloads
+
 	for (auto param_base : prototype->params)
 	{
 		auto param_decl = rtti::cast<ast::ExprDecl>(param_base);
 
-		if (pi.decls.find(param_decl->id->value) != pi.decls.end())
+		if (p_ctx.has_decl(param_decl))
 			add_error("Parameter '{}' already defined in prototype declaration", param_decl->id->value);
 
 		add_variable(param_decl);
 	}
 
-	if (auto body = prototype->body)
-		analyze_body(body);
+	if (prototype->is_decl())
+		g_ctx.add_prototype_decl(prototype);
+	else
+	{
+		g_ctx.add_prototype_def(prototype);
+
+		analyze_body(prototype->body);
+	}
 
 	return true;
 }
@@ -118,17 +129,17 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 
 		const auto& prototype_name = call->id->value;
 
-		auto prototype = get_prototype(prototype_name);
+		auto prototype = get_declared_prototype(prototype_name);
 		if (!prototype)
-			return add_error("Identifier '{}' not found", prototype_name.c_str());
+			return add_error("Prototype identifier '{}' not found", prototype_name);
 
 		const auto original_params_length = prototype->params.size(),
 				   current_params_length = call->stmts.size();
 
 		if (current_params_length < original_params_length)
-			add_error("Too few arguments in function call '{}'", prototype_name.c_str());
+			add_error("Too few arguments in function call '{}'", prototype_name);
 		else if (current_params_length > original_params_length)
-			add_error("Too many arguments in function call '{}'", prototype_name.c_str());
+			add_error("Too many arguments in function call '{}'", prototype_name);
 
 		for (size_t i = 0ull; i < call->stmts.size() && i < prototype->params.size(); ++i)
 		{
@@ -146,7 +157,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 
 		call->prototype = prototype;
 
-		gi.calls.insert(prototype_name);
+		g_ctx.add_call(prototype_name);
 	}
 
 	return true;
@@ -185,27 +196,30 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 	if (stmt_return->expr && !analyze_expr(stmt_return->expr))
 		return false;
 
-	if (stmt_return->expr ? pi.pt->ret_token->is_same_type(stmt_return->expr->get_token()) : pi.pt->ret_token->is_same_type(Token_Void))
+	if (stmt_return->expr ? p_ctx.pt->ret_token->is_same_type(stmt_return->expr->type) : p_ctx.pt->ret_token->is_same_type(Token_Void))
 		return true;
 
 	add_error("Return type '{}' does not match with function type '{}'",
-		Lexer::STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->get_token()->id : Token_Void),
-		Lexer::STRIFY_TYPE(pi.pt->ret_token));
+		Lexer::STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->type->id : Token_Void),
+		Lexer::STRIFY_TYPE(p_ctx.pt->ret_token));
 
 	return false;
 }
 
 ast::ExprDecl* Semantic::get_declared_variable(const std::string& name)
 {
-	auto it = pi.decls.find(name);
-	return (it != pi.decls.end() ? it->second : nullptr);
+	auto it = p_ctx.decls.find(name);
+	return (it != p_ctx.decls.end() ? it->second : nullptr);
 }
 
-ast::Prototype* Semantic::get_prototype(const std::string& name)
+ast::Prototype* Semantic::get_declared_prototype(const std::string& name)
 {
-	for (auto prototype : ast_tree->prototypes)
-		if (prototype->id_token->value == name)
-			return prototype;
+	auto it = g_ctx.prototype_decls.find(name);
+	return (it != g_ctx.prototype_decls.end() ? it->second : nullptr);
+}
 
-	return nullptr;
+ast::Prototype* Semantic::get_defined_prototype(const std::string& name)
+{
+	auto it = g_ctx.prototype_defs.find(name);
+	return (it != g_ctx.prototype_defs.end() ? it->second : nullptr);
 }

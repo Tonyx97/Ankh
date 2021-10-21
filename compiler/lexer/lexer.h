@@ -133,10 +133,10 @@ struct Token
 		flags |= token->flags;
 	}
 
-	TokenID binary_implicit_cast(Token* rhs)
+	Token* binary_implicit_cast(Token* rhs)
 	{
 		if (!rhs)
-			return Token_None;
+			return nullptr;
 		
 		auto lhs = this;
 		
@@ -144,15 +144,15 @@ struct Token
 		auto rhs_type = rhs->id;
 
 		if (lhs_type == rhs_type)
-			return Token_None;
+			return nullptr;
 
 		const bool lhs_signed = !(lhs->flags & TokenFlag_Unsigned),
 				   rhs_signed = !(rhs->flags & TokenFlag_Unsigned);
 
 		if (lhs_signed == rhs_signed)
 		{
-			if (lhs->size > rhs->size)		return lhs_type;
-			else if (lhs->size < rhs->size) return rhs_type;
+			if (lhs->size > rhs->size)		return lhs;
+			else if (lhs->size < rhs->size) return rhs;
 
 			global_error("Invalid sides sizes while casting");
 		}
@@ -172,19 +172,19 @@ struct Token
 				unsigned_t = lhs;
 			}
 
-			if (unsigned_t->size >= signed_t->size) return unsigned_t->id;
-			else									return signed_t->id;
+			if (unsigned_t->size >= signed_t->size) return unsigned_t;
+			else									return signed_t;
 		}
 
-		return Token_None;
+		return nullptr;
 	}
 
-	TokenID normal_implicit_cast(Token* rhs)
+	Token* normal_implicit_cast(Token* rhs)
 	{
 		if (!rhs)
-			return Token_None;
+			return nullptr;
 
-		return (id == rhs->id ? Token_None : id);
+		return (id == rhs->id ? nullptr : this);
 	}
 
 	bool is_same_type(Token* token) const	{ return id == token->id; }
@@ -306,7 +306,6 @@ public:
 
 	void print_list();
 	void print_errors();
-	void push_and_pop_token(Token* token);
 
 	template <typename... A>
 	inline void add_error(const std::string& format, A... args)
@@ -322,6 +321,7 @@ public:
 	bool is(Token* token, TokenID id)				{ return (token->id == id); }
 	bool eof()										{ return tokens.empty(); }
 
+	Token* push_and_pop();
 	Token* eat_expect(TokenID expected_token);
 	Token* eat_expect_keyword_declaration();
 	Token* eat();

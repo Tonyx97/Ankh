@@ -17,13 +17,27 @@ namespace syntax
 			return *this;
 		}
 	};
+
+	struct GlobalContext
+	{
+		std::unordered_map<std::string, ast::Prototype*> prototypes;
+
+		void add_prototype(ast::Prototype* prototype) { prototypes.insert({ prototype->id_token->value, prototype }); }
+
+		ast::Prototype* get_prototype(const std::string& name)
+		{
+			auto it = prototypes.find(name);
+			return it != prototypes.end() ? it->second : nullptr;
+		}
+	};
 }
 
 class Syntax
 {
 private:
 
-	syntax::PrototypeContext prototype_ctx {};
+	syntax::PrototypeContext p_ctx {};
+	syntax::GlobalContext g_ctx {};
 
 	ast::AST* tree = nullptr;
 

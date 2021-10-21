@@ -33,16 +33,19 @@ void Syntax::run()
 		{
 			auto prototype = _ALLOC(ast::Prototype, id);
 
-			prototype_ctx = prototype;
+			p_ctx = prototype;
 
 			prototype->params = parse_prototype_params_decl();
 			prototype->ret_token = type;
 
 			if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
 			{
-				prototype->body = parse_body(nullptr);
+				if (!g_lexer->eat_if_current_is(Token_Semicolon))
+					prototype->body = parse_body(nullptr);
 
 				tree->prototypes.push_back(prototype);
+
+				g_ctx.add_prototype(prototype);
 			}
 		}
 		else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
@@ -61,7 +64,7 @@ void Syntax::add_id_type(Token* id, Token* type)
 {
 	id->set_id_type(type);
 
-	prototype_ctx.id_types.insert({ id->value, type });
+	p_ctx.id_types.insert({ id->value, type });
 }
 
 void Syntax::set_id_type(Token* id)
@@ -156,10 +159,10 @@ ast::Base* Syntax::parse_statement()
 		add_id_type(id, type);
 
 		auto expr_value = g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr;
-		auto casted_type = id->normal_implicit_cast(expr_value->type);
+		auto casted_type = expr_value ? id->normal_implicit_cast(expr_value->type) : nullptr;
 
-		return (casted_type != Token_None ? _ALLOC(ast::ExprDecl, id, type, _ALLOC(ast::ExprCast, expr_value, casted_type))
-										  : _ALLOC(ast::ExprDecl, id, type, expr_value));
+		return (casted_type ? _ALLOC(ast::ExprDecl, id, type, _ALLOC(ast::ExprCast, expr_value, casted_type))
+							: _ALLOC(ast::ExprDecl, id, type, expr_value));
 	}
 	else if (type = g_lexer->eat_if_current_is_keyword())
 	{
@@ -221,7 +224,14 @@ ast::Base* Syntax::parse_statement()
 			return _ALLOC(ast::StmtWhile, condition, parse_body(nullptr));
 		}
 		else if (type->id == Token_Return)
-			return _ALLOC(ast::StmtReturn, g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression(), prototype_ctx.fn->ret_token);
+		{
+			auto ret = p_ctx.fn->ret_token;
+			auto expr_value = g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression();
+			auto casted_type = ret->normal_implicit_cast(expr_value->type);
+
+			return (casted_type ? _ALLOC(ast::StmtReturn, _ALLOC(ast::ExprCast, expr_value, casted_type), ret)
+								: _ALLOC(ast::StmtReturn, expr_value, ret));
+		}
 	}
 	
 	return parse_expression();
@@ -257,7 +267,7 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 
 		if (auto casted_type = lhs->type->binary_implicit_cast(rhs->type))
 		{
-			if (lhs->type->id == casted_type)
+			if (lhs->type->id == casted_type->id)
 				lhs = _ALLOC(ast::ExprBinaryOp, lhs, _ALLOC(ast::ExprCast, rhs, casted_type), op, lhs->type);
 			else lhs = _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprCast, lhs, casted_type), rhs, op, rhs->type);
 		}
@@ -273,8 +283,6 @@ ast::Expr* Syntax::parse_primary_expression()
 
 	if (g_lexer->eat_if_current_is(Token_IntLiteral))
 	{
-		// change the int literal type to the specific one
-
 		switch (curr->size)
 		{
 		case 8:		curr->id = (curr->flags & TokenFlag_Unsigned) ? Token_U8  : Token_I8;  break;
@@ -305,8 +313,8 @@ ast::Expr* Syntax::parse_primary_expression()
 			auto expr_value = parse_expression();
 			auto casted_type = id->normal_implicit_cast(expr_value->get_token());
 
-			return (casted_type != Token_None ? _ALLOC(ast::ExprAssign, id, _ALLOC(ast::ExprCast, expr_value, casted_type))
-											  : _ALLOC(ast::ExprAssign, id, expr_value));
+			return (casted_type ? _ALLOC(ast::ExprAssign, id, _ALLOC(ast::ExprCast, expr_value, casted_type))
+								: _ALLOC(ast::ExprAssign, id, expr_value));
 		}
 		case Token_AddAssign:
 		case Token_SubAssign:
@@ -316,13 +324,14 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, id), parse_expression(), id, nullptr);	// todo - add proper binary op type
+			return _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, id), parse_expression(), id, nullptr);		// todo - add proper binary op type
 		}
 		case Token_ParenOpen:
 		{
 			g_lexer->eat();
 
-			auto call = _ALLOC(ast::ExprCall, id, prototype_ctx.fn->ret_token, false);	// todo - get if it's intrinsic/built-in or not
+			auto called_prototype = g_ctx.get_prototype(id->value);
+			auto call = _ALLOC(ast::ExprCall, called_prototype, id, called_prototype->ret_token, false);	// todo - get if it's intrinsic/built-in or not
 
 			call->stmts = parse_call_params();
 
@@ -349,6 +358,6 @@ ast::Expr* Syntax::parse_primary_expression()
 
 Token* Syntax::get_id_type(Token* id)
 {
-	auto it = prototype_ctx.id_types.find(id->value);
-	return it != prototype_ctx.id_types.end() ? it->second : nullptr;
+	auto it = p_ctx.id_types.find(id->value);
+	return it != p_ctx.id_types.end() ? it->second : nullptr;
 }

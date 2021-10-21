@@ -27,11 +27,18 @@ void ast::Printer::print_prototype(Prototype* prototype)
 		});
 	}
 
-	PRINT_NL;
+	if (prototype->is_decl())
+	{
+		PRINT_TABS_NL(White, 0, " (Decl)");
+	}
+	else
+	{
+		PRINT_NL;
 
-	print_body(prototype->body);
+		print_body(prototype->body);
 
-	PRINT_TABS_NL(White, curr_level, "End");
+		PRINT_TABS_NL(White, curr_level, "End");
+	}
 
 	first_prototype_printed = true;
 }
@@ -243,7 +250,7 @@ void ast::Printer::print_cast(ExprCast* expr)
 		expr->implicit ? "Implicit" : "Explicit",
 		Lexer::STRIFY_TYPE(expr->rhs->type),
 		expr->rhs->get_name(),
-		Lexer::STRIFY_TYPE(expr->cast_type));
+		Lexer::STRIFY_TYPE(expr->type));
 
 	print_expr(expr->rhs);
 }

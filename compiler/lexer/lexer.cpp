@@ -215,13 +215,16 @@ void Lexer::print_errors()
 		PRINT(Red, "{}", err);
 }
 
-void Lexer::push_and_pop_token(Token* token)
+Token* Lexer::push_and_pop()
 {
-	if (tokens.empty())
-		return;
+	check(!tokens.empty(), "EOF");
 
-	eaten_tokens.push_back(token);
+	auto curr = current();
+
+	eaten_tokens.push_back(curr);
 	tokens.pop_back();
+
+	return curr;
 }
 
 Token* Lexer::eat_expect(TokenID expected_token)
@@ -232,9 +235,7 @@ Token* Lexer::eat_expect(TokenID expected_token)
 
 	check(curr->id == expected_token, "Unexpected token '{}'", curr->value);
 
-	push_and_pop_token(curr);
-
-	return curr;
+	return push_and_pop();
 }
 
 Token* Lexer::eat_expect_keyword_declaration()
@@ -245,18 +246,12 @@ Token* Lexer::eat_expect_keyword_declaration()
 
 	check(curr->flags & TokenFlag_KeywordType, "Unexpected token '{}'", curr->value);
 
-	push_and_pop_token(curr);
-
-	return curr;
+	return push_and_pop();
 }
 
 Token* Lexer::eat()
 {
 	check(!eof(), "Expected a keyword, EOF found");
 
-	auto curr = current();
-
-	push_and_pop_token(curr);
-
-	return curr;
+	return push_and_pop();
 }
