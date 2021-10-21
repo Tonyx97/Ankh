@@ -111,7 +111,7 @@ bool Lexer::run(const std::string& filename)
 							{
 								curr_token->id = std::get<0>(it_decl->second);
 								curr_token->size = std::get<1>(it_decl->second);
-								curr_token->flags |= TokenFlag_KeywordType;
+								curr_token->flags |= TokenFlag_KeywordType | std::get<2>(it_decl->second);
 							}
 							else if (auto it_static_val = g_static_values.find(token_found); it_static_val != g_static_values.end())
 							{

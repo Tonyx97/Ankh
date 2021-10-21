@@ -104,6 +104,7 @@ inline void setup_console()
 	static constexpr auto console_size_x = 800,
 							console_size_y = 800;
 
+	SetConsoleOutputCP(CP_UTF8);
 	SetWindowPos(GetConsoleWindow(), nullptr, GetSystemMetrics(SM_CXSCREEN) / 2 - console_size_x / 2, GetSystemMetrics(SM_CYSCREEN) / 2 - console_size_y / 2, console_size_x, console_size_y, 0);
 }
 

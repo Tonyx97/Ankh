@@ -41,6 +41,8 @@ namespace ast
 	*/
 	struct Expr : public Base
 	{
+		std::string name;
+
 		Expr* lhs = nullptr,
 			* rhs = nullptr;
 
@@ -49,9 +51,6 @@ namespace ast
 
 		Expr()								{ base_type = STMT_EXPR; }
 		~Expr()								{}
-
-		virtual Token* get_token() = 0;
-		virtual std::string get_name() = 0;
 
 		static bool check_class(Base* i)	{ return i->base_type > EXPR_BEGIN && i->base_type < EXPR_END; }
 	};
@@ -64,11 +63,9 @@ namespace ast
 		ExprIntLiteral(Token* type)
 		{
 			base_type = EXPR_INT_LITERAL;
+			name = type->value;
 			this->type = type;
 		}
-
-		Token* get_token()					{ return type; }
-		std::string get_name()				{ return type->value; };
 
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_INT_LITERAL; }
 	};
@@ -78,10 +75,12 @@ namespace ast
 	*/
 	struct ExprStaticValue : public Expr
 	{
-		ExprStaticValue(Token* type)		{ base_type = EXPR_STATIC_VALUE; this->type = type; }
-
-		Token* get_token()					{ return type; }
-		std::string get_name()				{ return type->value; }
+		ExprStaticValue(Token* type)
+		{
+			base_type = EXPR_STATIC_VALUE;
+			name = type->value;
+			this->type = type;
+		}
 
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_STATIC_VALUE; }
 	};
@@ -91,11 +90,14 @@ namespace ast
 	*/
 	struct ExprId : public Expr
 	{
-		ExprId(Token* type)					{ base_type = EXPR_ID; this->id = type; }
+		ExprId(Token* id_and_type)
+		{
+			base_type = EXPR_ID;
+			name = id_and_type->value;
+			this->id = id_and_type;
+			this->type = id_and_type;
+		}
 			
-		Token* get_token()					{ return id; }
-		std::string get_name()				{ return id->value; }
-
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_ID; }
 	};
 
@@ -107,11 +109,15 @@ namespace ast
 		bool global = false;
 
 		ExprDecl(Token* id, Token* type = nullptr, Expr* rhs = nullptr, bool global = false) : global(global)
-											{ base_type = EXPR_DECL; this->rhs = rhs; this->id = id; this->type = type; }
-		~ExprDecl()							{ _FREE(rhs); }
+		{
+			base_type = EXPR_DECL;
+			name = id->value;
+			this->rhs = rhs;
+			this->id = id;
+			this->type = type;
+		}
 
-		Token* get_token()					{ return type; }
-		std::string get_name()				{ return id->value; }
+		~ExprDecl()							{ _FREE(rhs); }
 
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_DECL; }
 	};
@@ -121,11 +127,15 @@ namespace ast
 	*/
 	struct ExprAssign : public Expr
 	{
-		ExprAssign(Token* id, Expr* rhs)	{ base_type = EXPR_ASSIGN; this->rhs = rhs; this->id = id; }
-		~ExprAssign()						{ _FREE(rhs); }
+		ExprAssign(Token* id, Expr* rhs)
+		{
+			base_type = EXPR_ASSIGN;
+			name = id->value;
+			this->rhs = rhs;
+			this->id = id;
+		}
 
-		Token* get_token()					{ return id; }
-		std::string get_name()				{ return id->value; }
+		~ExprAssign()						{ _FREE(rhs); }
 
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_ASSIGN; }
 	};
@@ -138,6 +148,7 @@ namespace ast
 		ExprBinaryOp(Expr* lhs, Expr* rhs, Token* op_id, Token* type)
 		{
 			base_type = EXPR_BINARY_OP;
+			name = Lexer::STRIFY_TOKEN(op_id);
 			this->lhs = lhs;
 			this->rhs = rhs;
 			this->id = op_id;
@@ -150,9 +161,6 @@ namespace ast
 			_FREE(rhs);
 		}
 			
-		Token* get_token()					{ return id; }
-		std::string get_name()				{ return Lexer::STRIFY_TOKEN(id); };
-
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_BINARY_OP; }
 	};
 
@@ -161,11 +169,15 @@ namespace ast
 	*/
 	struct ExprUnaryOp : public Expr
 	{
-		ExprUnaryOp(Expr* rhs, Token* type) { base_type = EXPR_UNARY_OP; this->rhs = rhs; this->type = type; }
-		~ExprUnaryOp()						{ _FREE(rhs); }
+		ExprUnaryOp(Expr* rhs, Token* type)
+		{
+			base_type = EXPR_UNARY_OP;
+			name = Lexer::STRIFY_TOKEN(type);
+			this->rhs = rhs;
+			this->type = type;
+		}
 
-		Token* get_token()					{ return type; }
-		std::string get_name()				{ return Lexer::STRIFY_TOKEN(type); };
+		~ExprUnaryOp()						{ _FREE(rhs); }
 
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_UNARY_OP; }
 	};
@@ -184,6 +196,7 @@ namespace ast
 		ExprCall(Prototype* prototype, Token* id, Token* type, bool built_in = false) : prototype(prototype), built_in(built_in)
 		{
 			base_type = EXPR_CALL;
+			name = id->value;
 			this->id = id;
 			this->type = type;
 		}
@@ -194,9 +207,6 @@ namespace ast
 				_FREE(stmt);
 		}
 			
-		Token* get_token()								{ return type; }
-		std::string get_name()							{ return id->value; }
-
 		static bool check_class(Base* i)				{ return i->base_type == EXPR_CALL; }
 	};
 
@@ -210,9 +220,6 @@ namespace ast
 		ExprCast(Expr* rhs, Token* type, bool implicit = true) : implicit(implicit)
 											{ base_type = EXPR_IMPLICIT_CAST; this->rhs = rhs; this->type = type; }
 		~ExprCast()							{ _FREE(rhs); }
-
-		Token* get_token()					{ return nullptr; }
-		std::string get_name()				{ return {}; }
 
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_IMPLICIT_CAST; }
 	};
@@ -329,7 +336,7 @@ namespace ast
 	*/
 	struct Prototype
 	{
-		std::vector<Base*> params;
+		std::vector<Expr*> params;
 
 		StmtBody* body = nullptr;
 
@@ -343,6 +350,14 @@ namespace ast
 				_FREE(param);
 
 			_FREE(body);
+		}
+
+		Expr* get_param(int i)
+		{
+			if (params.empty())
+				return nullptr;
+
+			return (i >= 0 && i < static_cast<int>(params.size()) ? params[i] : nullptr);
 		}
 
 		bool is_decl() const							{ return !body; }

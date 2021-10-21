@@ -82,16 +82,16 @@ enum TokenID : int
 	Token_Extern,
 };
 
-enum TokenFlag : unsigned int
+enum TokenFlag : unsigned __int64
 {
-	TokenFlag_None			= 0,
-	TokenFlag_Op			= (1 << 0),
-	TokenFlag_Keyword		= (1 << 1),
-	TokenFlag_KeywordType	= (1 << 2),
-	TokenFlag_StaticValue	= (1 << 3),
-	TokenFlag_Unsigned		= (1 << 4),
-	TokenFlag_Assignation	= (1 << 5),
-	TokenFlag_Id			= (1 << 6),
+	TokenFlag_None			= 0ull,
+	TokenFlag_Op			= (1ull << 0),
+	TokenFlag_Keyword		= (1ull << 1),
+	TokenFlag_KeywordType	= (1ull << 2),
+	TokenFlag_StaticValue	= (1ull << 3),
+	TokenFlag_Unsigned		= (1ull << 4),
+	TokenFlag_Assignation	= (1ull << 5),
+	TokenFlag_Id			= (1ull << 6),
 };
 
 struct Token
@@ -117,7 +117,7 @@ struct Token
 
 	TokenID id = Token_None;
 
-	uint32_t flags = TokenFlag_None;
+	uint64_t flags = TokenFlag_None;
 
 	int precedence = LOWEST_PRECEDENCE,
 		line = 0;
@@ -220,19 +220,19 @@ inline std::unordered_map<std::string, TokenID> g_keywords =
 	{ "extern",		Token_Extern },		// not an statement but we put it here for now
 };
 
-inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t>> g_keywords_type =
+inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t, TokenFlag>> g_keywords_type =
 {
-	{ "void",	{ Token_Void,	0 } },
-	{ "bool",	{ Token_Bool,	8 } },
-	{ "u8",		{ Token_U8,		8 } },
-	{ "u16",	{ Token_U16,	16 } },
-	{ "u32",	{ Token_U32,	32 } },
-	{ "u64",	{ Token_U64,	64 } },
-	{ "i8",		{ Token_I8,		8 } },
-	{ "i16",	{ Token_I16,	16 } },
-	{ "i32",	{ Token_I32,	32 } },
-	{ "i64",	{ Token_I64,	64 } },
-	{ "m128",	{ Token_M128,	128 } },
+	{ "void",	{ Token_Void,	 0,  TokenFlag_None } },
+	{ "bool",	{ Token_Bool,	 8,  TokenFlag_None } },
+	{ "u8",		{ Token_U8,		 8,  TokenFlag_Unsigned } },
+	{ "u16",	{ Token_U16,	16,  TokenFlag_Unsigned } },
+	{ "u32",	{ Token_U32,	32,  TokenFlag_Unsigned } },
+	{ "u64",	{ Token_U64,	64,  TokenFlag_Unsigned } },
+	{ "i8",		{ Token_I8,		 8,  TokenFlag_None } },
+	{ "i16",	{ Token_I16,	16,  TokenFlag_None } },
+	{ "i32",	{ Token_I32,	32,  TokenFlag_None } },
+	{ "i64",	{ Token_I64,	64,  TokenFlag_None } },
+	{ "m128",	{ Token_M128,	128, TokenFlag_None } },
 };
 
 inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t>> g_static_values =
@@ -364,15 +364,6 @@ public:
 	static inline std::string STRIFY_TYPE(Token* token)
 	{
 		return STRIFY_TYPE(token->id);
-	}
-
-	static inline std::string STRIFY_OPERATOR(TokenID id)
-	{
-		for (auto&& token : g_static_tokens)
-			if (token.id == id)
-				return token.value;
-
-		return "unknown_op";
 	}
 
 	static inline std::string STRIFY_TOKEN(TokenID id)

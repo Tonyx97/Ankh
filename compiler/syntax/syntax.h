@@ -22,6 +22,8 @@ namespace syntax
 	{
 		std::unordered_map<std::string, ast::Prototype*> prototypes;
 
+		bool expect_semicolon = false;
+
 		void add_prototype(ast::Prototype* prototype) { prototypes.insert({ prototype->id_token->value, prototype }); }
 
 		ast::Prototype* get_prototype(const std::string& name)
@@ -51,8 +53,8 @@ public:
 	void add_id_type(Token* id, Token* type);
 	void set_id_type(Token* id);
 
-	std::vector<ast::Base*> parse_prototype_params_decl();
-	std::vector<ast::Expr*> parse_call_params();
+	std::vector<ast::Expr*> parse_prototype_params_decl();
+	std::vector<ast::Expr*> parse_call_params(ast::Prototype* prototype);
 
 	ast::StmtBody* parse_body(ast::StmtBody* body);
 	ast::Base* parse_statement();

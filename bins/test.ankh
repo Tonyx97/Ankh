@@ -1,13 +1,9 @@
-/*i32 gvar = 0;
+//i32 gay(i32 x) { return x + 1; }
 
-i32 gay(i32 x) { return x + 1; }
-
-i32 test(i32 t)
+i32 test(i32 a1)
 {
-	return gay(t);
-}*/
-
-i32 main_ret();
+	return a1 + 2i8;
+}
 
 i32 main()
 {
@@ -15,7 +11,5 @@ i32 main()
 
 	bool b = true;
 
-	return main_ret();
+	return test(1);
 }
-
-i32 main_ret() { return false; }

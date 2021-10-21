@@ -1,4 +1,4 @@
-#include <defs.h>
+﻿#include <defs.h>
 
 #include <lexer/lexer.h>
 
@@ -23,7 +23,7 @@ void ast::Printer::print_prototype(Prototype* prototype)
 
 		print_vec<ExprDecl>(Green, prototype->params, ", ", [](ExprDecl* e)
 		{
-			return Lexer::STRIFY_TYPE(e->get_token()) + " " + e->get_name();
+			return Lexer::STRIFY_TYPE(e->type) + " " + e->id->value;
 		});
 	}
 
@@ -146,7 +146,7 @@ void ast::Printer::print_expr(Expr* expr)
 
 void ast::Printer::print_decl(ExprDecl* decl)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{}ecl.{} ({}) '{}'", decl->global ? "Global d" : "D", decl->rhs ? " assignment" : "", Lexer::STRIFY_TYPE(decl->get_token()), decl->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "{}ecl.{} ({}) '{}'", decl->global ? "Global d" : "D", decl->rhs ? " assignment" : "", Lexer::STRIFY_TYPE(decl->type), decl->id->value);
 
 	if (decl->rhs)
 		print_expr(decl->rhs);
@@ -154,7 +154,7 @@ void ast::Printer::print_decl(ExprDecl* decl)
 
 void ast::Printer::print_assign(ExprAssign* assign)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Assignment '{}'", assign->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "Assignment '{}'", assign->id->value);
 
 	print_expr(assign->rhs);
 }
@@ -185,21 +185,21 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 
 void ast::Printer::print_static_val(ExprStaticValue* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{} '{}'", Lexer::STRIFY_TYPE(expr->type), expr->type->value);
+	PRINT_TABS_NL(Yellow, curr_level, "{} '{}'", Lexer::STRIFY_TYPE(expr->type), expr->name);
 }
 
 void ast::Printer::print_id(ast::ExprId* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Id ({}) '{}'", Lexer::STRIFY_TYPE(expr->id), expr->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "Id ({}) '{}'", Lexer::STRIFY_TYPE(expr->id), expr->name);
 }
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Unary Op ({})", expr->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "Unary Op ({})", expr->name);
 
 	++curr_level;
 
-	PRINT_TABS_NL(Yellow, curr_level, "Value '{}'", expr->rhs->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "Value '{}'", expr->rhs->name);
 
 	if (auto value = rtti::cast<ExprBinaryOp>(expr->rhs))			print_expr_binary_op(value);
 	else if (auto value_unary = rtti::cast<ExprUnaryOp>(expr->rhs))	print_expr_unary_op(value_unary);
@@ -209,7 +209,7 @@ void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 
 void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Binary Op ({})", expr->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "Binary Op ({})", expr->name);
 
 	++curr_level;
 
@@ -230,7 +230,7 @@ void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 
 void ast::Printer::print_expr_call(ExprCall* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "Prototype Call ({})", expr->get_name());
+	PRINT_TABS_NL(Yellow, curr_level, "Prototype Call ({})", expr->name);
 
 	for (auto param : expr->stmts)
 	{
@@ -255,7 +255,7 @@ void ast::Printer::print_cast(ExprCast* expr)
 	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} {} to {}",
 		expr->implicit ? "Implicit" : "Explicit",
 		Lexer::STRIFY_TYPE(expr->rhs->type),
-		expr->rhs->get_name(),
+		expr->rhs->name,
 		Lexer::STRIFY_TYPE(expr->type));
 
 	print_expr(expr->rhs);

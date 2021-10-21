@@ -73,9 +73,9 @@ void Syntax::set_id_type(Token* id)
 		id->set_id_type(id_type);
 }
 
-std::vector<ast::Base*> Syntax::parse_prototype_params_decl()
+std::vector<ast::Expr*> Syntax::parse_prototype_params_decl()
 {
-	std::vector<ast::Base*> stmts;
+	std::vector<ast::Expr*> stmts;
 
 	while (!g_lexer->eof())
 	{
@@ -100,17 +100,26 @@ std::vector<ast::Base*> Syntax::parse_prototype_params_decl()
 	return stmts;
 }
 
-std::vector<ast::Expr*> Syntax::parse_call_params()
+std::vector<ast::Expr*> Syntax::parse_call_params(ast::Prototype* prototype)
 {
 	std::vector<ast::Expr*> stmts;
 
+	int param_index = 0;
+
 	while (!g_lexer->eof() && !g_lexer->is_current(Token_ParenClose))
 	{
-		auto param_value = parse_expression();
-		if (!param_value)
+		auto expr_param = parse_expression();
+		if (!expr_param)
 			break;
 
-		stmts.push_back(param_value);
+		if (auto param_decl = prototype->get_param(param_index))
+		{
+			if (auto casted_type = param_decl->type->normal_implicit_cast(expr_param->type))
+				stmts.push_back(_ALLOC(ast::ExprCast, expr_param, casted_type));
+			else stmts.push_back(expr_param);
+
+			++param_index;
+		}
 
 		if (!g_lexer->is_current(Token_Comma))
 			break;
@@ -137,7 +146,15 @@ ast::StmtBody* Syntax::parse_body(ast::StmtBody* body)
 		{
 			curr_body->stmts.push_back(stmt);
 
-			if (g_lexer->is_current(Token_Semicolon))
+			if (g_ctx.expect_semicolon)
+			{
+				check(g_lexer->is_current(Token_Semicolon), "Missing token ';'");
+
+				g_ctx.expect_semicolon = false;
+
+				g_lexer->eat();
+			}
+			else if (g_lexer->is_current(Token_Semicolon))
 				g_lexer->eat();
 		}
 		else break;
@@ -160,6 +177,8 @@ ast::Base* Syntax::parse_statement()
 
 		auto expr_value = g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr;
 		auto casted_type = expr_value ? id->normal_implicit_cast(expr_value->type) : nullptr;
+
+		g_ctx.expect_semicolon = true;
 
 		return (casted_type ? _ALLOC(ast::ExprDecl, id, type, _ALLOC(ast::ExprCast, expr_value, casted_type))
 							: _ALLOC(ast::ExprDecl, id, type, expr_value));
@@ -228,6 +247,8 @@ ast::Base* Syntax::parse_statement()
 			auto ret = p_ctx.fn->ret_token;
 			auto expr_value = g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression();
 			auto casted_type = ret->normal_implicit_cast(expr_value->type);
+
+			g_ctx.expect_semicolon = true;
 
 			return (casted_type ? _ALLOC(ast::StmtReturn, _ALLOC(ast::ExprCast, expr_value, casted_type), ret)
 								: _ALLOC(ast::StmtReturn, expr_value, ret));
@@ -311,7 +332,7 @@ ast::Expr* Syntax::parse_primary_expression()
 			g_lexer->eat();
 
 			auto expr_value = parse_expression();
-			auto casted_type = id->normal_implicit_cast(expr_value->get_token());
+			auto casted_type = id->normal_implicit_cast(expr_value->type);
 
 			return (casted_type ? _ALLOC(ast::ExprAssign, id, _ALLOC(ast::ExprCast, expr_value, casted_type))
 								: _ALLOC(ast::ExprAssign, id, expr_value));
@@ -333,7 +354,7 @@ ast::Expr* Syntax::parse_primary_expression()
 			auto called_prototype = g_ctx.get_prototype(id->value);
 			auto call = _ALLOC(ast::ExprCall, called_prototype, id, called_prototype->ret_token, false);	// todo - get if it's intrinsic/built-in or not
 
-			call->stmts = parse_call_params();
+			call->stmts = parse_call_params(called_prototype);
 
 			g_lexer->eat_expect(Token_ParenClose);
 

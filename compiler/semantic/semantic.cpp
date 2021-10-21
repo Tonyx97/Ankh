@@ -12,7 +12,7 @@ void Semantic::print_errors()
 
 void Semantic::add_variable(ast::ExprDecl* expr)
 {
-	p_ctx.decls.insert({ expr->get_name(), expr });
+	p_ctx.decls.insert({ expr->name, expr });
 }
 
 bool Semantic::run()
@@ -149,9 +149,9 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 			if (!analyze_expr(current_param))
 				return false;
 
-			if (!original_param->type->is_same_type(current_param->get_token()))
+			if (!original_param->type->is_same_type(current_param->type))
 				add_error("Argument of type '{}' is incompatible with parameter of type '{}'",
-						  Lexer::STRIFY_TYPE(current_param->get_token()),
+						  Lexer::STRIFY_TYPE(current_param->type),
 						  Lexer::STRIFY_TYPE(original_param->type));
 		}
 
@@ -215,7 +215,10 @@ ast::ExprDecl* Semantic::get_declared_variable(const std::string& name)
 ast::Prototype* Semantic::get_declared_prototype(const std::string& name)
 {
 	auto it = g_ctx.prototype_decls.find(name);
-	return (it != g_ctx.prototype_decls.end() ? it->second : nullptr);
+	if (it != g_ctx.prototype_decls.end())
+		return it->second;
+
+	return get_defined_prototype(name);
 }
 
 ast::Prototype* Semantic::get_defined_prototype(const std::string& name)
