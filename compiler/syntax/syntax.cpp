@@ -352,6 +352,10 @@ ast::Expr* Syntax::parse_primary_expression()
 
 		return expr;
 	}
+	else if (auto static_val = g_lexer->eat_if_current_is_static_value())
+	{
+		return _ALLOC(ast::ExprStaticValue, static_val);
+	}
 
 	return nullptr;
 }

@@ -13,7 +13,9 @@ i32 main()
 {
 	i32 i = 1;
 
+	bool b = true;
+
 	return main_ret();
 }
 
-i64 main_ret() { return 1i64; }
+i32 main_ret() { return false; }

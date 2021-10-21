@@ -10,6 +10,7 @@ namespace ast
 		STMT_EXPR,
 			EXPR_BEGIN,
 			EXPR_INT_LITERAL,
+			EXPR_STATIC_VALUE,
 			EXPR_ID,
 			EXPR_DECL,
 			EXPR_ASSIGN,
@@ -70,6 +71,19 @@ namespace ast
 		std::string get_name()				{ return type->value; };
 
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_INT_LITERAL; }
+	};
+
+	/*
+	* ExprStaticValue
+	*/
+	struct ExprStaticValue : public Expr
+	{
+		ExprStaticValue(Token* type)		{ base_type = EXPR_STATIC_VALUE; this->type = type; }
+
+		Token* get_token()					{ return type; }
+		std::string get_name()				{ return type->value; }
+
+		static bool check_class(Base* i)	{ return i->base_type == EXPR_STATIC_VALUE; }
 	};
 
 	/*
@@ -364,6 +378,7 @@ namespace ast
 		void print_decl(ExprDecl* decl);
 		void print_assign(ExprAssign* assign);
 		void print_expr_int(ExprIntLiteral* expr);
+		void print_static_val(ExprStaticValue* expr);
 		void print_id(ExprId* expr);
 		void print_expr_unary_op(ExprUnaryOp* expr);
 		void print_expr_binary_op(ExprBinaryOp* expr);

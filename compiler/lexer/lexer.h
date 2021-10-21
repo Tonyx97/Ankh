@@ -59,8 +59,6 @@ enum TokenID : int
 
 	Token_Void,
 	Token_Bool,
-	Token_True,
-	Token_False,
 	Token_U8,
 	Token_U16,
 	Token_U32,
@@ -70,6 +68,9 @@ enum TokenID : int
 	Token_I32,
 	Token_I64,
 	Token_M128,
+
+	Token_True,
+	Token_False,
 
 	Token_For,
 	Token_While,
@@ -87,9 +88,10 @@ enum TokenFlag : unsigned int
 	TokenFlag_Op			= (1 << 0),
 	TokenFlag_Keyword		= (1 << 1),
 	TokenFlag_KeywordType	= (1 << 2),
-	TokenFlag_Unsigned		= (1 << 3),
-	TokenFlag_Assignation	= (1 << 4),
-	TokenFlag_Id			= (1 << 5),
+	TokenFlag_StaticValue	= (1 << 3),
+	TokenFlag_Unsigned		= (1 << 4),
+	TokenFlag_Assignation	= (1 << 5),
+	TokenFlag_Id			= (1 << 6),
 };
 
 struct Token
@@ -222,8 +224,6 @@ inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t>> g_keywords_
 {
 	{ "void",	{ Token_Void,	0 } },
 	{ "bool",	{ Token_Bool,	8 } },
-	{ "true",	{ Token_True,	8 } },
-	{ "false",	{ Token_False,	8 } },
 	{ "u8",		{ Token_U8,		8 } },
 	{ "u16",	{ Token_U16,	16 } },
 	{ "u32",	{ Token_U32,	32 } },
@@ -233,6 +233,12 @@ inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t>> g_keywords_
 	{ "i32",	{ Token_I32,	32 } },
 	{ "i64",	{ Token_I64,	64 } },
 	{ "m128",	{ Token_M128,	128 } },
+};
+
+inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t>> g_static_values =
+{
+	{ "true",	{ Token_True,	8 } },
+	{ "false",	{ Token_False,	8 } },
 };
 
 inline Token g_static_tokens[] =
@@ -316,6 +322,7 @@ public:
 	bool is_token_operator()						{ return (current()->flags & TokenFlag_Op); }
 	bool is_token_keyword()							{ return (current()->flags & TokenFlag_Keyword); }
 	bool is_token_keyword_type()					{ return (current()->flags & TokenFlag_KeywordType); }
+	bool is_token_static_value()					{ return (current()->flags & TokenFlag_StaticValue); }
 	bool is_current(TokenID id)						{ return (current_token_id() == id); }
 	bool is_next(TokenID id)						{ return (next_token() == id); }
 	bool is(Token* token, TokenID id)				{ return (token->id == id); }
@@ -328,6 +335,7 @@ public:
 	Token* eat_if_current_is(TokenID id)			{ return (is_current(id) ? eat() : nullptr); }
 	Token* eat_if_current_is_type()					{ return (is_token_keyword_type() ? eat() : nullptr); }
 	Token* eat_if_current_is_keyword()				{ return (is_token_keyword() ? eat() : nullptr); }
+	Token* eat_if_current_is_static_value()			{ return (is_token_static_value() ? eat() : nullptr); }
 	Token* current() const							{ return (tokens.empty() ? nullptr : tokens.back()); }
 
 	TokenID current_token_id() const				{ return (tokens.empty() ? Token_Eof : tokens.back()->id); }
@@ -340,7 +348,17 @@ public:
 	static inline std::string STRIFY_TYPE(TokenID id)
 	{
 		auto it = std::find_if(g_keywords_type.begin(), g_keywords_type.end(), [&](const auto& p) { return std::get<0>(p.second) == id; });
-		return (it != g_keywords_type.end() ? it->first : "unknown_type");
+
+		if (it != g_keywords_type.end())
+			return it->first;
+
+		switch (id)
+		{
+		case Token_True:
+		case Token_False:	return "bool";
+		}
+
+		return "unknown_type";
 	}
 
 	static inline std::string STRIFY_TYPE(Token* token)
@@ -426,10 +444,12 @@ public:
 		case Token_Continue:			return "Token_Continue";
 		case Token_Return:				return "Token_Return";
 		case Token_Extern:				return "Token_Extern";
+		case Token_True:				return "Token_True";
+		case Token_False:				return "Token_False";
 		case Token_Eof:					return "Token_Eof";
 		}
 
-		return "TOKEN_NONE";
+		return "Token_None";
 	}
 
 	static inline std::string STRIFY_TOKEN(Token* token)

@@ -131,14 +131,15 @@ void ast::Printer::print_expr(Expr* expr)
 {
 	++curr_level;
 
-	if (auto int_literal = rtti::cast<ExprIntLiteral>(expr))	print_expr_int(int_literal);
-	else if (auto id = rtti::cast<ExprId>(expr))				print_id(id);
-	else if (auto decl = rtti::cast<ExprDecl>(expr))			print_decl(decl);
-	else if (auto assign = rtti::cast<ExprAssign>(expr))		print_assign(assign);
-	else if (auto binary_op = rtti::cast<ExprBinaryOp>(expr))	print_expr_binary_op(binary_op);
-	else if (auto unary_op = rtti::cast<ExprUnaryOp>(expr))		print_expr_unary_op(unary_op);
-	else if (auto call = rtti::cast<ExprCall>(expr))			print_expr_call(call);
-	else if (auto cast = rtti::cast<ExprCast>(expr))			print_cast(cast);
+	if (auto int_literal = rtti::cast<ExprIntLiteral>(expr))		print_expr_int(int_literal);
+	else if (auto static_val = rtti::cast<ExprStaticValue>(expr))	print_static_val(static_val);
+	else if (auto id = rtti::cast<ExprId>(expr))					print_id(id);
+	else if (auto decl = rtti::cast<ExprDecl>(expr))				print_decl(decl);
+	else if (auto assign = rtti::cast<ExprAssign>(expr))			print_assign(assign);
+	else if (auto binary_op = rtti::cast<ExprBinaryOp>(expr))		print_expr_binary_op(binary_op);
+	else if (auto unary_op = rtti::cast<ExprUnaryOp>(expr))			print_expr_unary_op(unary_op);
+	else if (auto call = rtti::cast<ExprCall>(expr))				print_expr_call(call);
+	else if (auto cast = rtti::cast<ExprCast>(expr))				print_cast(cast);
 
 	--curr_level;
 }
@@ -164,22 +165,27 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 	{
 		switch (auto size = expr->type->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->type->u8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->type->u16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->type->u32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "Int (u{}) '{}'", size, expr->type->u64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->u8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->u16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->u32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->u64); break;
 		}
 	}
 	else
 	{
 		switch (auto size = expr->type->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->type->i8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->type->i16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->type->i32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "Int (i{}) '{}'", size, expr->type->i64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->i8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->i16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->i32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->i64); break;
 		}
 	}
+}
+
+void ast::Printer::print_static_val(ExprStaticValue* expr)
+{
+	PRINT_TABS_NL(Yellow, curr_level, "{} '{}'", Lexer::STRIFY_TYPE(expr->type), expr->type->value);
 }
 
 void ast::Printer::print_id(ast::ExprId* expr)

@@ -113,6 +113,27 @@ bool Lexer::run(const std::string& filename)
 								curr_token->size = std::get<1>(it_decl->second);
 								curr_token->flags |= TokenFlag_KeywordType;
 							}
+							else if (auto it_static_val = g_static_values.find(token_found); it_static_val != g_static_values.end())
+							{
+								switch (std::get<0>(it_static_val->second))
+								{
+								case Token_True:
+								{
+									curr_token->id = Token_Bool;
+									curr_token->u8 = 1;
+									break;
+								}
+								case Token_False:
+								{
+									curr_token->id = Token_Bool;
+									curr_token->u8 = 0;
+									break;
+								}
+								}
+
+								curr_token->size = std::get<1>(it_static_val->second);
+								curr_token->flags |= TokenFlag_StaticValue;
+							}
 							else
 							{
 								curr_token->id = token_type;
