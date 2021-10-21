@@ -225,7 +225,7 @@ inline std::unordered_map<std::string, TokenID> g_keywords =
 inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t, TokenFlag>> g_keywords_type =
 {
 	{ "void",	{ Token_Void,	 0,  TokenFlag_None } },
-	{ "bool",	{ Token_Bool,	 8,  TokenFlag_None } },
+	{ "bool",	{ Token_Bool,	 8,  TokenFlag_Unsigned } },
 	{ "u8",		{ Token_U8,		 8,  TokenFlag_Unsigned } },
 	{ "u16",	{ Token_U16,	16,  TokenFlag_Unsigned } },
 	{ "u32",	{ Token_U32,	32,  TokenFlag_Unsigned } },

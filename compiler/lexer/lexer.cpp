@@ -121,12 +121,14 @@ bool Lexer::run(const std::string& filename)
 								{
 									curr_token->id = Token_Bool;
 									curr_token->u8 = 1;
+									curr_token->flags |= TokenFlag_Unsigned;
 									break;
 								}
 								case Token_False:
 								{
 									curr_token->id = Token_Bool;
 									curr_token->u8 = 0;
+									curr_token->flags |= TokenFlag_Unsigned;
 									break;
 								}
 								}

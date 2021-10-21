@@ -51,7 +51,7 @@ public:
 	void print_ast();
 	void run();
 	void add_id_type(Token* id, Token* type);
-	void set_id_type(Token* id);
+	void apply_id_type(Token* id);
 
 	std::vector<ast::Expr*> parse_prototype_params_decl();
 	std::vector<ast::Expr*> parse_call_params(ast::Prototype* prototype);

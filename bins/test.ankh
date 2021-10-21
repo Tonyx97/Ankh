@@ -13,7 +13,7 @@ i32 main()
 
 	do
 	{
-		i += b;
+		i += b + 1i8;
 	} while (i > 10);
 
 	return test(1);

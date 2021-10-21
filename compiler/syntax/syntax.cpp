@@ -67,7 +67,7 @@ void Syntax::add_id_type(Token* id, Token* type)
 	p_ctx.id_types.insert({ id->value, type });
 }
 
-void Syntax::set_id_type(Token* id)
+void Syntax::apply_id_type(Token* id)
 {
 	if (auto id_type = get_id_type(id); id_type && id->id == Token_Id)
 		id->set_id_type(id_type);
@@ -336,7 +336,7 @@ ast::Expr* Syntax::parse_primary_expression()
 	}
 	else if (auto id = g_lexer->eat_if_current_is(Token_Id))
 	{
-		set_id_type(id);
+		apply_id_type(id);
 
 		switch (const auto curr_token = g_lexer->current_token_id())
 		{
