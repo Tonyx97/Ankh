@@ -6,5 +6,6 @@ namespace ir
 {
 	struct Prototype
 	{
+		std::string name;
 	};
 }

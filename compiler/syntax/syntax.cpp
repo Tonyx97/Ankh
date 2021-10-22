@@ -45,6 +45,10 @@ void Syntax::run()
 
 				ast->prototypes.push_back(prototype);
 
+				if (auto previous_pt = g_ctx.get_prototype(id->value))
+					if (previous_pt->is_decl())
+						previous_pt->def = prototype;
+
 				g_ctx.add_prototype(prototype);
 			}
 		}

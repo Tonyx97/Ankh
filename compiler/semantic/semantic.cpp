@@ -55,7 +55,12 @@ bool Semantic::analyze_prototype(ast::Prototype* prototype)
 	}
 
 	if (prototype->is_decl())
+	{
+		if (!prototype->def)
+			add_error("Unresolved prototype '{}' declared", prototype->name);
+
 		g_ctx.add_prototype_decl(prototype);
+	}
 	else
 	{
 		g_ctx.add_prototype_def(prototype);

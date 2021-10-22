@@ -384,12 +384,16 @@ namespace ast
 	{
 		std::vector<Expr*> params;
 
+		std::string name;
+
+		Prototype* def = nullptr;
+
 		StmtBody* body = nullptr;
 
 		Token* id_token = nullptr,
 			 * ret_token = nullptr;
 
-		Prototype(Token* id_token) : id_token(id_token)	{}
+		Prototype(Token* id_token) : id_token(id_token) { name = id_token->value; }
 		~Prototype()
 		{
 			for (auto param : params)

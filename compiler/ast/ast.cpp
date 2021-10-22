@@ -15,7 +15,7 @@ void ast::Printer::print_prototype(Prototype* prototype)
 	if (first_prototype_printed)
 		PRINT_NL;
 
-	PRINT_TABS(White, 0, "prototype '{}'", prototype->id_token->value);
+	PRINT_TABS(White, 0, "prototype '{}'", prototype->name);
 
 	if (!prototype->params.empty())
 	{

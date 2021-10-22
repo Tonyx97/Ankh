@@ -1,8 +1,8 @@
-//i32 gay(i32 x) { return x + 1; }
+i32 gay(i32 x) { return x + 1; }
 
 i32 test(i32 a1)
 {
-	return a1 + 2i8;
+	return a1 + gay(a1);
 }
 
 i32 main()

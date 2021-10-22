@@ -7,9 +7,14 @@
 
 namespace ir
 {
-	struct IR
+	struct PrototypeCtx
 	{
-		std::vector<Prototype*> prototypes;
+		Prototype* pt = nullptr;
+	};
+
+	struct GlobalCtx
+	{
+		std::unordered_map<std::string, Prototype*> prototypes;
 	};
 }
 
@@ -17,7 +22,8 @@ class IR
 {
 private:
 
-	ir::IR ir_ctx {};
+	ir::GlobalCtx g_ctx {};
+	ir::PrototypeCtx p_ctx {};
 
 	ast::AST* ast = nullptr;
 
@@ -25,9 +31,10 @@ public:
 
 	void run();
 	void print();
+	void add_prototype(ir::Prototype* prototype);
 
-	ir::Prototype* generate_prototype(ast::Prototype* prototype);
-	ir::Body* generate_from_body(ast::StmtBody* body);
+	ir::Prototype* generate_prototype(ast::Prototype* ast_prototype);
+	ir::Body* generate_from_body(ast::StmtBody* ast_body);
 };
 
 inline std::unique_ptr<IR> g_ir;
