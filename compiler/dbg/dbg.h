@@ -4,25 +4,21 @@
 
 #include "defs.h"
 
-enum ColorType : unsigned short
+struct ColorType
 {
-	Black = 0x0,
-	DarkBlue = 0x1,
-	DarkGreen = 0x2,
-	DarkCyan = 0x3,
-	DarkRed = 0x4,
-	DarkPurple = 0x5,
-	DarkYellow = 0x6,
-	Grey = 0x7,
-	DarkGrey = 0x8,
-	Blue = 0x9,
-	Green = 0xA,
-	Cyan = 0xB,
-	Red = 0xC,
-	Purple = 0xD,
-	Yellow = 0xE,
-	White = 0xF,
+	int r, g, b;
 };
+
+static constexpr ColorType White	= { 255, 255, 255 };
+static constexpr ColorType Black	= { 0, 0, 0 };
+static constexpr ColorType Blue		= { 0, 0, 255 };
+static constexpr ColorType Green	= { 0, 255, 0 };
+static constexpr ColorType Cyan		= { 0, 255, 255 };
+static constexpr ColorType Red		= { 255, 0, 0 };
+static constexpr ColorType Purple	= { 255, 0, 255 };
+static constexpr ColorType Yellow	= { 248, 240, 164 };
+static constexpr ColorType Grey		= { 128, 128, 128 };
+static constexpr ColorType LYellow	= { 255, 255, 0 };
 
 static constexpr auto SINGLE_TEXT_MAX_LENGTH = 0x800;
 static constexpr auto SPACES_PER_TAB = 2;
@@ -53,47 +49,27 @@ public:
 	}
 };
 
-struct color
-{
-	color(uint16_t value)	{ SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), value); }
-	~color()				{ SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0xF); }
-};
-
 class text
 {
 private:
 
 	std::string data;
 
-	uint16_t color_id;
-
-	int alignment = 0;
+	ColorType color_id;
 
 	bool nl;
 
 public:
 
-	text(uint16_t color_id, const std::string& data, bool nl, int alignment = 0) : data(data), color_id(color_id), nl(nl), alignment(alignment) {}
+	text(ColorType color_id, const std::string& data, bool nl) : data(data), color_id(color_id), nl(nl) {}
 
 	void print() { std::cout << *this; }
 
 	friend std::ostream& operator << (std::ostream& os, const text& t)
 	{
-		auto align = [&](int width)
-		{
-			std::cout.setf(std::ios_base::left, std::ios_base::adjustfield);
-			std::cout.fill(' ');
-			std::cout.width(width);
-		};
-
-		if (t.alignment > 0)
-			align(t.alignment);
-
 		auto new_line = (t.nl ? "\n" : "");
 
-		color c(t.color_id);
-
-		std::cout << t.data << new_line;
+		std::cout << std::format("\x1b[1;38;2;{};{};{}m{}", t.color_id.r, t.color_id.g, t.color_id.b, t.data) << new_line;
 
 		return os;
 	}
@@ -104,50 +80,56 @@ inline void setup_console()
 	static constexpr auto console_size_x = 800,
 							console_size_y = 800;
 
+	DWORD mode;
+	GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mode);
+	mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+	SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), mode);
 	SetConsoleOutputCP(CP_UTF8);
 	SetWindowPos(GetConsoleWindow(), nullptr, GetSystemMetrics(SM_CXSCREEN) / 2 - console_size_x / 2, GetSystemMetrics(SM_CYSCREEN) / 2 - console_size_y / 2, console_size_x, console_size_y, 0);
 }
 
+static inline void render_text_impl(std::string& format) {}
+
 template <typename... A>
-static inline text make_text(uint16_t color, const std::string& txt, A&&... args)
+static inline void render_text_impl(std::string& format, ColorType color, const std::string& txt, const A&... args)
+{
+	format += std::format("\x1b[1;38;2;{};{};{}m{}", color.r, color.g, color.b, txt);
+	render_text_impl(format, args...);
+}
+
+template <typename... A>
+static inline void render_text_ex(bool nl, A&&... args)
+{
+	std::string res;
+
+	render_text_impl(res, args...);
+
+	auto new_line = (nl ? "\n" : "");
+
+	std::cout << res << new_line;
+}
+
+template <typename... A>
+static inline text make_text(ColorType color, const std::string& txt, A&&... args)
 {
 	return text(color, std::format(txt, args...), false);
 }
 
 template <typename... A>
-static inline text make_text_nl(uint16_t color, const std::string& txt, A&&... args)
+static inline text make_text_nl(ColorType color, const std::string& txt, A&&... args)
 {
 	return text(color, std::format(txt, args...), true);
 }
 
 template <typename... A>
-static inline text make_text_align(uint16_t color, const std::string& txt, int alignment, A&&... args)
-{
-	return text(color, std::format(txt, args...), false, alignment);
-}
-
-template <typename... A>
-static inline text make_text_with_tabs(uint16_t color, const std::string& txt, int tabs, A&&... args)
+static inline text make_text_with_tabs(ColorType color, const std::string& txt, int tabs, A&&... args)
 {
 	std::string tabs_str(tabs * SPACES_PER_TAB, 0);
 
 	std::generate(tabs_str.begin(), tabs_str.end(), [] { return ' '; });
 
-	return text(color, tabs_str + std::format(txt, args...), false, 0);
-}
-
-template <typename... A>
-static inline void print(uint16_t color_id, const std::string& txt, A&&... args)
-{
-	color c(color_id);
-	std::cout << std::format(txt, args...);
-}
-
-template <typename... A>
-static inline void println(uint16_t color_id, const std::string& txt, A&&... args)
-{
-	color c(color_id);
-	std::cout << std::format(txt, args...) << std::endl;
+	return text(color, tabs_str + std::format(txt, args...), false);
 }
 
 template <typename Tx, typename T, typename F>
@@ -158,11 +140,11 @@ static inline void print_vec_int(ColorType color, const std::vector<T>& vec, con
 
 	for (int i = 0; i < vec.size() - 1; ++i)
 	{
-		make_text(color, "{}", fn(static_cast<Tx>(vec[i])).c_str()).print();
-		make_text(White, "{}", separator.c_str()).print();
+		make_text(color, "{}", fn(static_cast<Tx>(vec[i]))).print();
+		make_text(White, "{}", separator).print();
 	}
 
-	make_text(color, "{}", fn(static_cast<Tx>(vec.back())).c_str()).print();
+	make_text(color, "{}", fn(static_cast<Tx>(vec.back()))).print();
 }
 
 template <typename Tx, typename T, typename F>
@@ -173,11 +155,11 @@ static inline void print_vec(ColorType color, const std::vector<T>& vec, const s
 
 	for (int i = 0; i < vec.size() - 1; ++i)
 	{
-		make_text(color, "{}", fn(static_cast<Tx*>(vec[i])).c_str()).print();
-		make_text(White, "{}", separator.c_str()).print();
+		make_text(color, "{}", fn(static_cast<Tx*>(vec[i]))).print();
+		make_text(White, "{}", separator).print();
 	}
 
-	make_text(color, "{}", fn(static_cast<Tx*>(vec.back())).c_str()).print();
+	make_text(color, "{}", fn(static_cast<Tx*>(vec.back()))).print();
 }
 
 template <typename Tx, typename T, typename F>
@@ -195,8 +177,8 @@ static inline void print_set(ColorType color, const std::set<T>& set, const std:
 	for (auto it = set.begin(); it != set.end(); ++it)
 	{
 		if (i++ == set_size - 1)
-			make_text(color, "{}", fn(*set.rbegin()).c_str()).print();
-		else make_text(color, "{}{}", fn(*it).c_str(), separator.c_str()).print();
+			make_text(color, "{}", fn(*set.rbegin())).print();
+		else make_text(color, "{}{}", fn(*it), separator).print();
 	}
 }
 
@@ -236,7 +218,7 @@ struct TimeProfiling
 	{
 		const auto cycles_passed = __rdtsc() - cycles;
 		const auto time_passed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - m_start).count();
-		make_text_nl(Yellow, "{}: {:.3f} ms | {} mcs | {} cycles", name.c_str(), static_cast<double>(time_passed) / 1000.f, time_passed, cycles_passed).print();
+		make_text_nl(Yellow, "{}: {:.3f} ms | {} mcs | {} cycles", name, static_cast<double>(time_passed) / 1000.f, time_passed, cycles_passed).print();
 	}
 };
 
@@ -244,11 +226,11 @@ struct TimeProfiling
 #define EMPTY_NEW_LINE					White, "\n"
 #define PRINT_NNL(x, y, ...)			make_text(x, y, __VA_ARGS__).print()
 #define PRINT(x, y, ...)				make_text_nl(x, y, __VA_ARGS__).print()
-#define PRINT_ALIGN(x, y, z, ...)		make_text_align(x, z, y, __VA_ARGS__).print()
-#define PRINT_ALIGN_NL(x, y, z, ...)	make_text_align(x, z, y, __VA_ARGS__).print(); make_text(EMPTY_NEW_LINE).print()
 #define PRINT_TABS(x, y, z, ...)		make_text_with_tabs(x, z, y, __VA_ARGS__).print()
 #define PRINT_TABS_NL(x, y, z, ...)		make_text_with_tabs(x, z, y, __VA_ARGS__).print(); make_text(EMPTY_NEW_LINE).print()
 #define PRINT_NL						make_text(EMPTY_NEW_LINE).print()
+#define PRINT_EX(...)					render_text_ex(true, __VA_ARGS__)
+#define PRINT_EX_NNL(...)				render_text_ex(false, __VA_ARGS__)
 
 class compiler_exception : public std::exception
 {

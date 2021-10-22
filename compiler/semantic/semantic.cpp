@@ -19,6 +19,9 @@ bool Semantic::run()
 {
 	ast_tree = g_syntax->get_ast();
 
+	for (auto global_decl : ast_tree->global_decls)
+		analyze_expr(global_decl);
+
 	for (auto prototype : ast_tree->prototypes)
 		analyze_prototype(prototype);
 
@@ -38,7 +41,6 @@ bool Semantic::run()
 bool Semantic::analyze_prototype(ast::Prototype* prototype)
 {
 	p_ctx = prototype;
-
 
 	// todo - allow prototype overloads
 

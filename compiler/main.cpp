@@ -14,13 +14,17 @@ int main()
 	g_semantic = std::make_unique<Semantic>();
 	g_ir = std::make_unique<IR>();
 
-	PRINT(Cyan, "---------- Lexic Analysis ----------");
+	PRINT(Cyan, "---------- Lexic Analysis ----------\n");
 
-	g_lexer->run("test.ankh");
+	{
+		PROFILE("Lexer Time");
+		g_lexer->run("test.ankh");
+	}
+
 	g_lexer->print_errors();
 	g_lexer->print_list();
 
-	PRINT(Cyan, "\n---------- Syntax Analysis ----------");
+	PRINT(Cyan, "\n---------- Syntax Analysis ----------\n");
 
 	{
 		PROFILE("Syntax Time");
@@ -29,11 +33,11 @@ int main()
 
 	const bool semantic_ok = g_semantic->run();
 
-	PRINT(Cyan, "\n---------- AST ----------");
+	PRINT(Cyan, "\n---------- AST ----------\n");
 
 	g_syntax->print_ast();
 
-	PRINT(Cyan, "\n---------- Semantic Analysis ----------");
+	PRINT(Cyan, "\n---------- Semantic Analysis ----------\n");
 
 	if (!semantic_ok)
 	{
@@ -42,7 +46,7 @@ int main()
 		goto finish;
 	}
 
-	PRINT(Cyan, "\n---------- IR Generation ----------");
+	PRINT(Cyan, "\n---------- IR Generation ----------\n");
 
 	{
 		PROFILE("IR Time");
@@ -50,6 +54,8 @@ int main()
 	}
 
 	PRINT(Cyan, "\n---------- IR ----------\n");
+
+	g_ir->print();
 
 finish:
 

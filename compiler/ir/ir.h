@@ -24,6 +24,7 @@ private:
 public:
 
 	void run();
+	void print();
 
 	ir::Prototype* generate_prototype(ast::Prototype* prototype);
 	ir::Body* generate_from_body(ast::StmtBody* body);

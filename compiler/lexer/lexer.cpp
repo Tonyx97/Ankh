@@ -206,7 +206,7 @@ bool Lexer::run(const std::string& filename)
 				}
 				else next(line.length());
 				
-				add_error("{}:{} -> Unrecognized token '{}'", filename.c_str(), line_num, invalid_token.c_str());
+				add_error("{}:{} -> Unrecognized token '{}'", filename, line_num, invalid_token);
 			}
 		}
 
@@ -223,11 +223,7 @@ void Lexer::print_list()
 	PRINT_NL;
 
 	for (auto token : tokens)
-	{
-		PRINT_ALIGN(Yellow, 15, "'{}'", token->value.c_str());
-		PRINT_ALIGN(Yellow, 15, "->");
-		PRINT(Yellow, "type: {}", STRIFY_TOKEN(token->id).c_str());
-	}
+		PRINT_EX(Green, std::format("'{}' ", token->value), White, "(", Yellow, std::format("{}", STRIFY_TOKEN(token->id)), White, ")");
 }
 
 void Lexer::print_errors()

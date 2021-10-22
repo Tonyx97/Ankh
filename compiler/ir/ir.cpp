@@ -13,6 +13,11 @@ void IR::run()
 		generate_prototype(prototype);
 }
 
+void IR::print()
+{
+
+}
+
 ir::Prototype* IR::generate_prototype(ast::Prototype* prototype)
 {
 	return nullptr;
