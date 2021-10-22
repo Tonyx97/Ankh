@@ -44,7 +44,7 @@ private:
 	semantic::GlobalInfo g_ctx {};
 	semantic::PrototypeInfo p_ctx {};
 
-	ast::AST* ast_tree = nullptr;
+	ast::AST* ast = nullptr;
 		
 public:
 

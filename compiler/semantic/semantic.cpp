@@ -17,12 +17,12 @@ void Semantic::add_variable(ast::ExprDecl* expr)
 
 bool Semantic::run()
 {
-	ast_tree = g_syntax->get_ast();
+	ast = g_syntax->get_ast();
 
-	for (auto global_decl : ast_tree->global_decls)
+	for (auto global_decl : ast->global_decls)
 		analyze_expr(global_decl);
 
-	for (auto prototype : ast_tree->prototypes)
+	for (auto prototype : ast->prototypes)
 		analyze_prototype(prototype);
 
 	for (const auto& [name, prototype_decl] : g_ctx.prototype_decls)

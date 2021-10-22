@@ -41,7 +41,7 @@ private:
 	syntax::PrototypeContext p_ctx {};
 	syntax::GlobalContext g_ctx {};
 
-	ast::AST* tree = nullptr;
+	ast::AST* ast = nullptr;
 
 public:
 
@@ -61,7 +61,7 @@ public:
 	ast::Expr* parse_expression();
 	ast::Expr* parse_expression_precedence(ast::Expr* lhs, int min_precedence = Token::LOWEST_PRECEDENCE);
 	ast::Expr* parse_primary_expression();
-	ast::AST* get_ast()			{ return tree; }
+	ast::AST* get_ast()			{ return ast; }
 
 	Token* get_id_type(Token* id);
 };

@@ -427,7 +427,7 @@ namespace ast
 
 		bool first_prototype_printed = false;
 
-		void print(AST* tree);
+		void print(AST* ast);
 		void print_prototype(Prototype* prototype);
 		void print_body(StmtBody* body);
 		void print_stmt(Base* stmt);

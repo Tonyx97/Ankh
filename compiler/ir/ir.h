@@ -19,7 +19,7 @@ private:
 
 	ir::IR ir_ctx {};
 
-	ast::AST* tree = nullptr;
+	ast::AST* ast = nullptr;
 
 public:
 

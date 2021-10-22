@@ -4,17 +4,17 @@
 
 Syntax::Syntax()
 {
-	tree = _ALLOC(ast::AST);
+	ast = _ALLOC(ast::AST);
 }
 
 Syntax::~Syntax()
 {
-	_FREE(tree);
+	_FREE(ast);
 }
 
 void Syntax::print_ast()
 {
-	ast::Printer().print(tree);
+	ast::Printer().print(ast);
 }
 
 void Syntax::run()
@@ -43,7 +43,7 @@ void Syntax::run()
 				if (!g_lexer->eat_if_current_is(Token_Semicolon))
 					prototype->body = parse_body(nullptr);
 
-				tree->prototypes.push_back(prototype);
+				ast->prototypes.push_back(prototype);
 
 				g_ctx.add_prototype(prototype);
 			}
@@ -52,7 +52,7 @@ void Syntax::run()
 		{
 			add_id_type(id, type);
 
-			tree->global_decls.push_back(_ALLOC(ast::ExprDecl, id, type, global_var_decl ? nullptr : parse_expression(), true));
+			ast->global_decls.push_back(_ALLOC(ast::ExprDecl, id, type, global_var_decl ? nullptr : parse_expression(), true));
 
 			if (g_lexer->is_current(Token_Semicolon))
 				g_lexer->eat();

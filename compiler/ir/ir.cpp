@@ -7,9 +7,9 @@
 
 void IR::run()
 {
-	tree = g_syntax->get_ast();
+	ast = g_syntax->get_ast();
 
-	for (auto prototype : tree->prototypes)
+	for (auto prototype : ast->prototypes)
 		generate_prototype(prototype);
 }
 

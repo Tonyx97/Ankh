@@ -4,10 +4,10 @@
 
 #include "ast.h"
 
-void ast::Printer::print(AST* tree)
+void ast::Printer::print(AST* ast)
 {
-	for (auto decl : tree->global_decls)	print_decl(decl);
-	for (auto prototype : tree->prototypes) print_prototype(prototype);
+	for (auto decl : ast->global_decls)	print_decl(decl);
+	for (auto prototype : ast->prototypes) print_prototype(prototype);
 }
 
 void ast::Printer::print_prototype(Prototype* prototype)
