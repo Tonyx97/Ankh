@@ -2,9 +2,9 @@
 
 namespace ir
 {
-	enum Type
+	enum InstructionType
 	{
-		Ins_Unknown,
+		Ins_None,
 		Ins_Body,
 		Ins_ValueInt,
 		Ins_ValueId,

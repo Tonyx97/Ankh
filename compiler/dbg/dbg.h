@@ -99,15 +99,19 @@ static inline void render_text_impl(std::string& format, ColorType color, const 
 }
 
 template <typename... A>
-static inline void render_text_ex(bool nl, A&&... args)
+static inline void render_text_ex(bool nl, int spacing, A&&... args)
 {
+	std::string tabs_str(spacing * SPACES_PER_TAB, 0);
+
+	std::generate(tabs_str.begin(), tabs_str.end(), [] { return ' '; });
+
 	std::string res;
 
 	render_text_impl(res, args...);
 
 	auto new_line = (nl ? "\n" : "");
 
-	std::cout << res << new_line;
+	std::cout << tabs_str + res << new_line;
 }
 
 template <typename... A>
@@ -229,8 +233,10 @@ struct TimeProfiling
 #define PRINT_TABS(x, y, z, ...)		make_text_with_tabs(x, z, y, __VA_ARGS__).print()
 #define PRINT_TABS_NL(x, y, z, ...)		make_text_with_tabs(x, z, y, __VA_ARGS__).print(); make_text(EMPTY_NEW_LINE).print()
 #define PRINT_NL						make_text(EMPTY_NEW_LINE).print()
-#define PRINT_EX(...)					render_text_ex(true, __VA_ARGS__)
-#define PRINT_EX_NNL(...)				render_text_ex(false, __VA_ARGS__)
+#define PRINT_EX(...)					render_text_ex(true, 0, __VA_ARGS__)
+#define PRINT_EX_NNL(...)				render_text_ex(false, 0, __VA_ARGS__)
+#define PRINT_EX2(x, ...)					render_text_ex(true, x, __VA_ARGS__)
+#define PRINT_EX2_NNL(x, ...)				render_text_ex(false, x, __VA_ARGS__)
 
 class compiler_exception : public std::exception
 {

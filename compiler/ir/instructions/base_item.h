@@ -2,7 +2,7 @@
 
 namespace ir
 {
-	struct Instruction
+	struct ItemBase
 	{
 	};
 }

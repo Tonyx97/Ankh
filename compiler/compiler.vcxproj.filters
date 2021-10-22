@@ -42,13 +42,16 @@
     <ClCompile Include="ir\items\block.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ir\items\instruction.cpp">
+    <ClCompile Include="ir\instructions\instruction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ir\items\prototype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ir\items\body.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ir\instructions\return.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -89,7 +92,7 @@
     <ClInclude Include="ir\items\block.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ir\items\instruction.h">
+    <ClInclude Include="ir\instructions\instruction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ir\items\prototype.h">
@@ -98,7 +101,13 @@
     <ClInclude Include="ir\items\body.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ir\items\ins_type.h">
+    <ClInclude Include="ir\instructions\ins_type.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ir\instructions\base_item.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ir\instructions\return.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

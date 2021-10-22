@@ -95,6 +95,13 @@ enum TokenFlag : unsigned __int64
 	TokenFlag_Id			= (1ull << 6),
 };
 
+struct TokenIR
+{
+	TokenID type = Token_None;
+
+	int indirection = 0;
+};
+
 struct Token
 {
 	static constexpr int LOWEST_PRECEDENCE = 16;
@@ -134,6 +141,11 @@ struct Token
 		id = token->id;
 		size = token->size;
 		flags |= token->flags;
+	}
+
+	TokenIR create_type(int indirection = 0)
+	{
+		return { id, indirection };
 	}
 
 	Token* binary_implicit_cast(Token* rhs)
@@ -366,6 +378,11 @@ public:
 	static inline std::string STRIFY_TYPE(Token* token)
 	{
 		return STRIFY_TYPE(token->id);
+	}
+
+	static inline std::string STRIFY_TYPE(const TokenIR& token)
+	{
+		return STRIFY_TYPE(token.type);
 	}
 
 	static inline std::string STRIFY_TOKEN(TokenID id)
