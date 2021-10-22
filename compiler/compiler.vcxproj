@@ -173,6 +173,11 @@
   <ItemGroup>
     <ClCompile Include="ast\ast.cpp" />
     <ClCompile Include="gv\gv.cpp" />
+    <ClCompile Include="ir\ir.cpp" />
+    <ClCompile Include="ir\items\block.cpp" />
+    <ClCompile Include="ir\items\body.cpp" />
+    <ClCompile Include="ir\items\instruction.cpp" />
+    <ClCompile Include="ir\items\prototype.cpp" />
     <ClCompile Include="lexer\lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mem\mem.cpp" />
@@ -184,6 +189,12 @@
     <ClInclude Include="dbg\dbg.h" />
     <ClInclude Include="defs.h" />
     <ClInclude Include="gv\gv.h" />
+    <ClInclude Include="ir\ir.h" />
+    <ClInclude Include="ir\items\block.h" />
+    <ClInclude Include="ir\items\body.h" />
+    <ClInclude Include="ir\items\instruction.h" />
+    <ClInclude Include="ir\items\ins_type.h" />
+    <ClInclude Include="ir\items\prototype.h" />
     <ClInclude Include="lexer\lexer.h" />
     <ClInclude Include="mem\mem.h" />
     <ClInclude Include="rtti\rtti.h" />

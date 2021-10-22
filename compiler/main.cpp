@@ -3,6 +3,7 @@
 #include <lexer/lexer.h>
 #include <syntax/syntax.h>
 #include <semantic/semantic.h>
+#include <ir/ir.h>
 
 int main()
 {
@@ -11,6 +12,7 @@ int main()
 	g_lexer = std::make_unique<Lexer>();
 	g_syntax = std::make_unique<Syntax>();
 	g_semantic = std::make_unique<Semantic>();
+	g_ir = std::make_unique<IR>();
 
 	PRINT(Cyan, "---------- Lexic Analysis ----------");
 
@@ -40,8 +42,18 @@ int main()
 		goto finish;
 	}
 
+	PRINT(Cyan, "\n---------- IR Generation ----------");
+
+	{
+		PROFILE("IR Time");
+		g_ir->run();
+	}
+
+	PRINT(Cyan, "\n---------- IR ----------\n");
+
 finish:
 
+	g_ir.reset();
 	g_semantic.reset();
 	g_syntax.reset();
 	g_lexer.reset();

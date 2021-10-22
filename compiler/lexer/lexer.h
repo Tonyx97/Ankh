@@ -449,6 +449,67 @@ public:
 	{
 		return STRIFY_TOKEN(token->id);
 	}
+
+	static inline std::string STRIFY_BIN_OP(TokenID id)
+	{
+		switch (id)
+		{
+		case Token_AddAssign:
+		case Token_Add:			return "add";
+		case Token_SubAssign:
+		case Token_Sub:			return "sub";
+		case Token_MulAssign:
+		case Token_Mul:			return "mul";
+		case Token_DivAssign:
+		case Token_Div:			return "div";
+		case Token_ModAssign:
+		case Token_Mod:			return "mod";
+		case Token_XorAssign:
+		case Token_Xor:			return "xor";
+		case Token_Equal:		return "cmp eq";
+		case Token_NotEqual:	return "cmp ne";
+		case Token_Lt:			return "cmp lt";
+		case Token_Lte:			return "cmp lte";
+		case Token_Gt:			return "cmp gt";
+		case Token_Gte:			return "cmp gte";
+		case Token_LogicalAnd:	return "and";
+		case Token_LogicalOr:	return "or";
+		case Token_And:			return "bit and";
+		case Token_Or:			return "bit or";
+		case Token_Shr:			return "shr";
+		case Token_Shl:			return "shl";
+		}
+
+		return "unknown_bin_op";
+	}
+
+	static inline std::string STRIFY_BIN_OP(Token* token)
+	{
+		return STRIFY_BIN_OP(token->id);
+	}
+
+	static inline std::string STRIFY_UNARY_OP(TokenID id)
+	{
+		switch (id)
+		{
+		case Token_Add:			return "+";
+		case Token_Sub:			return "neg";
+		case Token_Mul:			return "deref";
+		case Token_And:			return "address";
+		case Token_Not:			return "not";
+		case Token_Inc:			return "inc";
+		case Token_Dec:			return "dec";
+		case Token_LogicalNot:	return "logical not";
+		case Token_LogicalAnd:	return "logical and";
+		}
+
+		return "unknown_unary_op";
+	}
+
+	static inline std::string STRINGIFY_UNARY_OP(Token* token)
+	{
+		return STRIFY_UNARY_OP(token->id);
+	}
 };
 
 inline std::unique_ptr<Lexer> g_lexer;

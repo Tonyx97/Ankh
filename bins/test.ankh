@@ -11,21 +11,5 @@ i32 main()
 
 	bool b = true;
 
-	while (true)
-	{
-		while (true)
-		{
-			while (true)
-			{
-				while (true)
-				{
-					while (true)
-					{
-					}
-				}
-			}
-		}
-	}
-
 	return test(b);
 }
