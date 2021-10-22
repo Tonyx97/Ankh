@@ -2,7 +2,6 @@
 
 #include "gv.h"
 
-using namespace kpp;
 using namespace graph;
 
 void gv::build()
@@ -52,7 +51,7 @@ void gv::render(const std::string& title)
 {
 	std::vector<std::string> paths;
 
-	if (!util::winapi::get_PATH(paths))
+	if (!utils::winapi::get_PATH(paths))
 		return;
 
 	STARTUPINFOA si;

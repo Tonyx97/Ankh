@@ -2,8 +2,6 @@
 
 #include "lexer.h"
 
-using namespace kpp;
-
 Lexer::~Lexer()
 {
 	for (auto token : tokens)		_FREE(token);

@@ -25,7 +25,7 @@ namespace std
 	};
 }
 
-namespace util
+namespace utils
 {
 	namespace stl
 	{
@@ -185,3 +185,4 @@ namespace util
 		}
 	}
 }
+#endif
