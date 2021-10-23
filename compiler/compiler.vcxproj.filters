@@ -54,6 +54,18 @@
     <ClCompile Include="ir\instructions\return.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ir\instructions\stack_alloc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ir\items\value.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ir\instructions\store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ir\instructions\cast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="defs.h">
@@ -101,13 +113,25 @@
     <ClInclude Include="ir\items\body.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ir\instructions\ins_type.h">
+    <ClInclude Include="ir\item_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ir\instructions\base_item.h">
+    <ClInclude Include="ir\item_base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ir\instructions\return.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ir\instructions\stack_alloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ir\items\value.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ir\instructions\store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ir\instructions\cast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

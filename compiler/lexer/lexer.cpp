@@ -118,14 +118,14 @@ bool Lexer::run(const std::string& filename)
 								case Token_True:
 								{
 									curr_token->id = Token_Bool;
-									curr_token->u8 = 1;
+									curr_token->integer.u8 = 1;
 									curr_token->flags |= TokenFlag_Unsigned;
 									break;
 								}
 								case Token_False:
 								{
 									curr_token->id = Token_Bool;
-									curr_token->u8 = 0;
+									curr_token->integer.u8 = 0;
 									curr_token->flags |= TokenFlag_Unsigned;
 									break;
 								}
@@ -160,7 +160,7 @@ bool Lexer::run(const std::string& filename)
 							else curr_token->size = 32;
 
 							curr_token->value = token_found;
-							curr_token->u64 = std::stoull(int_group.str());
+							curr_token->integer.u64 = std::stoull(int_group.str());
 
 							break;
 						}

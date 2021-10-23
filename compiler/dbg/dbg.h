@@ -235,8 +235,8 @@ struct TimeProfiling
 #define PRINT_NL						make_text(EMPTY_NEW_LINE).print()
 #define PRINT_EX(...)					render_text_ex(true, 0, __VA_ARGS__)
 #define PRINT_EX_NNL(...)				render_text_ex(false, 0, __VA_ARGS__)
-#define PRINT_EX2(x, ...)					render_text_ex(true, x, __VA_ARGS__)
-#define PRINT_EX2_NNL(x, ...)				render_text_ex(false, x, __VA_ARGS__)
+#define PRINT_EX2(x, ...)				render_text_ex(true, x, __VA_ARGS__)
+#define PRINT_EX2_NNL(x, ...)			render_text_ex(false, x, __VA_ARGS__)
 
 class compiler_exception : public std::exception
 {

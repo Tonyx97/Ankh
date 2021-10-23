@@ -6,14 +6,12 @@ namespace ir
 {
 	struct Return : public Instruction
 	{
-		Instruction* op_i = nullptr;
-
 		TokenIR type {};
 
-		Return()								{ base_type = Ins_Return; }
+		Return()								{ base_type = ItemType_Return; }
 
 		void print();
 
-		static bool check_class(Instruction* i) { return i->base_type == Ins_Return; }
+		static bool check_class(ItemBase* i)	{ return i->base_type == ItemType_Return; }
 	};
 }

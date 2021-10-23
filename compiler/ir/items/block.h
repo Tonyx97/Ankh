@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ir/instructions/base_item.h>
 #include <ir/instructions/instruction.h>
 
 namespace ir
@@ -19,12 +18,12 @@ namespace ir
 
 		uint32_t flags = BlockFlag_None;
 
-		Block() {}
+		Block()					{ base_type = ItemType_Block; }
 		~Block();
 
 		void print();
 
-		bool is_entry() const { return flags & BlockFlag_Entry; }
+		bool is_entry() const	{ return flags & BlockFlag_Entry; }
 
 		template <typename T, typename... A>
 		T* create_item(const A&... args)
@@ -45,5 +44,7 @@ namespace ir
 		{
 			return add_item(create_item<T>(args...));
 		}
+
+		static bool check_class(ItemBase* i) { return i->base_type == ItemType_Block; }
 	};
 }

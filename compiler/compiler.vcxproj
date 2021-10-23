@@ -173,12 +173,16 @@
   <ItemGroup>
     <ClCompile Include="ast\ast.cpp" />
     <ClCompile Include="gv\gv.cpp" />
+    <ClCompile Include="ir\instructions\cast.cpp" />
     <ClCompile Include="ir\instructions\return.cpp" />
+    <ClCompile Include="ir\instructions\stack_alloc.cpp" />
+    <ClCompile Include="ir\instructions\store.cpp" />
     <ClCompile Include="ir\ir.cpp" />
     <ClCompile Include="ir\items\block.cpp" />
     <ClCompile Include="ir\items\body.cpp" />
     <ClCompile Include="ir\instructions\instruction.cpp" />
     <ClCompile Include="ir\items\prototype.cpp" />
+    <ClCompile Include="ir\items\value.cpp" />
     <ClCompile Include="lexer\lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mem\mem.cpp" />
@@ -190,14 +194,18 @@
     <ClInclude Include="dbg\dbg.h" />
     <ClInclude Include="defs.h" />
     <ClInclude Include="gv\gv.h" />
-    <ClInclude Include="ir\instructions\base_item.h" />
+    <ClInclude Include="ir\instructions\cast.h" />
+    <ClInclude Include="ir\item_base.h" />
     <ClInclude Include="ir\instructions\return.h" />
+    <ClInclude Include="ir\instructions\stack_alloc.h" />
+    <ClInclude Include="ir\instructions\store.h" />
     <ClInclude Include="ir\ir.h" />
     <ClInclude Include="ir\items\block.h" />
     <ClInclude Include="ir\items\body.h" />
     <ClInclude Include="ir\instructions\instruction.h" />
-    <ClInclude Include="ir\instructions\ins_type.h" />
+    <ClInclude Include="ir\item_type.h" />
     <ClInclude Include="ir\items\prototype.h" />
+    <ClInclude Include="ir\items\value.h" />
     <ClInclude Include="lexer\lexer.h" />
     <ClInclude Include="mem\mem.h" />
     <ClInclude Include="rtti\rtti.h" />

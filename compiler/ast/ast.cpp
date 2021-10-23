@@ -201,20 +201,20 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 	{
 		switch (auto size = expr->type->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->u8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->u16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->u32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->u64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->integer.u8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->integer.u16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->integer.u32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->integer.u64); break;
 		}
 	}
 	else
 	{
 		switch (auto size = expr->type->size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->i8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->i16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->i32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->i64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->integer.i8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->integer.i16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->integer.i32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->integer.i64); break;
 		}
 	}
 }

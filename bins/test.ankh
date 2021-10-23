@@ -1,13 +1,10 @@
-i32 test(i32 a1)
+/*i32 test(i32 a1)
 {
 	return a1 + 1;
-}
+}*/
 
 void main()
 {
-	i32 i = 1;
-
-	bool b = true;
-
-	test(b);
+	i32 a = 1u16;
+	//i32 b = a + 1;
 }

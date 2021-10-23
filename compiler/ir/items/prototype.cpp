@@ -6,6 +6,7 @@
 
 #include "prototype.h"
 #include "body.h"
+#include "value.h"
 
 namespace ir
 {
@@ -26,7 +27,7 @@ namespace ir
 			return Lexer::STRIFY_TYPE(stmt->type) + " " + stmt->name;
 		});*/
 
-		if (!is_empty())
+		if (has_blocks())
 		{
 			PRINT(White, ")");
 
@@ -49,7 +50,7 @@ namespace ir
 
 	Block* Prototype::add_block(Block* block)
 	{
-		if (is_empty())
+		if (!has_blocks())
 		{
 			entry = block;
 			entry->name = "entry";
@@ -65,5 +66,25 @@ namespace ir
 	Block* Prototype::add_new_block()
 	{
 		return add_block(create_block());
+	}
+
+	ValueId* Prototype::add_new_value_id()
+	{
+		auto v = _ALLOC(ValueId);
+
+		v->name = "v" + std::to_string(values.size());
+
+		values.push_back(v);
+
+		return v;
+	}
+
+	ValueInt* Prototype::add_new_value_int()
+	{
+		auto v = _ALLOC(ValueInt);
+
+		values.push_back(v);
+
+		return v;
 	}
 }

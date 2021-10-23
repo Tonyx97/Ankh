@@ -67,6 +67,7 @@ namespace ast
 		{
 			base_type = EXPR_INT_LITERAL;
 			name = type->value;
+			this->id = type;
 			this->type = type;
 		}
 
@@ -111,7 +112,7 @@ namespace ast
 	{
 		bool global = false;
 
-		ExprDecl(Token* id, Token* type = nullptr, Expr* rhs = nullptr, bool global = false) : global(global)
+		ExprDecl(Token* id, Token* type, Expr* rhs = nullptr, bool global = false) : global(global)
 		{
 			base_type = EXPR_DECL;
 			name = id->value;

@@ -5,6 +5,9 @@
 namespace ir
 {
 	struct Body;
+	struct Value;
+	struct ValueId;
+	struct ValueInt;
 
 	struct PrototypeIrCtx
 	{
@@ -15,6 +18,7 @@ namespace ir
 	{
 		std::vector<Block*> blocks;
 		std::vector<TokenIR> params;
+		std::vector<Value*> values;
 
 		std::string name;
 
@@ -32,11 +36,15 @@ namespace ir
 		void print();
 		void add_param(TokenIR param)			{ params.push_back(param); }
 
-		bool is_empty() const					{ return blocks.empty(); }
+		bool has_blocks() const					{ return !blocks.empty(); }
+		bool has_values() const					{ return !values.empty(); }
 
 		Block* create_block();
 		Block* add_block(Block* block);
 		Block* add_new_block();
+
+		ValueId* add_new_value_id();
+		ValueInt* add_new_value_int();
 
 		template <typename T, typename... A>
 		T* create_item(const A&... args)
