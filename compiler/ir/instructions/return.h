@@ -6,7 +6,7 @@ namespace ir
 {
 	struct Return : public Instruction
 	{
-		TokenIR type {};
+		Type type {};
 
 		Return()								{ base_type = ItemType_Return; }
 

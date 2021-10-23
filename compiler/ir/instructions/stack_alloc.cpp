@@ -4,9 +4,14 @@
 
 #include "stack_alloc.h"
 
-#include <ir/items/value.h>
+#include <ir/ir.h>
 
 void ir::StackAlloc::print()
 {
-	PRINT_EX2(1, Yellow, v->name, White, " = ", Green, "stackalloc ", Blue, Lexer::STRIFY_TYPE(v->type));
+	PRINT_INSTRUCTION(1,
+		Yellow, *v->ir_name,
+		White, " = ",
+		Green, "stackalloc ",
+		Blue, IR::STRIFY_TYPE(v->type),
+		White, v->type.indirection - 1);
 }

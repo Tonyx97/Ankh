@@ -1,6 +1,7 @@
 #include <defs.h>
 
 #include <lexer/lexer.h>
+#include <ir/ir.h>
 
 #include <ir/instructions/return.h>
 
@@ -12,6 +13,9 @@ namespace ir
 {
 	Prototype::~Prototype()
 	{
+		for (auto value : values)
+			_FREE(value);
+
 		for (auto block : blocks)
 			_FREE(block);
 
@@ -20,7 +24,7 @@ namespace ir
 
 	void Prototype::print()
 	{
-		PRINT_NNL(White, "{} {}(", Lexer::STRIFY_TYPE(type), name);
+		PRINT_NNL(White, "{} {}(", IR::STRIFY_TYPE(ret_type), name);
 
 		/*dbg::print_vec<PrototypeParam>(White, prototype->params, ", ", [](auto stmt)
 		{
@@ -68,23 +72,40 @@ namespace ir
 		return add_block(create_block());
 	}
 
-	ValueId* Prototype::add_new_value_id()
+	Value* Prototype::find_value(const std::string& name)
 	{
-		auto v = _ALLOC(ValueId);
+		auto it = values_map.find(name);
+		return it != values_map.end() ? it->second : nullptr;
+	}
 
-		v->name = "v" + std::to_string(values.size());
+	Value* Prototype::save_value(Value* v)
+	{
+		if (rtti::cast<ValueId>(v))	 id_values.push_back(v);
+		if (rtti::cast<ValueInt>(v)) int_values.push_back(v);
 
 		values.push_back(v);
+
+		if (v->name.has_value())
+			values_map.insert({ v->name.value(), v });
 
 		return v;
 	}
 
-	ValueInt* Prototype::add_new_value_int()
+	ValueId* Prototype::add_new_value_id(const Type& type, const optional_str& name)
 	{
-		auto v = _ALLOC(ValueInt);
+		auto v = _ALLOC(ValueId, type, "v" + std::to_string(id_values.size()), name);
 
-		values.push_back(v);
+		return rtti::cast<ValueId>(save_value(v));
+	}
 
-		return v;
+	ValueInt* Prototype::add_new_value_int(const Type& ir_type)
+	{
+		return rtti::cast<ValueInt>(save_value(_ALLOC(ValueInt, ir_type)));
+	}
+
+	Return* Prototype::add_return(Instruction* item)
+	{
+		returns.push_back(item);
+		return rtti::cast<Return>(add_item(item));
 	}
 }

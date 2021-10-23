@@ -228,6 +228,8 @@ namespace ast
 											{ base_type = EXPR_IMPLICIT_CAST; this->rhs = rhs; this->type = type; }
 		~ExprCast()							{ _FREE(rhs); }
 
+		bool needs_ir_cast() const			{ return rhs->type->size != type->size; }
+
 		static bool check_class(Base* i)	{ return i->base_type == EXPR_IMPLICIT_CAST; }
 	};
 
@@ -369,9 +371,9 @@ namespace ast
 	{
 		Expr* expr = nullptr;
 		
-		Token* ret_token = nullptr;
+		Token* ret_type = nullptr;
 
-		StmtReturn(Expr* expr, Token* ret_token) : expr(expr), ret_token(ret_token)
+		StmtReturn(Expr* expr, Token* ret_type) : expr(expr), ret_type(ret_type)
 											{ base_type = STMT_RETURN; }
 		~StmtReturn()						{ _FREE(expr); }
 
@@ -392,7 +394,7 @@ namespace ast
 		StmtBody* body = nullptr;
 
 		Token* id_token = nullptr,
-			 * ret_token = nullptr;
+			 * ret_type = nullptr;
 
 		Prototype(Token* id_token) : id_token(id_token) { name = id_token->value; }
 		~Prototype()

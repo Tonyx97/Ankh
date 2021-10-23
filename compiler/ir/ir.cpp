@@ -40,20 +40,20 @@ ir::Prototype* IR::generate_prototype(ast::Prototype* ast_prototype)
 	auto prototype = ctx.pt = _ALLOC(ir::Prototype);
 
 	prototype->name = ast_prototype->name;
-	prototype->type = ast_prototype->ret_token->create_type();
+	prototype->ret_type = ast_prototype->ret_type->to_ir_type();
 
 	for (auto param : ast_prototype->params)
-		prototype->add_param(param->type->create_type());
+		prototype->add_param(param->type->to_ir_type());
 
 	if (ast_prototype->body)
 	{
 		auto entry_block = prototype->add_new_block();
 
 		prototype->body = generate_body(ast_prototype->body);
-
-		if (ast_prototype->ret_token->is_same_type(Token_Void))
-			prototype->add_new_item<ir::Return>();
 	}
+
+	if (!prototype->has_returns())
+		prototype->add_return(prototype->create_item<ir::Return>());
 
 	add_prototype(prototype);
 
@@ -76,13 +76,13 @@ ir::Body* IR::generate_body(ast::StmtBody* ast_body)
 
 ir::ItemBase* IR::generate_expr(ast::Expr* expr)
 {
-	if (auto int_literal = rtti::cast<ast::ExprIntLiteral>(expr))			 return generate_expr_int_literal(int_literal);
-	else if (auto cast = rtti::cast<ast::ExprCast>(expr))					return generate_expr_cast(cast);
+	if (auto int_literal = rtti::cast<ast::ExprIntLiteral>(expr))			return generate_expr_int_literal(int_literal);
 	else if (auto decl = rtti::cast<ast::ExprDecl>(expr))					return generate_expr_decl(decl);
-	//else if (auto id = rtti::cast<ast::ExprId>(expr))						 return generate_from_expr_id(id);
-	//else if (auto binary_op = rtti::cast::ExprBinaryOp>(expr))				 return generate_from_expr_binary_op(binary_op);
-	//else if (auto unary_op = rtti::cast<ast::ExprUnaryOp>(expr))			 return generate_from_expr_unary_op(unary_op);
-	//else if (auto call = rtti::cast<ast::ExprCall>(expr))					 return generate_from_expr_call(call);
+	else if (auto cast = rtti::cast<ast::ExprCast>(expr))					return generate_expr_cast(cast);
+	else if (auto id = rtti::cast<ast::ExprId>(expr))						return generate_expr_id(id);
+	else if (auto bin_op = rtti::cast<ast::ExprBinaryOp>(expr))				return generate_expr_binary_op(bin_op);
+	//else if (auto unary_op = rtti::cast<ast::ExprUnaryOp>(expr))			return generate_from_expr_unary_op(unary_op);
+	//else if (auto call = rtti::cast<ast::ExprCall>(expr))					return generate_from_expr_call(call);
 
 	global_error("Could not generate the IR equivalent of an expression");
 
@@ -93,8 +93,7 @@ ir::ItemBase* IR::generate_expr_decl(ast::ExprDecl* expr)
 {
 	auto stack_alloc = ctx.pt->create_item<ir::StackAlloc>();
 
-	stack_alloc->v = ctx.pt->add_new_value_id();
-	stack_alloc->v->type = expr->type->create_type();
+	stack_alloc->v = ctx.pt->add_new_value_id(expr->type->to_ir_type(1), expr->name);
 
 	ctx.pt->add_item(stack_alloc);
 
@@ -113,27 +112,50 @@ ir::ItemBase* IR::generate_expr_decl(ast::ExprDecl* expr)
 
 ir::ItemBase* IR::generate_expr_cast(ast::ExprCast* expr)
 {
-	auto cast = ctx.pt->create_item<ir::Cast>();
+	if (expr->needs_ir_cast())
+	{
+		auto cast = ctx.pt->create_item<ir::Cast>();
 
-	cast->v1 = generate_expr(expr->rhs)->v;
-	cast->v = ctx.pt->add_new_value_id();
-	cast->v->type = expr->type->create_type();
+		cast->v1 = generate_expr(expr->rhs)->v;
+		cast->v = ctx.pt->add_new_value_id(expr->type->to_ir_type());
 
-	ctx.pt->add_item(cast);
+		ctx.pt->add_item(cast);
 
-	return cast;
+		return cast;
+	}
+
+	return generate_expr(expr->rhs);
+}
+
+ir::ItemBase* IR::generate_expr_id(ast::ExprId* expr)
+{
+	return ctx.pt->find_value(expr->name);
 }
 
 ir::ItemBase* IR::generate_expr_int_literal(ast::ExprIntLiteral* expr)
 {
-	auto v = ctx.pt->add_new_value_int();
 	auto integer = expr->id->integer.u64;
+	auto integer_str = std::to_string(integer);
+	auto v = ctx.pt->add_new_value_int(expr->id->to_ir_type());
 
 	v->vi = integer;
-	v->name = std::to_string(integer);
-	v->type = expr->id->create_type();
+	v->ir_name = integer_str;
 
 	return (v->v = v);
+}
+
+ir::ItemBase* IR::generate_expr_binary_op(ast::ExprBinaryOp* expr)
+{
+	auto bin_op = ctx.pt->create_item<ir::BinaryOp>();
+
+	bin_op->op_type = expr->id->to_ir_bin_op_type();
+	bin_op->v1 = generate_expr(expr->lhs)->v;
+	bin_op->v2 = generate_expr(expr->rhs)->v;
+	bin_op->v = ctx.pt->add_new_value_id(expr->type->to_ir_type());
+
+	ctx.pt->add_item(bin_op);
+
+	return bin_op;
 }
 
 ir::Return* IR::generate_return(ast::StmtReturn* ast_return)
@@ -142,11 +164,11 @@ ir::Return* IR::generate_return(ast::StmtReturn* ast_return)
 
 	if (auto expr = ast_return->expr)
 	{
-		ret->type = expr->type->create_type();
+		ret->type = expr->type->to_ir_type();
 
 		/*if (auto op_i = ret->op_i = generate_from_expr(expr))
 			op_i->get_value()->ret = ret;*/
 	}
 
-	return ctx.pt->add_item(ret);
+	return ctx.pt->add_return(ret);
 }

@@ -6,7 +6,7 @@
 
 void ir::Return::print()
 {
-	PRINT_EX2(1, Green, "ret ", Blue, "void");
+	PRINT_INSTRUCTION(1, Green, "ret ", Blue, "void");
 
 	/*if (op_i)
 		PRINT(Yellow, op_i->get_value_str());

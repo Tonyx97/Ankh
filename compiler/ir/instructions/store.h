@@ -11,6 +11,7 @@ namespace ir
 		Value* v1 = nullptr;
 
 		Store()									{ base_type = ItemType_Store; }
+		~Store()								{ _FREE(v1); }
 
 		void print();
 

@@ -1,0 +1,19 @@
+void main()
+{
+entry:
+  v0 = stackalloc u32
+  v1 = add u32 1, 1
+  store u32* v0, u32 v1
+  v2 = stackalloc u32
+  v3 = cast u16 1 to u32
+  v4 = add u32 1, v3
+  store u32* v2, u32 v4
+  v5 = stackalloc u32
+  v6 = add u32 1, 1
+  store u32* v5, u32 v6
+  v7 = stackalloc u32
+  v8 = cast u16 1 to u32
+  v9 = add u32 1, v8
+  store u32* v7, u32 v9
+  ret void
+}

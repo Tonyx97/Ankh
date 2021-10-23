@@ -2,8 +2,6 @@
 
 #include <Windows.h>
 
-#include "defs.h"
-
 struct ColorType
 {
 	int r, g, b;
@@ -90,6 +88,15 @@ inline void setup_console()
 }
 
 static inline void render_text_impl(std::string& format) {}
+
+template <typename... A>
+static inline void render_text_impl(std::string& format, ColorType color, int indirection, const A&... args)
+{
+	for (int i = 0; i < indirection; ++i)
+		format += std::format("\x1b[1;38;2;{};{};{}m{}", color.r, color.g, color.b, '*');
+
+	render_text_impl(format, args...);
+}
 
 template <typename... A>
 static inline void render_text_impl(std::string& format, ColorType color, const std::string& txt, const A&... args)
@@ -235,7 +242,7 @@ struct TimeProfiling
 #define PRINT_NL						make_text(EMPTY_NEW_LINE).print()
 #define PRINT_EX(...)					render_text_ex(true, 0, __VA_ARGS__)
 #define PRINT_EX_NNL(...)				render_text_ex(false, 0, __VA_ARGS__)
-#define PRINT_EX2(x, ...)				render_text_ex(true, x, __VA_ARGS__)
+#define PRINT_INSTRUCTION(x, ...)				render_text_ex(true, x, __VA_ARGS__)
 #define PRINT_EX2_NNL(x, ...)			render_text_ex(false, x, __VA_ARGS__)
 
 class compiler_exception : public std::exception

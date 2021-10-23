@@ -25,6 +25,8 @@
 #include <ranges>
 #include <span>
 
+using optional_str = std::optional<std::string>;
+
 #include <dbg/dbg.h>
 
 #include <rtti/rtti.h>

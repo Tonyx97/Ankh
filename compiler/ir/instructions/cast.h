@@ -11,6 +11,7 @@ namespace ir
 		Value* v1 = nullptr;
 
 		Cast()									{ base_type = ItemType_Cast; }
+		~Cast()									{ _FREE(v1); }
 
 		void print();
 

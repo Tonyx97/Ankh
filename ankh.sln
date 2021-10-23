@@ -7,12 +7,18 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compiler", "compiler\compil
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DbgTurbo|x64 = DbgTurbo|x64
+		DbgTurbo|x86 = DbgTurbo|x86
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E606C1E1-FB0D-4D58-8242-E9485912CEA6}.DbgTurbo|x64.ActiveCfg = DbgTurbo|x64
+		{E606C1E1-FB0D-4D58-8242-E9485912CEA6}.DbgTurbo|x64.Build.0 = DbgTurbo|x64
+		{E606C1E1-FB0D-4D58-8242-E9485912CEA6}.DbgTurbo|x86.ActiveCfg = DbgTurbo|Win32
+		{E606C1E1-FB0D-4D58-8242-E9485912CEA6}.DbgTurbo|x86.Build.0 = DbgTurbo|Win32
 		{E606C1E1-FB0D-4D58-8242-E9485912CEA6}.Debug|x64.ActiveCfg = Debug|x64
 		{E606C1E1-FB0D-4D58-8242-E9485912CEA6}.Debug|x64.Build.0 = Debug|x64
 		{E606C1E1-FB0D-4D58-8242-E9485912CEA6}.Debug|x86.ActiveCfg = Debug|Win32

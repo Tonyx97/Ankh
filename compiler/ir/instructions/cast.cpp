@@ -4,14 +4,14 @@
 
 #include "cast.h"
 
-#include <ir/items/value.h>
+#include <ir/ir.h>
 
 void ir::Cast::print()
 {
-	PRINT_EX2(1,
-		Yellow, v->name, White, " = ",
+	PRINT_INSTRUCTION(1,
+		Yellow, *v->ir_name, White, " = ",
 		Green, "cast ",
-		Blue, Lexer::STRIFY_TYPE(v1->type), White, " ",
-		Yellow, v1->name, White, " to ",
-		Blue, Lexer::STRIFY_TYPE(v->type));
+		Blue, IR::STRIFY_TYPE(v1->type), White, " ",
+		Yellow, *v1->ir_name, White, " to ",
+		Blue, IR::STRIFY_TYPE(v->type));
 }

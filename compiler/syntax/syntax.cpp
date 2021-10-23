@@ -36,7 +36,7 @@ void Syntax::run()
 			p_ctx = prototype;
 
 			prototype->params = parse_prototype_params_decl();
-			prototype->ret_token = type;
+			prototype->ret_type = type;
 
 			if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
 			{
@@ -261,7 +261,7 @@ ast::Base* Syntax::parse_statement()
 		else if (type->id == Token_Continue)	return _ALLOC(ast::StmtContinue);
 		else if (type->id == Token_Return)
 		{
-			auto ret = p_ctx.fn->ret_token;
+			auto ret = p_ctx.fn->ret_type;
 			auto expr_value = g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression();
 			auto casted_type = ret->normal_implicit_cast(expr_value->type);
 
@@ -384,7 +384,7 @@ ast::Expr* Syntax::parse_primary_expression()
 			g_lexer->eat();
 
 			auto called_prototype = g_ctx.get_prototype(id->value);
-			auto call = _ALLOC(ast::ExprCall, called_prototype, id, called_prototype->ret_token, false);	// todo - get if it's intrinsic/built-in or not
+			auto call = _ALLOC(ast::ExprCall, called_prototype, id, called_prototype->ret_type, false);	// todo - get if it's intrinsic/built-in or not
 
 			call->stmts = parse_call_params(called_prototype);
 

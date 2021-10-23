@@ -4,14 +4,16 @@
 
 #include "store.h"
 
-#include <ir/items/value.h>
+#include <ir/ir.h>
 
 void ir::Store::print()
 {
-	PRINT_EX2(1,
+	PRINT_INSTRUCTION(1,
 		Green, "store ",
-		Blue, Lexer::STRIFY_TYPE(v->type), White, " ",
-		Yellow, v->name, White, " ",
-		Blue, Lexer::STRIFY_TYPE(v1->type), White, " ",
-		Yellow, v1->name);
+		Blue, IR::STRIFY_TYPE(v->type),
+		White, v->type.indirection, White, " ",
+		Yellow, *v->ir_name, White, ", ",
+		Blue, IR::STRIFY_TYPE(v1->type),
+		White, v1->type.indirection, White, " ",
+		Yellow, *v1->ir_name);
 }

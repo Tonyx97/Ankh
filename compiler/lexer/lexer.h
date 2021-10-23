@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ir/types.h>
+
 enum TokenID : int
 {
 	Token_None = 0,
@@ -10,20 +12,34 @@ enum TokenID : int
 	Token_IntLiteral,
 	Token_Comment,
 
-	Token_ShrAssign,
-	Token_ShlAssign,
 	Token_AddAssign,
-	Token_Inc,
-	Token_Dec,
+	Token_Add,
 	Token_SubAssign,
+	Token_Sub,
 	Token_MulAssign,
-	Token_ModAssign,
+	Token_Mul,
 	Token_DivAssign,
-	Token_OrAssign,
+	Token_Div,
+	Token_ModAssign,
+	Token_Mod,
 	Token_AndAssign,
+	Token_And,
+	Token_OrAssign,
+	Token_Or,
 	Token_XorAssign,
-	Token_Gte,
+	Token_Xor,
+	Token_ShrAssign,
+	Token_Shr,
+	Token_ShlAssign,
+	Token_Shl,
+	Token_Equal,
+	Token_NotEqual,
+	Token_Lt,
 	Token_Lte,
+	Token_Gt,
+	Token_Gte,
+	Token_LogicalAnd,
+	Token_LogicalOr,
 
 	Token_Colon,
 	Token_Semicolon,
@@ -35,27 +51,12 @@ enum TokenID : int
 	Token_BraceClose,
 	Token_BracketOpen,
 	Token_BracketClose,
-	Token_Add,
-	Token_Sub,
-	Token_Mul,
-	Token_Mod,
-	Token_Div,
-	Token_Shr,
-	Token_Shl,
-	Token_And,
-	Token_Or,
-	Token_Xor,
 	Token_Not,
 	Token_Assign,
 
+	Token_Inc,
+	Token_Dec,
 	Token_LogicalNot,
-	Token_LogicalAnd,
-	Token_LogicalOr,
-
-	Token_Equal,
-	Token_NotEqual,
-	Token_Gt,
-	Token_Lt,
 
 	Token_Void,
 	Token_Bool,
@@ -93,13 +94,6 @@ enum TokenFlag : unsigned __int64
 	TokenFlag_Unsigned		= (1ull << 4),
 	TokenFlag_Assignation	= (1ull << 5),
 	TokenFlag_Id			= (1ull << 6),
-};
-
-struct TokenIR
-{
-	TokenID type = Token_None;
-
-	int indirection = 0;
 };
 
 union Int
@@ -148,9 +142,31 @@ struct Token
 		flags |= token->flags;
 	}
 
-	TokenIR create_type(int indirection = 0)
+	ir::Type to_ir_type(int indirection = 0)
 	{
-		return { id, indirection };
+		auto ir_type = static_cast<ir::TypeID>(id);
+
+		switch (ir_type)
+		{
+		case Token_Void:	ir_type = ir::Type_Void;  break;
+		case Token_U8:
+		case Token_I8:		ir_type = ir::Type_i8;  break;
+		case Token_U16:
+		case Token_I16:		ir_type = ir::Type_i16; break;
+		case Token_U32:
+		case Token_I32:		ir_type = ir::Type_i32; break;
+		case Token_U64:
+		case Token_I64:		ir_type = ir::Type_i64; break;
+		}
+		
+		return { ir_type, indirection };
+	}
+
+	ir::BinOpType to_ir_bin_op_type()
+	{
+		auto ir_type = static_cast<int>(id);
+
+		return static_cast<ir::BinOpType>(ir_type - static_cast<int>(Token_AddAssign));
 	}
 
 	Token* binary_implicit_cast(Token* rhs)
@@ -385,11 +401,6 @@ public:
 		return STRIFY_TYPE(token->id);
 	}
 
-	static inline std::string STRIFY_TYPE(const TokenIR& token)
-	{
-		return STRIFY_TYPE(token.type);
-	}
-
 	static inline std::string STRIFY_TOKEN(TokenID id)
 	{
 		switch (id)
@@ -470,67 +481,6 @@ public:
 	static inline std::string STRIFY_TOKEN(Token* token)
 	{
 		return STRIFY_TOKEN(token->id);
-	}
-
-	static inline std::string STRIFY_BIN_OP(TokenID id)
-	{
-		switch (id)
-		{
-		case Token_AddAssign:
-		case Token_Add:			return "add";
-		case Token_SubAssign:
-		case Token_Sub:			return "sub";
-		case Token_MulAssign:
-		case Token_Mul:			return "mul";
-		case Token_DivAssign:
-		case Token_Div:			return "div";
-		case Token_ModAssign:
-		case Token_Mod:			return "mod";
-		case Token_XorAssign:
-		case Token_Xor:			return "xor";
-		case Token_Equal:		return "cmp eq";
-		case Token_NotEqual:	return "cmp ne";
-		case Token_Lt:			return "cmp lt";
-		case Token_Lte:			return "cmp lte";
-		case Token_Gt:			return "cmp gt";
-		case Token_Gte:			return "cmp gte";
-		case Token_LogicalAnd:	return "and";
-		case Token_LogicalOr:	return "or";
-		case Token_And:			return "bit and";
-		case Token_Or:			return "bit or";
-		case Token_Shr:			return "shr";
-		case Token_Shl:			return "shl";
-		}
-
-		return "unknown_bin_op";
-	}
-
-	static inline std::string STRIFY_BIN_OP(Token* token)
-	{
-		return STRIFY_BIN_OP(token->id);
-	}
-
-	static inline std::string STRIFY_UNARY_OP(TokenID id)
-	{
-		switch (id)
-		{
-		case Token_Add:			return "+";
-		case Token_Sub:			return "neg";
-		case Token_Mul:			return "deref";
-		case Token_And:			return "address";
-		case Token_Not:			return "not";
-		case Token_Inc:			return "inc";
-		case Token_Dec:			return "dec";
-		case Token_LogicalNot:	return "logical not";
-		case Token_LogicalAnd:	return "logical and";
-		}
-
-		return "unknown_unary_op";
-	}
-
-	static inline std::string STRINGIFY_UNARY_OP(Token* token)
-	{
-		return STRIFY_UNARY_OP(token->id);
 	}
 };
 

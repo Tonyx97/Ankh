@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ir/item_type.h>
+#include <ir/types.h>
 
 namespace ir
 {

@@ -32,7 +32,7 @@ bool Semantic::run()
 				add_error("Unresolved prototype '{}' declared", name);
 			else add_error("Unresolved prototype '{}' referenced", name);
 		}
-		else if (auto prototype_def = it->second; !prototype_def->ret_token->is_same_type(prototype_decl->ret_token))
+		else if (auto prototype_def = it->second; !prototype_def->ret_type->is_same_type(prototype_decl->ret_type))
 			add_error("Cannot overload prototype '{}' by return type alone", name);
 
 	return errors.empty();
@@ -204,12 +204,12 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 	if (stmt_return->expr && !analyze_expr(stmt_return->expr))
 		return false;
 
-	if (stmt_return->expr ? p_ctx.pt->ret_token->is_same_type(stmt_return->expr->type) : p_ctx.pt->ret_token->is_same_type(Token_Void))
+	if (stmt_return->expr ? p_ctx.pt->ret_type->is_same_type(stmt_return->expr->type) : p_ctx.pt->ret_type->is_same_type(Token_Void))
 		return true;
 
 	add_error("Return type '{}' does not match with function type '{}'",
 		Lexer::STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->type->id : Token_Void),
-		Lexer::STRIFY_TYPE(p_ctx.pt->ret_token));
+		Lexer::STRIFY_TYPE(p_ctx.pt->ret_type));
 
 	return false;
 }
