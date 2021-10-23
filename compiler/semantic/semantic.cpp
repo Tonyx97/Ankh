@@ -123,9 +123,8 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 			return analyze_expr(value_unary_op);
 		else
 		{
-			if (!rtti::cast<ast::ExprId>(unary_op->rhs) &&
-				!rtti::cast<ast::ExprIntLiteral>(unary_op->rhs))
-				add_error("Expression must be an lvalue");
+			// missing checks to see if rhs is actually a rvalue
+			// and not lvalue
 
 			return analyze_expr(unary_op->rhs);
 		}
