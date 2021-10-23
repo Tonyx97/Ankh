@@ -6,6 +6,7 @@
 #include "instructions/stack_alloc.h"
 #include "instructions/cast.h"
 #include "instructions/store.h"
+#include "instructions/load.h"
 #include "instructions/binary_op.h"
 #include "instructions/return.h"
 
@@ -53,6 +54,7 @@ public:
 	ir::ItemBase* generate_expr_id(ast::ExprId* expr);
 	ir::ItemBase* generate_expr_int_literal(ast::ExprIntLiteral* expr);
 	ir::ItemBase* generate_expr_binary_op(ast::ExprBinaryOp* expr);
+	ir::ItemBase* generate_expr_unary_op(ast::ExprUnaryOp* expr);
 
 	ir::Return* generate_return(ast::StmtReturn* ast_return);
 

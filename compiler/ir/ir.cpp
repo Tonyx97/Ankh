@@ -81,7 +81,7 @@ ir::ItemBase* IR::generate_expr(ast::Expr* expr)
 	else if (auto cast = rtti::cast<ast::ExprCast>(expr))					return generate_expr_cast(cast);
 	else if (auto id = rtti::cast<ast::ExprId>(expr))						return generate_expr_id(id);
 	else if (auto bin_op = rtti::cast<ast::ExprBinaryOp>(expr))				return generate_expr_binary_op(bin_op);
-	//else if (auto unary_op = rtti::cast<ast::ExprUnaryOp>(expr))			return generate_from_expr_unary_op(unary_op);
+	else if (auto unary_op = rtti::cast<ast::ExprUnaryOp>(expr))			return generate_expr_unary_op(unary_op);
 	//else if (auto call = rtti::cast<ast::ExprCall>(expr))					return generate_from_expr_call(call);
 
 	global_error("Could not generate the IR equivalent of an expression");
@@ -129,7 +129,14 @@ ir::ItemBase* IR::generate_expr_cast(ast::ExprCast* expr)
 
 ir::ItemBase* IR::generate_expr_id(ast::ExprId* expr)
 {
-	return ctx.pt->find_value(expr->name);
+	auto load = ctx.pt->create_item<ir::Load>();
+
+	load->v = ctx.pt->add_new_value_id(expr->type->to_ir_type());
+	load->v1 = ctx.pt->find_value(expr->name);
+
+	ctx.pt->add_item(load);
+
+	return load;
 }
 
 ir::ItemBase* IR::generate_expr_int_literal(ast::ExprIntLiteral* expr)
@@ -158,16 +165,19 @@ ir::ItemBase* IR::generate_expr_binary_op(ast::ExprBinaryOp* expr)
 	return bin_op;
 }
 
+ir::ItemBase* IR::generate_expr_unary_op(ast::ExprUnaryOp* expr)
+{
+
+}
+
 ir::Return* IR::generate_return(ast::StmtReturn* ast_return)
 {
 	auto ret = ctx.pt->create_item<ir::Return>();
 
 	if (auto expr = ast_return->expr)
 	{
-		ret->type = expr->type->to_ir_type();
-
-		/*if (auto op_i = ret->op_i = generate_from_expr(expr))
-			op_i->get_value()->ret = ret;*/
+		ret->v = generate_expr(expr)->v;
+		ret->type = ret->v->type;
 	}
 
 	return ctx.pt->add_return(ret);

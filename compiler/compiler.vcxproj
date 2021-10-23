@@ -245,6 +245,7 @@
     <ClCompile Include="gv\gv.cpp" />
     <ClCompile Include="ir\instructions\binary_op.cpp" />
     <ClCompile Include="ir\instructions\cast.cpp" />
+    <ClCompile Include="ir\instructions\load.cpp" />
     <ClCompile Include="ir\instructions\return.cpp" />
     <ClCompile Include="ir\instructions\stack_alloc.cpp" />
     <ClCompile Include="ir\instructions\store.cpp" />
@@ -267,6 +268,7 @@
     <ClInclude Include="gv\gv.h" />
     <ClInclude Include="ir\instructions\binary_op.h" />
     <ClInclude Include="ir\instructions\cast.h" />
+    <ClInclude Include="ir\instructions\load.h" />
     <ClInclude Include="ir\item_base.h" />
     <ClInclude Include="ir\instructions\return.h" />
     <ClInclude Include="ir\instructions\stack_alloc.h" />

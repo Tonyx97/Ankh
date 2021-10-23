@@ -3,8 +3,15 @@
 	return a1 + 1;
 }*/
 
-void main()
+i32 main()
 {
 	i32 a = 1;
 	i32 b = a + 1;
+
+	if (b)
+	{
+		return 1;
+	}
+
+	return b;
 }

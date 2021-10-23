@@ -4,11 +4,17 @@
 
 #include "return.h"
 
+#include <ir/ir.h>
+
 void ir::Return::print()
 {
-	PRINT_INSTRUCTION(1, Green, "ret ", Blue, "void");
-
-	/*if (op_i)
-		PRINT(Yellow, op_i->get_value_str());
-	else */
+	if (v)
+		PRINT_INSTRUCTION(1,
+			Green, "ret ",
+			Blue, IR::STRIFY_TYPE(v->type), White, " ",
+			Yellow, *v->ir_name);
+	else
+		PRINT_INSTRUCTION(1,
+			Green, "ret ",
+			Blue, "void");
 }
