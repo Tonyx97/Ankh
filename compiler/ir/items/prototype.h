@@ -18,11 +18,13 @@ namespace ir
 	struct Prototype
 	{
 		std::vector<Block*> blocks;
-		std::vector<Type> params;
+
 		std::vector<Instruction*> returns;
+
 		std::vector<Value*> values,
 							id_values,
-							int_values;
+							int_values,
+							params;
 
 		std::unordered_map<std::string, Value*> values_map;
 
@@ -40,7 +42,6 @@ namespace ir
 		~Prototype();
 
 		void print();
-		void add_param(Type&& param)			{ params.push_back(param); }
 
 		bool has_blocks() const					{ return !blocks.empty(); }
 		bool has_values() const					{ return !values.empty(); }
@@ -52,6 +53,7 @@ namespace ir
 
 		Value* find_value(const std::string& name);
 		Value* save_value(Value* v);
+		ValueId* add_parameter(const Type& type, const optional_str& name);
 		ValueId* add_new_value_id(const Type& type, const optional_str& name = {});
 		ValueInt* add_new_value_int(const Type& type);
 

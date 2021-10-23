@@ -1,17 +1,12 @@
-/*i32 test(i32 a1)
+i32 addition(i32 a, i32 b)
 {
-	return a1 + 1;
-}*/
+	return a + b;
+}
 
 i32 main()
 {
 	i32 a = 1;
-	i32 b = a + 1;
+	i32 b = 2;
 
-	if (b)
-	{
-		return 1;
-	}
-
-	return b;
+	return addition(a, b);
 }

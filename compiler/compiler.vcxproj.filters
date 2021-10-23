@@ -72,6 +72,12 @@
     <ClCompile Include="ir\instructions\load.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ir\instructions\unary_op.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ir\instructions\call.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="defs.h">
@@ -144,6 +150,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ir\instructions\load.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ir\instructions\unary_op.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ir\instructions\call.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -169,6 +169,24 @@ struct Token
 		return static_cast<ir::BinOpType>(ir_type - static_cast<int>(Token_AddAssign));
 	}
 
+	ir::UnaryOpType to_ir_unary_op_type()
+	{
+		switch (id)
+		{
+		case Token_Add:			return ir::UnaryOpType_Add;
+		case Token_Sub:			return ir::UnaryOpType_Sub;
+		case Token_Mul:			return ir::UnaryOpType_Mul;
+		case Token_And:			return ir::UnaryOpType_And;
+		case Token_Not:			return ir::UnaryOpType_Not;
+		case Token_Inc:			return ir::UnaryOpType_Inc;
+		case Token_Dec:			return ir::UnaryOpType_Dec;
+		case Token_LogicalNot:	return ir::UnaryOpType_LogicalNot;
+		case Token_LogicalAnd:	return ir::UnaryOpType_LogicalAnd;
+		}
+
+		return ir::UnaryOpType_None;
+	}
+
 	Token* binary_implicit_cast(Token* rhs)
 	{
 		if (!rhs)

@@ -244,11 +244,13 @@
     <ClCompile Include="ast\ast.cpp" />
     <ClCompile Include="gv\gv.cpp" />
     <ClCompile Include="ir\instructions\binary_op.cpp" />
+    <ClCompile Include="ir\instructions\call.cpp" />
     <ClCompile Include="ir\instructions\cast.cpp" />
     <ClCompile Include="ir\instructions\load.cpp" />
     <ClCompile Include="ir\instructions\return.cpp" />
     <ClCompile Include="ir\instructions\stack_alloc.cpp" />
     <ClCompile Include="ir\instructions\store.cpp" />
+    <ClCompile Include="ir\instructions\unary_op.cpp" />
     <ClCompile Include="ir\ir.cpp" />
     <ClCompile Include="ir\items\block.cpp" />
     <ClCompile Include="ir\items\body.cpp" />
@@ -267,8 +269,10 @@
     <ClInclude Include="defs.h" />
     <ClInclude Include="gv\gv.h" />
     <ClInclude Include="ir\instructions\binary_op.h" />
+    <ClInclude Include="ir\instructions\call.h" />
     <ClInclude Include="ir\instructions\cast.h" />
     <ClInclude Include="ir\instructions\load.h" />
+    <ClInclude Include="ir\instructions\unary_op.h" />
     <ClInclude Include="ir\item_base.h" />
     <ClInclude Include="ir\instructions\return.h" />
     <ClInclude Include="ir\instructions\stack_alloc.h" />

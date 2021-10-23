@@ -43,7 +43,9 @@ ir::Prototype* IR::generate_prototype(ast::Prototype* ast_prototype)
 	prototype->ret_type = ast_prototype->ret_type->to_ir_type();
 
 	for (auto param : ast_prototype->params)
-		prototype->add_param(param->type->to_ir_type());
+		prototype->add_parameter(param->type->to_ir_type(), param->name);
+
+	add_prototype(prototype);
 
 	if (ast_prototype->body)
 	{
@@ -54,8 +56,6 @@ ir::Prototype* IR::generate_prototype(ast::Prototype* ast_prototype)
 
 	if (!prototype->has_returns())
 		prototype->add_return(prototype->create_item<ir::Return>());
-
-	add_prototype(prototype);
 
 	return prototype;
 }
@@ -82,7 +82,7 @@ ir::ItemBase* IR::generate_expr(ast::Expr* expr)
 	else if (auto id = rtti::cast<ast::ExprId>(expr))						return generate_expr_id(id);
 	else if (auto bin_op = rtti::cast<ast::ExprBinaryOp>(expr))				return generate_expr_binary_op(bin_op);
 	else if (auto unary_op = rtti::cast<ast::ExprUnaryOp>(expr))			return generate_expr_unary_op(unary_op);
-	//else if (auto call = rtti::cast<ast::ExprCall>(expr))					return generate_from_expr_call(call);
+	else if (auto call = rtti::cast<ast::ExprCall>(expr))					return generate_expr_call(call);
 
 	global_error("Could not generate the IR equivalent of an expression");
 
@@ -119,9 +119,7 @@ ir::ItemBase* IR::generate_expr_cast(ast::ExprCast* expr)
 		cast->v1 = generate_expr(expr->rhs)->v;
 		cast->v = ctx.pt->add_new_value_id(expr->type->to_ir_type());
 
-		ctx.pt->add_item(cast);
-
-		return cast;
+		return ctx.pt->add_item(cast);
 	}
 
 	return generate_expr(expr->rhs);
@@ -129,14 +127,16 @@ ir::ItemBase* IR::generate_expr_cast(ast::ExprCast* expr)
 
 ir::ItemBase* IR::generate_expr_id(ast::ExprId* expr)
 {
+	auto existing_value = ctx.pt->find_value(expr->name);
+	if (existing_value->type.indirection == 0)
+		return existing_value;
+
 	auto load = ctx.pt->create_item<ir::Load>();
 
 	load->v = ctx.pt->add_new_value_id(expr->type->to_ir_type());
-	load->v1 = ctx.pt->find_value(expr->name);
+	load->v1 = existing_value->clone();
 
-	ctx.pt->add_item(load);
-
-	return load;
+	return ctx.pt->add_item(load);
 }
 
 ir::ItemBase* IR::generate_expr_int_literal(ast::ExprIntLiteral* expr)
@@ -160,14 +160,33 @@ ir::ItemBase* IR::generate_expr_binary_op(ast::ExprBinaryOp* expr)
 	bin_op->v2 = generate_expr(expr->rhs)->v;
 	bin_op->v = ctx.pt->add_new_value_id(expr->type->to_ir_type());
 
-	ctx.pt->add_item(bin_op);
-
-	return bin_op;
+	return ctx.pt->add_item(bin_op);
 }
 
 ir::ItemBase* IR::generate_expr_unary_op(ast::ExprUnaryOp* expr)
 {
+	auto unary_op = ctx.pt->create_item<ir::UnaryOp>();
 
+	unary_op->op_type = expr->id->to_ir_unary_op_type();
+	unary_op->v1 = generate_expr(expr->rhs)->v;
+	unary_op->v = ctx.pt->add_new_value_id(expr->type->to_ir_type());
+
+	return ctx.pt->add_item(unary_op);
+}
+
+ir::ItemBase* IR::generate_expr_call(ast::ExprCall* expr)
+{
+	auto call = ctx.pt->create_item<ir::Call>();
+	auto called_pt = ctx.find_prototype(expr->name);
+
+	call->prototype = called_pt;
+	call->type = called_pt->ret_type;
+	call->v = ctx.pt->add_new_value_id(call->type);
+
+	for (auto arg : expr->stmts)
+		call->args.push_back(generate_expr(arg)->v);
+
+	return ctx.pt->add_item(call);
 }
 
 ir::Return* IR::generate_return(ast::StmtReturn* ast_return)

@@ -59,6 +59,7 @@ namespace ir
 
 	enum UnaryOpType
 	{
+		UnaryOpType_None,
 		UnaryOpType_Add,
 		UnaryOpType_Sub,
 		UnaryOpType_Mul,

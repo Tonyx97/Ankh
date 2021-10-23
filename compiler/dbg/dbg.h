@@ -174,6 +174,21 @@ static inline void print_vec(ColorType color, const std::vector<T>& vec, const s
 }
 
 template <typename Tx, typename T, typename F>
+static inline void fullprint_vec(ColorType color, const std::vector<T>& vec, const std::string& separator, const F& fn)
+{
+	if (vec.empty())
+		return;
+
+	for (int i = 0; i < vec.size() - 1; ++i)
+	{
+		fn(static_cast<Tx*>(vec[i]));
+		make_text(White, "{}", separator).print();
+	}
+
+	fn(static_cast<Tx*>(vec.back()));
+}
+
+template <typename Tx, typename T, typename F>
 static inline void print_set(ColorType color, const std::set<T>& set, const std::string& separator, const F& fn)
 {
 	if (set.empty())
@@ -242,8 +257,8 @@ struct TimeProfiling
 #define PRINT_NL						make_text(EMPTY_NEW_LINE).print()
 #define PRINT_EX(...)					render_text_ex(true, 0, __VA_ARGS__)
 #define PRINT_EX_NNL(...)				render_text_ex(false, 0, __VA_ARGS__)
-#define PRINT_INSTRUCTION(x, ...)				render_text_ex(true, x, __VA_ARGS__)
-#define PRINT_EX2_NNL(x, ...)			render_text_ex(false, x, __VA_ARGS__)
+#define PRINT_INSTRUCTION(x, ...)		render_text_ex(true, x, __VA_ARGS__)
+#define PRINT_INSTRUCTION_NNL(x, ...)	render_text_ex(false, x, __VA_ARGS__)
 
 class compiler_exception : public std::exception
 {

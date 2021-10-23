@@ -14,6 +14,8 @@ namespace ir
 		Type type {};
 
 		virtual ~Value() = default;
+
+		Value* clone();
 	};
 
 	struct ValueId : public Value

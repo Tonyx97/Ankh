@@ -8,6 +8,8 @@
 #include "instructions/store.h"
 #include "instructions/load.h"
 #include "instructions/binary_op.h"
+#include "instructions/unary_op.h"
+#include "instructions/call.h"
 #include "instructions/return.h"
 
 #include "items/block.h"
@@ -22,6 +24,12 @@ namespace ir
 		std::unordered_map<std::string, Prototype*> prototypes;
 
 		Prototype* pt = nullptr;
+
+		Prototype* find_prototype(const std::string& name)
+		{
+			auto it = prototypes.find(name);
+			return it != prototypes.end() ? it->second : nullptr;
+		}
 	};
 }
 
@@ -55,6 +63,7 @@ public:
 	ir::ItemBase* generate_expr_int_literal(ast::ExprIntLiteral* expr);
 	ir::ItemBase* generate_expr_binary_op(ast::ExprBinaryOp* expr);
 	ir::ItemBase* generate_expr_unary_op(ast::ExprUnaryOp* expr);
+	ir::ItemBase* generate_expr_call(ast::ExprCall* expr);
 
 	ir::Return* generate_return(ast::StmtReturn* ast_return);
 
@@ -118,7 +127,7 @@ public:
 		return "unknown_bin_op";
 	}
 
-	static inline std::string STRIFY_UNARY_OP(ir::TypeID id)
+	static inline std::string STRIFY_UNARY_OP(ir::UnaryOpType id)
 	{
 		switch (id)
 		{
@@ -127,10 +136,10 @@ public:
 		case ir::UnaryOpType_Mul:			return "deref";
 		case ir::UnaryOpType_And:			return "address";
 		case ir::UnaryOpType_Not:			return "not";
-		case ir::UnaryOpType_Inc:			return "inc";
-		case ir::UnaryOpType_Dec:			return "dec";
-		case ir::UnaryOpType_LogicalNot:	return "logical not";
-		case ir::UnaryOpType_LogicalAnd:	return "logical and";
+		case ir::UnaryOpType_Inc:			return "add";
+		case ir::UnaryOpType_Dec:			return "neg";
+		case ir::UnaryOpType_LogicalNot:	return "not";
+		case ir::UnaryOpType_LogicalAnd:	return "and";
 		}
 
 		return "unknown_unary_op";

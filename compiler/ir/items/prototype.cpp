@@ -26,10 +26,13 @@ namespace ir
 	{
 		PRINT_NNL(White, "{} {}(", IR::STRIFY_TYPE(ret_type), name);
 
-		/*dbg::print_vec<PrototypeParam>(White, prototype->params, ", ", [](auto stmt)
+		fullprint_vec<Value>(White, params, ", ", [](auto param)
 		{
-			return Lexer::STRIFY_TYPE(stmt->type) + " " + stmt->name;
-		});*/
+			PRINT_INSTRUCTION_NNL(0,
+				Blue, IR::STRIFY_TYPE(param->type),
+				White, param->type.indirection - 1, White, " ",
+				Yellow, *param->ir_name);
+		});
 
 		if (has_blocks())
 		{
@@ -89,6 +92,15 @@ namespace ir
 			values_map.insert({ v->name.value(), v });
 
 		return v;
+	}
+
+	ValueId* Prototype::add_parameter(const Type& type, const optional_str& name)
+	{
+		auto param = add_new_value_id(type, name);
+
+		params.push_back(param);
+
+		return param;
 	}
 
 	ValueId* Prototype::add_new_value_id(const Type& type, const optional_str& name)
