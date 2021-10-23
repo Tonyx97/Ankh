@@ -11,10 +11,7 @@ namespace ir
 		Value* v1 = nullptr;
 
 		UnaryOp()								{ base_type = ItemType_UnaryOp; }
-		~UnaryOp()
-		{
-			_FREE(v1);
-		}
+		~UnaryOp()								{ _FREE(v1); }
 
 		void print();
 

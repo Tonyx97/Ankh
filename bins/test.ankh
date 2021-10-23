@@ -3,10 +3,18 @@ i32 addition(i32 a, i32 b)
 	return a + b;
 }
 
+void test(i32 t)
+{
+	
+}
+
 i32 main()
 {
 	i32 a = 1;
 	i32 b = 2;
 
-	return &addition(a, b);
+	test(a);
+
+	return 1;
+	//return addition(a, b);
 }

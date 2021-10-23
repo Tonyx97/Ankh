@@ -8,12 +8,22 @@
 
 void ir::Call::print()
 {
-	PRINT_INSTRUCTION_NNL(1,
-		Yellow, *v->ir_name,
-		White, " = ",
-		Green, "call ",
-		Blue, IR::STRIFY_TYPE(prototype->ret_type), White, " ",
-		Yellow, prototype->name, White, "(");
+	if (prototype->ret_type.type == Type_Void)
+	{
+		PRINT_INSTRUCTION_NNL(1,
+			Green, "call ",
+			Blue, IR::STRIFY_TYPE(prototype->ret_type), White, " ",
+			Yellow, prototype->name, White, "(");
+	}
+	else
+	{
+		PRINT_INSTRUCTION_NNL(1,
+			Yellow, *v->ir_name,
+			White, " = ",
+			Green, "call ",
+			Blue, IR::STRIFY_TYPE(prototype->ret_type), White, " ",
+			Yellow, prototype->name, White, "(");
+	}
 
 	fullprint_vec<Value>(White, args, ", ", [](auto arg)
 	{
