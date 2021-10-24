@@ -10,10 +10,10 @@ void ir::Store::print()
 {
 	PRINT_INSTRUCTION(1,
 		Green, "store ",
-		Blue, STRIFY_TYPE(v->type.type),
+		Blue, v->type.str(),
 		White, v->type.indirection, White, " ",
 		Yellow, *v->ir_name, White, ", ",
-		Blue, STRIFY_TYPE(v1->type.type),
+		Blue, v1->type.str(),
 		White, v1->type.indirection, White, " ",
 		Yellow, *v1->ir_name);
 }

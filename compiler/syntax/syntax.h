@@ -50,11 +50,9 @@ public:
 
 	void print_ast();
 	void run();
-	void add_id_type(Token* id, Token* type);
+	void add_id_type(Token* id, const ast::Type& type);
 
-	std::vector<ast::Expr*> parse_prototype_params_decl();
-	std::vector<ast::Expr*> parse_call_params(ast::Prototype* prototype);
-
+	ast::Type get_id_type(Token* id);
 	ast::StmtBody* parse_body(ast::StmtBody* body);
 	ast::Base* parse_statement();
 	ast::Expr* parse_expression();
@@ -62,7 +60,10 @@ public:
 	ast::Expr* parse_primary_expression();
 	ast::AST* get_ast()			{ return ast; }
 
-	ast::Type get_id_type(Token* id);
+	Token* parse_type(ast::Type& type_info, bool critical = false);
+
+	std::vector<ast::Expr*> parse_prototype_params_decl();
+	std::vector<ast::Expr*> parse_call_params(ast::Prototype* prototype);
 };
 
 inline std::unique_ptr<Syntax> g_syntax;

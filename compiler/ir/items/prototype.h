@@ -55,7 +55,7 @@ namespace ir
 		Value* save_value(Value* v);
 		ValueId* add_parameter(const Type& type, const optional_str& name);
 		ValueId* add_new_value_id(const Type& type, const optional_str& name = {});
-		ValueInt* add_new_value_int(const Type& type);
+		ValueInt* add_new_value_int(const Type& type, const optional_str& name = {});
 
 		Return* add_return(Instruction* item);
 

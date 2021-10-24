@@ -23,7 +23,7 @@ void ast::Printer::print_prototype(Prototype* prototype)
 
 		print_vec<ExprDecl>(Green, prototype->params, ", ", [](ExprDecl* e)
 		{
-			return STRIFY_TYPE(e->type.type) + " " + e->name;
+			return e->type.str() + " " + e->name;
 		});
 	}
 
@@ -182,7 +182,7 @@ void ast::Printer::print_expr(Expr* expr)
 
 void ast::Printer::print_decl(ExprDecl* decl)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{}{} ({}) '{}'", decl->global ? "global" : "decl.", decl->rhs ? " assignment" : "", STRIFY_TYPE(decl->type.type), decl->name);
+	PRINT_TABS_NL(Yellow, curr_level, "{}{} ({}) '{}'", decl->global ? "global" : "decl.", decl->rhs ? " assignment" : "", decl->type.str(), decl->name);
 
 	if (decl->rhs)
 		print_expr(decl->rhs);
@@ -221,12 +221,12 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 
 void ast::Printer::print_static_val(ExprStaticValue* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{} '{}'", STRIFY_TYPE(expr->type.type), expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "{} '{}'", expr->type.str(), expr->name);
 }
 
 void ast::Printer::print_id(ast::ExprId* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "id ({}) '{}'", STRIFY_TYPE(expr->type.type), expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "id ({}) '{}'", expr->type.str(), expr->name);
 }
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
@@ -290,9 +290,9 @@ void ast::Printer::print_cast(ExprCast* expr)
 {
 	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} {} to {}",
 		expr->implicit ? "implicit" : "explicit",
-		STRIFY_TYPE(expr->rhs->type.type),
+		expr->rhs->type.str(),
 		expr->rhs->name,
-		STRIFY_TYPE(expr->type.type));
+		expr->type.str());
 
 	print_expr(expr->rhs);
 }

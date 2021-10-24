@@ -31,5 +31,7 @@ namespace ir
 		TypeID type;
 
 		int indirection;
+
+		std::string str() const { return STRIFY_TYPE(type); }
 	};
 }

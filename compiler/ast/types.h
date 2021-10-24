@@ -31,7 +31,7 @@ namespace ast
 
 	struct Type
 	{
-		Int integer;
+		Int integer = { 0 };
 
 		TypeID type = Type_None;
 
@@ -43,12 +43,65 @@ namespace ast
 
 		Type() {}
 
-		bool is_same_type(const Type& v) const	{ return type == v.type; }
-		bool is_same_type(TypeID v) const		{ return type == v; }
+		bool is_same_type(const Type& v) const			{ return type == v.type; }
+		bool is_same_type(TypeID v) const				{ return type == v; }
 
-		ir::Type to_ir_type(int indirection = 0)
+		const Type* normal_implicit_cast(const Type& rhs) const
 		{
-			return { type, indirection };
+			check(indirection == rhs.indirection, "Indirection mismatch");
+
+			return (type == rhs.type ? nullptr : this);
 		}
+
+		const Type* binary_implicit_cast(const Type& rhs)
+		{
+			check(indirection == rhs.indirection, "Indirection mismatch");
+
+			auto& lhs = *this;
+
+			auto lhs_type = type;
+			auto rhs_type = rhs.type;
+
+			if (lhs_type == rhs_type)
+				return nullptr;
+
+			const bool lhs_signed = !(lhs.flags & TypeFlag_Unsigned),
+					   rhs_signed = !(rhs.flags & TypeFlag_Unsigned);
+
+			if (lhs_signed == rhs_signed)
+			{
+				if (lhs.size > rhs.size)	  return &lhs;
+				else if (lhs.size < rhs.size) return &rhs;
+
+				global_error("Invalid sides sizes while casting");
+			}
+			else
+			{
+				const Type* signed_t = nullptr,
+						  * unsigned_t = nullptr;
+
+				if (lhs_signed)
+				{
+					signed_t = &lhs;
+					unsigned_t = &rhs;
+				}
+				else
+				{
+					signed_t = &rhs;
+					unsigned_t = &lhs;
+				}
+
+				if (unsigned_t->size >= signed_t->size) return unsigned_t;
+				else									return signed_t;
+			}
+
+			return nullptr;
+		}
+
+		ir::Type to_ir_type(int indirection = 0) const	{ return { type, this->indirection + indirection }; }
+
+		std::string str() const							{ return STRIFY_TYPE(type); }
+
+		bool operator == (const Type& v) const			{ return type == v.type; }
 	};
 }

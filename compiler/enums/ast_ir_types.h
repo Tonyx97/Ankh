@@ -20,14 +20,14 @@ union Int
 
 enum TypeFlag : unsigned __int64
 {
-	TypeFlag_None = 0ull,
-	TypeFlag_Op = (1ull << 0),
-	TypeFlag_Keyword = (1ull << 1),
-	TypeFlag_KeywordType = (1ull << 2),
-	TypeFlag_StaticValue = (1ull << 3),
-	TypeFlag_Unsigned = (1ull << 4),
-	TypeFlag_Assignation = (1ull << 5),
-	TypeFlag_Id = (1ull << 6),
+	TypeFlag_None			= 0ull,
+	TypeFlag_Op				= (1ull << 0),
+	TypeFlag_Keyword		= (1ull << 1),
+	TypeFlag_KeywordType	= (1ull << 2),
+	TypeFlag_StaticValue	= (1ull << 3),
+	TypeFlag_Unsigned		= (1ull << 4),
+	TypeFlag_Assignation	= (1ull << 5),
+	TypeFlag_Id				= (1ull << 6),
 };
 
 enum BinOpType
@@ -88,7 +88,7 @@ enum TypeID
 	Type_i64
 };
 
-static inline std::string STRIFY_TYPE(TypeID id)
+inline std::string STRIFY_TYPE(TypeID id)
 {
 	switch (id)
 	{
@@ -110,7 +110,7 @@ static inline std::string STRIFY_TYPE(TypeID id)
 	return "unknown";
 }
 
-static inline std::string STRIFY_BIN_OP(BinOpType id)
+inline std::string STRIFY_BIN_OP(BinOpType id)
 {
 	switch (id)
 	{
@@ -143,7 +143,7 @@ static inline std::string STRIFY_BIN_OP(BinOpType id)
 	return "unknown_bin_op";
 }
 
-static inline std::string STRIFY_UNARY_OP(UnaryOpType id)
+inline std::string STRIFY_UNARY_OP(UnaryOpType id)
 {
 	switch (id)
 	{
@@ -152,8 +152,8 @@ static inline std::string STRIFY_UNARY_OP(UnaryOpType id)
 	case UnaryOpType_Mul:			return "deref";
 	case UnaryOpType_And:			return "address";
 	case UnaryOpType_Not:			return "not";
-	case UnaryOpType_Inc:			return "add";
-	case UnaryOpType_Dec:			return "neg";
+	case UnaryOpType_Inc:			return "inc";
+	case UnaryOpType_Dec:			return "dec";
 	case UnaryOpType_LogicalNot:	return "not";
 	case UnaryOpType_LogicalAnd:	return "and";
 	}

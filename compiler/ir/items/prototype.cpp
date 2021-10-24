@@ -24,13 +24,16 @@ namespace ir
 
 	void Prototype::print()
 	{
-		PRINT_NNL(White, "{} {}(", STRIFY_TYPE(ret_type.type), name);
+		PRINT_INSTRUCTION_NNL(0,
+			Blue, ret_type.str(),
+			White, ret_type.indirection, White, " ",
+			Yellow, name, White, "(");
 
 		fullprint_vec<Value>(White, params, ", ", [](auto param)
 		{
 			PRINT_INSTRUCTION_NNL(0,
-				Blue, STRIFY_TYPE(param->type.type),
-				White, param->type.indirection - 1, White, " ",
+				Blue, param->type.str(),
+				White, param->type.indirection, White, " ",
 				Yellow, *param->ir_name);
 		});
 
@@ -117,9 +120,9 @@ namespace ir
 		return rtti::cast<ValueId>(save_value(v));
 	}
 
-	ValueInt* Prototype::add_new_value_int(const Type& ir_type)
+	ValueInt* Prototype::add_new_value_int(const Type& ir_type, const optional_str& name)
 	{
-		return rtti::cast<ValueInt>(save_value(_ALLOC(ValueInt, ir_type)));
+		return rtti::cast<ValueInt>(save_value(_ALLOC(ValueInt, ir_type, name)));
 	}
 
 	Return* Prototype::add_return(Instruction* item)

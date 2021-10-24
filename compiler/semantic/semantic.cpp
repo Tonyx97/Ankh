@@ -94,7 +94,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 	else if (auto decl = rtti::cast<ast::ExprDecl>(expr))
 	{
 		if (get_declared_variable(decl->name))
-			add_error("'{} {}' redefinition", STRIFY_TYPE(decl->type.type), decl->name);
+			add_error("'{} {}' redefinition", decl->type.str(), decl->name);
 
 		add_variable(decl);
 
@@ -157,8 +157,8 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 
 			if (!original_param->type.is_same_type(current_param->type))
 				add_error("Argument of type '{}' is incompatible with parameter of type '{}'",
-						  STRIFY_TYPE(current_param->type.type),
-						  STRIFY_TYPE(original_param->type.type));
+						  current_param->type.str(),
+						  original_param->type.str());
 		}
 
 		call->prototype = prototype;
@@ -206,8 +206,8 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 		return true;
 
 	add_error("Return type '{}' does not match with function type '{}'",
-		STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->type.type : Type_Void),
-		STRIFY_TYPE(p_ctx.pt->type.type));
+		stmt_return->expr ? stmt_return->expr->type.str() : STRIFY_TYPE(Type_Void),
+		p_ctx.pt->type.str());
 
 	return false;
 }

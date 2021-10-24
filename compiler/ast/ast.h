@@ -26,8 +26,7 @@ namespace ast
 		Expr* lhs = nullptr,
 			* rhs = nullptr;
 
-		Type id {},
-			 type {};
+		Type type {};
 
 		Expr()								{ stmt_type = StmtExpr; }
 		~Expr()								{}
@@ -105,12 +104,12 @@ namespace ast
 	*/
 	struct ExprAssign : public Expr
 	{
-		ExprAssign(const std::string& name, const Type& id, Expr* rhs)
+		ExprAssign(const std::string& name, const Type& type, Expr* rhs)
 		{
 			stmt_type = StmtExpr_Assign;
 			this->name = name;
 			this->rhs = rhs;
-			this->id = id;
+			this->type = type;
 		}
 
 		~ExprAssign()						{ _FREE(rhs); }

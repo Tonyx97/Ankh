@@ -12,6 +12,6 @@ void ir::StackAlloc::print()
 		Yellow, *v->ir_name,
 		White, " = ",
 		Green, "stackalloc ",
-		Blue, STRIFY_TYPE(v->type.type),
+		Blue, v->type.str(),
 		White, v->type.indirection - 1);
 }

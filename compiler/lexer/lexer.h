@@ -112,6 +112,7 @@ struct Token
 		switch (id)
 		{
 		case Token_Void:	v.type = Type_Void; break;
+		case Token_Bool:
 		case Token_U8:
 		case Token_I8:		v.type = Type_i8;   break;
 		case Token_U16:
@@ -123,6 +124,9 @@ struct Token
 		}
 
 		v.indirection = indirection;
+		v.integer = integer;
+		v.size = size;
+		v.flags = flags;
 
 		return v;
 	}
@@ -157,6 +161,7 @@ struct Token
 		if (this != std::addressof(token))
 		{
 			value = token.value;
+			integer = token.integer;
 			id = token.id;
 			flags = token.flags;
 			precedence = token.precedence;

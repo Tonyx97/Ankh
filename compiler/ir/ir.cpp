@@ -96,7 +96,9 @@ ir::Body* IR::generate_body(ast::StmtBody* ast_body)
 ir::ItemBase* IR::generate_expr(ast::Expr* expr)
 {
 	if (auto int_literal = rtti::cast<ast::ExprIntLiteral>(expr))			return generate_expr_int_literal(int_literal);
+	else if (auto static_val = rtti::cast<ast::ExprStaticValue>(expr))		return generate_expr_static_value(static_val);
 	else if (auto decl = rtti::cast<ast::ExprDecl>(expr))					return generate_expr_decl(decl);
+	else if (auto assign = rtti::cast<ast::ExprAssign>(expr))				return generate_expr_assign(assign);
 	else if (auto cast = rtti::cast<ast::ExprCast>(expr))					return generate_expr_cast(cast);
 	else if (auto id = rtti::cast<ast::ExprId>(expr))						return generate_expr_id(id);
 	else if (auto bin_op = rtti::cast<ast::ExprBinaryOp>(expr))				return generate_expr_binary_op(bin_op);
@@ -110,12 +112,14 @@ ir::ItemBase* IR::generate_expr(ast::Expr* expr)
 
 ir::ItemBase* IR::generate_expr_int_literal(ast::ExprIntLiteral* expr)
 {
-	auto integer = expr->type.integer.u64;
-	auto integer_str = std::to_string(integer);
-	auto v = ctx.pt->add_new_value_int(expr->id.to_ir_type());
+	auto v = ctx.pt->add_new_value_int(expr->type.to_ir_type(), std::to_string(expr->type.integer.u64));
 
-	v->vi = integer;
-	v->ir_name = integer_str;
+	return (v->v = v);
+}
+
+ir::ItemBase* IR::generate_expr_static_value(ast::ExprStaticValue* expr)
+{
+	auto v = ctx.pt->add_new_value_int(expr->type.to_ir_type(), std::to_string(expr->type.integer.u64));
 
 	return (v->v = v);
 }
@@ -123,7 +127,7 @@ ir::ItemBase* IR::generate_expr_int_literal(ast::ExprIntLiteral* expr)
 ir::ItemBase* IR::generate_expr_decl(ast::ExprDecl* expr)
 {
 	auto stack_alloc = ctx.pt->create_item<ir::StackAlloc>();
-	auto value_type = expr->type.to_ir_type(expr->type.indirection + 1);
+	auto value_type = expr->type.to_ir_type(1);
 
 	stack_alloc->v = ctx.pt->add_new_value_id(value_type, expr->name);
 
@@ -140,6 +144,18 @@ ir::ItemBase* IR::generate_expr_decl(ast::ExprDecl* expr)
 	}
 
 	return stack_alloc;
+}
+
+ir::ItemBase* IR::generate_expr_assign(ast::ExprAssign* expr)
+{
+	auto store = ctx.pt->create_item<ir::Store>();
+
+	store->v = ctx.pt->find_value(expr->name);
+	store->v1 = generate_expr(expr->rhs)->v;
+
+	ctx.pt->add_item(store);
+
+	return store;
 }
 
 ir::ItemBase* IR::generate_expr_cast(ast::ExprCast* expr)
@@ -164,7 +180,7 @@ ir::ItemBase* IR::generate_expr_id(ast::ExprId* expr)
 		return existing_value;
 
 	auto load = ctx.pt->create_item<ir::Load>();
-	auto load_value_type = expr->type.to_ir_type(existing_value->type.indirection - 1);
+	auto load_value_type = expr->type.to_ir_type();
 
 	load->v = ctx.pt->add_new_value_id(load_value_type);
 	load->v1 = existing_value->clone();

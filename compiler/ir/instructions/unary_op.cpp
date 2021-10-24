@@ -12,6 +12,6 @@ void ir::UnaryOp::print()
 		Yellow, *v->ir_name,
 		White, " = ",
 		Green, STRIFY_UNARY_OP(op_type), White, " ",
-		Blue, STRIFY_TYPE(v->type.type), White, " ",
+		Blue, v->type.str(), White, " ",
 		Yellow, *v1->ir_name);
 }

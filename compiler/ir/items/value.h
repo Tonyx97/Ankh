@@ -38,10 +38,11 @@ namespace ir
 	{
 		Int vi = { 0 };
 		
-		ValueInt(const Type& type)
+		ValueInt(const Type& type, const optional_str& name = {})
 		{
 			item_type = ItemType_ValueInt;
 			v = this;
+			v->name = v->ir_name = name;
 			v->type = type;
 		}
 
