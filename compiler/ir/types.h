@@ -33,6 +33,7 @@ namespace ir
 		BinOpType_Sub,
 		BinOpType_MulAssign,
 		BinOpType_Mul,
+		BinOpType_Indirection = BinOpType_Mul,
 		BinOpType_DivAssign,
 		BinOpType_Div,
 		BinOpType_ModAssign,

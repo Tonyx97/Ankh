@@ -67,12 +67,21 @@ namespace ir
 			return ir_ctx.block->create_item<T>(args...);
 		}
 
-		template <typename T, typename... A>
+		template <typename T>
 		T* add_item(T* item)
 		{
 			check(ir_ctx.block, "There must be an bound block when adding an item");
 
 			return ir_ctx.block->add_item<T>(item);
+		}
+
+		void add_items() {}
+
+		template <typename T, typename... A>
+		void add_items(T* item, const A&... args)
+		{
+			add_item(item);
+			add_items(args...);
 		}
 
 		template <typename T, typename... A>

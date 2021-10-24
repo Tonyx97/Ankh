@@ -40,6 +40,11 @@ void Syntax::run()
 
 			if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
 			{
+				// we add the prototype here because a call inside this prototype
+				// could make it recursive
+
+				g_ctx.add_prototype(prototype);
+
 				if (!g_lexer->eat_if_current_is(Token_Semicolon))
 					prototype->body = parse_body(nullptr);
 
@@ -48,8 +53,6 @@ void Syntax::run()
 				if (auto previous_pt = g_ctx.get_prototype(id->value))
 					if (previous_pt->is_decl())
 						previous_pt->def = prototype;
-
-				g_ctx.add_prototype(prototype);
 			}
 		}
 		else if (const bool global_var_decl = (next->id == Token_Semicolon); global_var_decl || next->id == Token_Assign)
@@ -173,9 +176,12 @@ ast::Base* Syntax::parse_statement()
 {
 	if (auto type = g_lexer->eat_if_current_is_type())
 	{
+		while (g_lexer->eat_if_current_is(Token_Indirection))
+			++type->indirection;
+
 		auto id = g_lexer->eat_if_current_is(Token_Id);
 
-		check(id, "Expected an identifier, got '{}'", id->value);
+		check(id, "Expected an identifier, got '{}'", g_lexer->current()->value);
 
 		add_id_type(id, type);
 

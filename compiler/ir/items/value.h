@@ -13,6 +13,8 @@ namespace ir
 
 		Type type {};
 
+		Value* param_value = nullptr;
+
 		virtual ~Value() = default;
 
 		Value* clone();

@@ -77,8 +77,15 @@ namespace ir
 
 	Value* Prototype::find_value(const std::string& name)
 	{
-		auto it = values_map.find(name);
-		return it != values_map.end() ? it->second : nullptr;
+		if (auto it = values_map.find(name); it != values_map.end())
+		{
+			auto value = it->second;
+			auto param_value = value->param_value;
+			
+			return param_value ? param_value : value;
+		}
+
+		return nullptr;
 	}
 
 	Value* Prototype::save_value(Value* v)

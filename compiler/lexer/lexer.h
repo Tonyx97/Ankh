@@ -18,6 +18,7 @@ enum TokenID : int
 	Token_Sub,
 	Token_MulAssign,
 	Token_Mul,
+	Token_Indirection = Token_Mul,
 	Token_DivAssign,
 	Token_Div,
 	Token_ModAssign,
@@ -127,7 +128,8 @@ struct Token
 	uint64_t flags = TokenFlag_None;
 
 	int precedence = LOWEST_PRECEDENCE,
-		line = 0;
+		line = 0,
+		indirection = 0;
 
 	bool valid = false;
 	
@@ -139,6 +141,7 @@ struct Token
 
 		id = token->id;
 		size = token->size;
+		indirection = token->indirection;
 		flags |= token->flags;
 	}
 
@@ -191,6 +194,8 @@ struct Token
 	{
 		if (!rhs)
 			return nullptr;
+
+		check(indirection == rhs->indirection, "Indirection mismatch");
 		
 		auto lhs = this;
 		
@@ -237,6 +242,8 @@ struct Token
 	{
 		if (!rhs)
 			return nullptr;
+
+		check(indirection == rhs->indirection, "Indirection mismatch");
 
 		return (id == rhs->id ? nullptr : this);
 	}

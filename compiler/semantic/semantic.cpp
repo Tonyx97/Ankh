@@ -106,8 +106,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 		if (!get_declared_variable(assign->id->value))
 			add_error("'{}' identifier is undefined", assign->id->value);
 
-		if (assign->rhs)
-			return analyze_expr(assign->rhs);
+		return analyze_expr(assign->rhs);
 	}
 	else if (auto binary_op = rtti::cast<ast::ExprBinaryOp>(expr))
 	{

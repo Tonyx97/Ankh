@@ -45,14 +45,33 @@ ir::Prototype* IR::generate_prototype(ast::Prototype* ast_prototype)
 	for (auto param : ast_prototype->params)
 		prototype->add_parameter(param->type->to_ir_type(), param->name);
 
+	// we add the prototype here because a call inside this prototype
+	// could make it recursive
+
 	add_prototype(prototype);
 
-	if (ast_prototype->body)
-	{
-		auto entry_block = prototype->add_new_block();
+	// add entry block
 
-		prototype->body = generate_body(ast_prototype->body);
+	prototype->add_new_block();
+
+	// create the stack alloc and stores for parameters
+
+	for (auto param : prototype->params)
+	{
+		auto stack_alloc = prototype->create_item<ir::StackAlloc>();
+		auto store = prototype->create_item<ir::Store>();
+		auto new_value_type = ir::Type { .type = param->type.type, .indirection = param->type.indirection + 1 };
+		auto new_param_value = prototype->add_new_value_id(new_value_type, param->name);
+
+		stack_alloc->v = param->param_value = new_param_value;
+		store->v = stack_alloc->v;
+		store->v1 = param;
+
+		prototype->add_items(stack_alloc, store);
 	}
+
+	if (ast_prototype->body)
+		prototype->body = generate_body(ast_prototype->body);
 
 	if (!prototype->has_returns())
 		prototype->add_return(prototype->create_item<ir::Return>());
@@ -89,11 +108,24 @@ ir::ItemBase* IR::generate_expr(ast::Expr* expr)
 	return nullptr;
 }
 
+ir::ItemBase* IR::generate_expr_int_literal(ast::ExprIntLiteral* expr)
+{
+	auto integer = expr->id->integer.u64;
+	auto integer_str = std::to_string(integer);
+	auto v = ctx.pt->add_new_value_int(expr->id->to_ir_type());
+
+	v->vi = integer;
+	v->ir_name = integer_str;
+
+	return (v->v = v);
+}
+
 ir::ItemBase* IR::generate_expr_decl(ast::ExprDecl* expr)
 {
 	auto stack_alloc = ctx.pt->create_item<ir::StackAlloc>();
+	auto value_type = expr->type->to_ir_type(expr->type->indirection + 1);
 
-	stack_alloc->v = ctx.pt->add_new_value_id(expr->type->to_ir_type(1), expr->name);
+	stack_alloc->v = ctx.pt->add_new_value_id(value_type, expr->name);
 
 	ctx.pt->add_item(stack_alloc);
 
@@ -132,23 +164,12 @@ ir::ItemBase* IR::generate_expr_id(ast::ExprId* expr)
 		return existing_value;
 
 	auto load = ctx.pt->create_item<ir::Load>();
+	auto load_value_type = expr->type->to_ir_type(existing_value->type.indirection - 1);
 
-	load->v = ctx.pt->add_new_value_id(expr->type->to_ir_type());
+	load->v = ctx.pt->add_new_value_id(load_value_type);
 	load->v1 = existing_value->clone();
 
 	return ctx.pt->add_item(load);
-}
-
-ir::ItemBase* IR::generate_expr_int_literal(ast::ExprIntLiteral* expr)
-{
-	auto integer = expr->id->integer.u64;
-	auto integer_str = std::to_string(integer);
-	auto v = ctx.pt->add_new_value_int(expr->id->to_ir_type());
-
-	v->vi = integer;
-	v->ir_name = integer_str;
-
-	return (v->v = v);
 }
 
 ir::ItemBase* IR::generate_expr_binary_op(ast::ExprBinaryOp* expr)
