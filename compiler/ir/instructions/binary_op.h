@@ -11,7 +11,7 @@ namespace ir
 		Value* v1 = nullptr,
 			 * v2 = nullptr;
 
-		BinaryOp()								{ base_type = ItemType_BinOp; }
+		BinaryOp()								{ item_type = ItemType_BinOp; }
 		~BinaryOp()
 		{
 			_FREE(v1);
@@ -20,6 +20,6 @@ namespace ir
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->base_type == ItemType_BinOp; }
+		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_BinOp; }
 	};
 }

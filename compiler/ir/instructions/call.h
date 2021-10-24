@@ -14,7 +14,7 @@ namespace ir
 
 		std::vector<Value*> args;
 
-		Call()									{ base_type = ItemType_Call; }
+		Call()									{ item_type = ItemType_Call; }
 		~Call()
 		{
 			for (auto arg : args)
@@ -23,6 +23,6 @@ namespace ir
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->base_type == ItemType_Call; }
+		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_Call; }
 	};
 }

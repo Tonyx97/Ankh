@@ -19,7 +19,7 @@ namespace semantic
 
 		bool has_decl(ast::ExprDecl* decl)
 		{
-			return decls.find(decl->id->value) != decls.end();
+			return decls.find(decl->name) != decls.end();
 		}
 	};
 
@@ -30,8 +30,8 @@ namespace semantic
 		std::unordered_map<std::string, ast::Prototype*> prototype_defs;
 
 		void add_call(const std::string& name)				{ calls.insert(name); }
-		void add_prototype_decl(ast::Prototype* prototype)	{ prototype_decls.insert({ prototype->id_token->value, prototype }); }
-		void add_prototype_def(ast::Prototype* prototype)	{ prototype_defs.insert({ prototype->id_token->value, prototype }); }
+		void add_prototype_decl(ast::Prototype* prototype)	{ prototype_decls.insert({ prototype->name, prototype }); }
+		void add_prototype_def(ast::Prototype* prototype)	{ prototype_defs.insert({ prototype->name, prototype }); }
 	};
 }
 

@@ -24,12 +24,12 @@ namespace ir
 
 	void Prototype::print()
 	{
-		PRINT_NNL(White, "{} {}(", IR::STRIFY_TYPE(ret_type), name);
+		PRINT_NNL(White, "{} {}(", STRIFY_TYPE(ret_type.type), name);
 
 		fullprint_vec<Value>(White, params, ", ", [](auto param)
 		{
 			PRINT_INSTRUCTION_NNL(0,
-				Blue, IR::STRIFY_TYPE(param->type),
+				Blue, STRIFY_TYPE(param->type.type),
 				White, param->type.indirection - 1, White, " ",
 				Yellow, *param->ir_name);
 		});

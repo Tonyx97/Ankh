@@ -24,14 +24,14 @@ namespace ir
 	{
 		ValueId(const Type& type, const optional_str& ir_name, const optional_str& name)
 		{
-			base_type = ItemType_ValueId;
+			item_type = ItemType_ValueId;
 			v = this;
 			v->name = name;
 			v->ir_name = ir_name;
 			v->type = type;
 		}
 
-		static bool check_class(ItemBase* i)	{ return i->base_type == ItemType_ValueId; }
+		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_ValueId; }
 	};
 
 	struct ValueInt : public Value
@@ -40,11 +40,11 @@ namespace ir
 		
 		ValueInt(const Type& type)
 		{
-			base_type = ItemType_ValueInt;
+			item_type = ItemType_ValueInt;
 			v = this;
 			v->type = type;
 		}
 
-		static bool check_class(ItemBase* i)	{ return i->base_type == ItemType_ValueInt; }
+		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_ValueInt; }
 	};
 }

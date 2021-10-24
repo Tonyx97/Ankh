@@ -18,7 +18,7 @@ namespace ir
 
 		uint32_t flags = BlockFlag_None;
 
-		Block()					{ base_type = ItemType_Block; }
+		Block()					{ item_type = ItemType_Block; }
 		~Block();
 
 		void print();
@@ -45,6 +45,6 @@ namespace ir
 			return add_item(create_item<T>(args...));
 		}
 
-		static bool check_class(ItemBase* i) { return i->base_type == ItemType_Block; }
+		static bool check_class(ItemBase* i) { return i->item_type == ItemType_Block; }
 	};
 }

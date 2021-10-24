@@ -32,7 +32,7 @@ bool Semantic::run()
 				add_error("Unresolved prototype '{}' declared", name);
 			else add_error("Unresolved prototype '{}' referenced", name);
 		}
-		else if (auto prototype_def = it->second; !prototype_def->ret_type->is_same_type(prototype_decl->ret_type))
+		else if (auto prototype_def = it->second; !prototype_def->type.is_same_type(prototype_decl->type))
 			add_error("Cannot overload prototype '{}' by return type alone", name);
 
 	return errors.empty();
@@ -49,7 +49,7 @@ bool Semantic::analyze_prototype(ast::Prototype* prototype)
 		auto param_decl = rtti::cast<ast::ExprDecl>(param_base);
 
 		if (p_ctx.has_decl(param_decl))
-			add_error("Parameter '{}' already defined in prototype declaration", param_decl->id->value);
+			add_error("Parameter '{}' already defined in prototype declaration", param_decl->name);
 
 		add_variable(param_decl);
 	}
@@ -88,13 +88,13 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 {
 	if (auto id = rtti::cast<ast::ExprId>(expr))
 	{
-		if (!get_declared_variable(id->id->value))
-			add_error("'{}' identifier is undefined", id->id->value);
+		if (!get_declared_variable(id->name))
+			add_error("'{}' identifier is undefined", id->name);
 	}
 	else if (auto decl = rtti::cast<ast::ExprDecl>(expr))
 	{
-		if (get_declared_variable(decl->id->value))
-			add_error("'{} {}' redefinition", Lexer::STRIFY_TYPE(decl->id), decl->id->value);
+		if (get_declared_variable(decl->name))
+			add_error("'{} {}' redefinition", STRIFY_TYPE(decl->type.type), decl->name);
 
 		add_variable(decl);
 
@@ -103,8 +103,8 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 	}
 	else if (auto assign = rtti::cast<ast::ExprAssign>(expr))
 	{
-		if (!get_declared_variable(assign->id->value))
-			add_error("'{}' identifier is undefined", assign->id->value);
+		if (!get_declared_variable(assign->name))
+			add_error("'{}' identifier is undefined", assign->name);
 
 		return analyze_expr(assign->rhs);
 	}
@@ -133,7 +133,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 		if (call->built_in)
 			return true;
 
-		const auto& prototype_name = call->id->value;
+		const auto& prototype_name = call->name;
 
 		auto prototype = get_declared_prototype(prototype_name);
 		if (!prototype)
@@ -155,10 +155,10 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 			if (!analyze_expr(current_param))
 				return false;
 
-			if (!original_param->type->is_same_type(current_param->type))
+			if (!original_param->type.is_same_type(current_param->type))
 				add_error("Argument of type '{}' is incompatible with parameter of type '{}'",
-						  Lexer::STRIFY_TYPE(current_param->type),
-						  Lexer::STRIFY_TYPE(original_param->type));
+						  STRIFY_TYPE(current_param->type.type),
+						  STRIFY_TYPE(original_param->type.type));
 		}
 
 		call->prototype = prototype;
@@ -202,12 +202,12 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 	if (stmt_return->expr && !analyze_expr(stmt_return->expr))
 		return false;
 
-	if (stmt_return->expr ? p_ctx.pt->ret_type->is_same_type(stmt_return->expr->type) : p_ctx.pt->ret_type->is_same_type(Token_Void))
+	if (stmt_return->expr ? p_ctx.pt->type.is_same_type(stmt_return->expr->type) : p_ctx.pt->type.is_same_type(Type_Void))
 		return true;
 
 	add_error("Return type '{}' does not match with function type '{}'",
-		Lexer::STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->type->id : Token_Void),
-		Lexer::STRIFY_TYPE(p_ctx.pt->ret_type));
+		STRIFY_TYPE(stmt_return->expr ? stmt_return->expr->type.type : Type_Void),
+		STRIFY_TYPE(p_ctx.pt->type.type));
 
 	return false;
 }

@@ -8,7 +8,7 @@ namespace ir
 
 	struct ItemBase
 	{
-		ItemType base_type = ItemType_None;
+		ItemType item_type = ItemType_None;
 
 		Value* v = nullptr;
 	};

@@ -158,5 +158,11 @@
     <ClInclude Include="ir\instructions\call.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ast\types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enums\ast_ir_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

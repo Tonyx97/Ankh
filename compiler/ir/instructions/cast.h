@@ -10,11 +10,11 @@ namespace ir
 	{
 		Value* v1 = nullptr;
 
-		Cast()									{ base_type = ItemType_Cast; }
+		Cast()									{ item_type = ItemType_Cast; }
 		~Cast()									{ _FREE(v1); }
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->base_type == ItemType_Cast; }
+		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_Cast; }
 	};
 }

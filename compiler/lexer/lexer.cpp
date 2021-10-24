@@ -103,13 +103,13 @@ bool Lexer::run(const std::string& filename)
 							if (auto it = g_keywords.find(token_found); it != g_keywords.end())
 							{
 								curr_token->id = it->second;
-								curr_token->flags |= TokenFlag_Keyword;
+								curr_token->flags |= TypeFlag_Keyword;
 							}
 							else if (auto it_decl = g_keywords_type.find(token_found); it_decl != g_keywords_type.end())
 							{
 								curr_token->id = std::get<0>(it_decl->second);
 								curr_token->size = std::get<1>(it_decl->second);
-								curr_token->flags |= TokenFlag_KeywordType | std::get<2>(it_decl->second);
+								curr_token->flags |= TypeFlag_KeywordType | std::get<2>(it_decl->second);
 							}
 							else if (auto it_static_val = g_static_values.find(token_found); it_static_val != g_static_values.end())
 							{
@@ -119,25 +119,25 @@ bool Lexer::run(const std::string& filename)
 								{
 									curr_token->id = Token_Bool;
 									curr_token->integer.u8 = 1;
-									curr_token->flags |= TokenFlag_Unsigned;
+									curr_token->flags |= TypeFlag_Unsigned;
 									break;
 								}
 								case Token_False:
 								{
 									curr_token->id = Token_Bool;
 									curr_token->integer.u8 = 0;
-									curr_token->flags |= TokenFlag_Unsigned;
+									curr_token->flags |= TypeFlag_Unsigned;
 									break;
 								}
 								}
 
 								curr_token->size = std::get<1>(it_static_val->second);
-								curr_token->flags |= TokenFlag_StaticValue;
+								curr_token->flags |= TypeFlag_StaticValue;
 							}
 							else
 							{
 								curr_token->id = token_type;
-								curr_token->flags |= TokenFlag_Id;
+								curr_token->flags |= TypeFlag_Id;
 							}
 
 							curr_token->value = token_found;
@@ -154,7 +154,7 @@ bool Lexer::run(const std::string& filename)
 
 							if (unsigned_group.matched && size_group.matched)
 							{
-								curr_token->flags |= unsigned_group.str() == "u" ? TokenFlag_Unsigned : 0;
+								curr_token->flags |= unsigned_group.str() == "u" ? TypeFlag_Unsigned : 0;
 								curr_token->size = std::stoi(size_group.str());
 							}
 							else curr_token->size = 32;
@@ -261,7 +261,7 @@ Token* Lexer::eat_expect_keyword_declaration()
 
 	auto curr = current();
 
-	check(curr->flags & TokenFlag_KeywordType, "Unexpected token '{}'", curr->value);
+	check(curr->flags & TypeFlag_KeywordType, "Unexpected token '{}'", curr->value);
 
 	return push_and_pop();
 }

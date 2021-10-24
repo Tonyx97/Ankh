@@ -265,8 +265,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ast\ast.h" />
+    <ClInclude Include="ast\types.h" />
     <ClInclude Include="dbg\dbg.h" />
     <ClInclude Include="defs.h" />
+    <ClInclude Include="enums\ast_ir_types.h" />
     <ClInclude Include="gv\gv.h" />
     <ClInclude Include="ir\instructions\binary_op.h" />
     <ClInclude Include="ir\instructions\call.h" />

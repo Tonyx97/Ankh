@@ -23,7 +23,7 @@ void ast::Printer::print_prototype(Prototype* prototype)
 
 		print_vec<ExprDecl>(Green, prototype->params, ", ", [](ExprDecl* e)
 		{
-			return Lexer::STRIFY_TYPE(e->type) + " " + e->id->value;
+			return STRIFY_TYPE(e->type.type) + " " + e->name;
 		});
 	}
 
@@ -182,7 +182,7 @@ void ast::Printer::print_expr(Expr* expr)
 
 void ast::Printer::print_decl(ExprDecl* decl)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{}{} ({}) '{}'", decl->global ? "global" : "decl.", decl->rhs ? " assignment" : "", Lexer::STRIFY_TYPE(decl->type), decl->id->value);
+	PRINT_TABS_NL(Yellow, curr_level, "{}{} ({}) '{}'", decl->global ? "global" : "decl.", decl->rhs ? " assignment" : "", STRIFY_TYPE(decl->type.type), decl->name);
 
 	if (decl->rhs)
 		print_expr(decl->rhs);
@@ -190,43 +190,43 @@ void ast::Printer::print_decl(ExprDecl* decl)
 
 void ast::Printer::print_assign(ExprAssign* assign)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "assignment '{}'", assign->id->value);
+	PRINT_TABS_NL(Yellow, curr_level, "assignment '{}'", assign->name);
 
 	print_expr(assign->rhs);
 }
 
 void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 {
-	if (expr->type->flags & TokenFlag_Unsigned)
+	if (expr->type.flags & TypeFlag_Unsigned)
 	{
-		switch (auto size = expr->type->size)
+		switch (auto size = expr->type.size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->integer.u8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->integer.u16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->integer.u32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type->integer.u64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type.integer.u8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type.integer.u16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type.integer.u32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type.integer.u64); break;
 		}
 	}
 	else
 	{
-		switch (auto size = expr->type->size)
+		switch (auto size = expr->type.size)
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->integer.i8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->integer.i16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->integer.i32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type->integer.i64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type.integer.i8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type.integer.i16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type.integer.i32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type.integer.i64); break;
 		}
 	}
 }
 
 void ast::Printer::print_static_val(ExprStaticValue* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{} '{}'", Lexer::STRIFY_TYPE(expr->type), expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "{} '{}'", STRIFY_TYPE(expr->type.type), expr->name);
 }
 
 void ast::Printer::print_id(ast::ExprId* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "id ({}) '{}'", Lexer::STRIFY_TYPE(expr->id), expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "id ({}) '{}'", STRIFY_TYPE(expr->type.type), expr->name);
 }
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
@@ -290,9 +290,9 @@ void ast::Printer::print_cast(ExprCast* expr)
 {
 	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} {} to {}",
 		expr->implicit ? "implicit" : "explicit",
-		Lexer::STRIFY_TYPE(expr->rhs->type),
+		STRIFY_TYPE(expr->rhs->type.type),
 		expr->rhs->name,
-		Lexer::STRIFY_TYPE(expr->type));
+		STRIFY_TYPE(expr->type.type));
 
 	print_expr(expr->rhs);
 }

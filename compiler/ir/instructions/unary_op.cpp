@@ -11,7 +11,7 @@ void ir::UnaryOp::print()
 	PRINT_INSTRUCTION(1,
 		Yellow, *v->ir_name,
 		White, " = ",
-		Green, IR::STRIFY_UNARY_OP(op_type), White, " ",
-		Blue, IR::STRIFY_TYPE(v->type), White, " ",
+		Green, STRIFY_UNARY_OP(op_type), White, " ",
+		Blue, STRIFY_TYPE(v->type.type), White, " ",
 		Yellow, *v1->ir_name);
 }

@@ -10,11 +10,11 @@ namespace ir
 
 		Value* v1 = nullptr;
 
-		UnaryOp()								{ base_type = ItemType_UnaryOp; }
+		UnaryOp()								{ item_type = ItemType_UnaryOp; }
 		~UnaryOp()								{ _FREE(v1); }
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->base_type == ItemType_UnaryOp; }
+		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_UnaryOp; }
 	};
 }
