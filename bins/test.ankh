@@ -1,11 +1,11 @@
-i32 addition(i32 a, i32 b)
+i32 test(i32 a)
 {
-	return a + b;
+	return a + 1;
 }
 
-void test(i32 t)
+i32 addition(i32 a, i32 b)
 {
-	
+	return test(a) + b;
 }
 
 i32 main()
@@ -13,8 +13,5 @@ i32 main()
 	i32 a = 1;
 	i32 b = 2;
 
-	test(a);
-
-	return 1;
-	//return addition(a, b);
+	return addition(a, b);
 }
