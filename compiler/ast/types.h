@@ -48,15 +48,11 @@ namespace ast
 
 		const Type* normal_implicit_cast(const Type& rhs) const
 		{
-			check(indirection == rhs.indirection, "Indirection mismatch");
-
 			return (type == rhs.type ? nullptr : this);
 		}
 
 		const Type* binary_implicit_cast(const Type& rhs)
 		{
-			check(indirection == rhs.indirection, "Indirection mismatch");
-
 			auto& lhs = *this;
 
 			auto lhs_type = type;
@@ -98,7 +94,14 @@ namespace ast
 			return nullptr;
 		}
 
-		ir::Type to_ir_type(int indirection = 0) const	{ return { type, this->indirection + indirection }; }
+		ir::Type to_ir_type(int indirection = 0) const
+		{
+			return
+			{
+				.type = type,
+				.indirection = this->indirection + indirection
+			};
+		}
 
 		std::string str() const							{ return STRIFY_TYPE(type); }
 

@@ -10,9 +10,11 @@ i32 addition(i32 a, i32 b)
 
 i32 main()
 {
-	i32 a;
+	i32** a;
 
-	return ++a;
+	i32* b = *a;
+
+	return &b;
 
 	//return addition(a, b);
 }

@@ -1,4 +1,3 @@
 · Add id_types to global scopes too.
-· Implement all unary op IR and the order of ++ and --.
-· Implement proper stores for unary and binary ops.
 · Instead of having binary op for each op assignment (AddAssign for example), we should consider it a special assignment.
+· Check and update indirection types and casting in semantic.
