@@ -8,11 +8,11 @@ i32 addition(i32 a, i32 b)
 	return test(a) + b;
 }*/
 
-i32 main()
+i32* main()
 {
 	i32** a;
 
-	i32* b = *a;
+	i32 b;
 
 	return &b;
 

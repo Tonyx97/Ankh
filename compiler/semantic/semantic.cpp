@@ -206,8 +206,8 @@ bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
 		return true;
 
 	add_error("Return type '{}' does not match with function type '{}'",
-		stmt_return->expr ? stmt_return->expr->type.str() : STRIFY_TYPE(Type_Void),
-		p_ctx.pt->type.str());
+		stmt_return->expr ? stmt_return->expr->type.str_full() : STRIFY_TYPE(Type_Void),
+		p_ctx.pt->type.str_full());
 
 	return false;
 }

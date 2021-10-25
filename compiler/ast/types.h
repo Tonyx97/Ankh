@@ -43,8 +43,8 @@ namespace ast
 
 		Type() {}
 
-		bool is_same_type(const Type& v) const			{ return type == v.type; }
-		bool is_same_type(TypeID v) const				{ return type == v; }
+		bool is_same_type(const Type& v) const			{ return type == v.type && indirection == v.indirection; }
+		bool is_same_type(TypeID v) const				{ return type == v && indirection == 0; }
 
 		const Type* normal_implicit_cast(const Type& rhs) const
 		{
@@ -103,7 +103,19 @@ namespace ast
 			};
 		}
 
+		std::string indirection_str() const
+		{
+			std::string str;
+
+			str.resize(indirection);
+
+			std::fill_n(str.begin(), indirection, '*');
+
+			return str;
+		}
+
 		std::string str() const							{ return STRIFY_TYPE(type); }
+		std::string str_full() const					{ return str() + indirection_str(); }
 
 		bool operator == (const Type& v) const			{ return type == v.type; }
 	};
