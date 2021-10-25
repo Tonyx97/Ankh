@@ -127,9 +127,8 @@ ir::ItemBase* IR::generate_expr_static_value(ast::ExprStaticValue* expr)
 ir::ItemBase* IR::generate_expr_decl(ast::ExprDecl* expr)
 {
 	auto stack_alloc = ctx.pt->create_item<ir::StackAlloc>();
-	auto value_type = expr->type.to_ir_type(1);
 
-	stack_alloc->v = ctx.pt->add_new_value_id(value_type, expr->name);
+	stack_alloc->v = ctx.pt->add_new_value_id(expr->type.to_ir_type(1), expr->name);
 
 	ctx.pt->add_item(stack_alloc);
 
@@ -207,31 +206,24 @@ ir::ItemBase* IR::generate_expr_unary_op(ast::ExprUnaryOp* expr)
 	case UnaryOpType_And:
 	{
 		// addressof requires rhs to be an id (actually a lvalue but we leave this for now)
-		
-		if (rtti::cast<ast::ExprId>(expr->rhs))
-		{
-			auto existing_value = ctx.pt->find_value(expr->rhs->name);
-			if (!existing_value)
-				return nullptr;
 
+		if (auto existing_value = ctx.pt->find_value(expr->rhs->name))
 			return existing_value;
-		}
+
+		return nullptr;
 	}
 	case UnaryOpType_Mul:
 	{
 		// dereferencing requires rhs to be an id (actually a lvalue but we leave this for now)
 
-		if (rtti::cast<ast::ExprId>(expr->rhs))
-		{
-			auto load = ctx.pt->create_item<ir::Load>();
+		auto load = ctx.pt->create_item<ir::Load>();
 
-			load->v1 = rtti::cast<ir::Load>(generate_expr(expr->rhs))->v;
-			load->v = ctx.pt->add_new_value_id(expr->type.to_ir_type(-1));
+		load->v1 = generate_expr(expr->rhs)->v;
+		load->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
 
-			ctx.pt->add_item(load);
+		ctx.pt->add_item(load);
 
-			return load->v;
-		}
+		return load;
 	}
 	default:
 	{
@@ -256,10 +248,7 @@ ir::ItemBase* IR::generate_expr_unary_op(ast::ExprUnaryOp* expr)
 			ctx.pt->add_item(store);
 		}
 
-		if (expr->on_left)
-			return store->v1;
-
-		return unary_op->v1;
+		return expr->on_left ? store->v1 : unary_op->v1;
 	}
 	}
 

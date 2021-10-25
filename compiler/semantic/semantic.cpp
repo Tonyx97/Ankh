@@ -98,15 +98,31 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 
 		add_variable(decl);
 
+		auto ok = analyze_expr(decl->rhs);
+
 		if (decl->rhs)
-			return analyze_expr(decl->rhs);
+		{
+			if (decl->type != decl->rhs->type)
+				add_error("Cannot convert from type '{}' to '{}'",
+					decl->rhs ? decl->rhs->type.str_full() : STRIFY_TYPE(Type_Void),
+					decl->type.str_full());
+		}
+
+		return ok;
 	}
 	else if (auto assign = rtti::cast<ast::ExprAssign>(expr))
 	{
 		if (!get_declared_variable(assign->name))
 			add_error("'{}' identifier is undefined", assign->name);
 
-		return analyze_expr(assign->rhs);
+		auto ok = analyze_expr(assign->rhs);
+
+		if (assign->type != assign->rhs->type)
+			add_error("Cannot convert from type '{}' to '{}'",
+				assign->rhs ? assign->rhs->type.str_full() : STRIFY_TYPE(Type_Void),
+				assign->type.str_full());
+
+		return ok;
 	}
 	else if (auto binary_op = rtti::cast<ast::ExprBinaryOp>(expr))
 	{
@@ -118,16 +134,23 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 	}
 	else if (auto unary_op = rtti::cast<ast::ExprUnaryOp>(expr))
 	{
-		if (auto value_unary_op = rtti::cast<ast::ExprUnaryOp>(unary_op->rhs))
-			return analyze_expr(value_unary_op);
-		else
-		{
-			// missing checks to see if rhs is actually a rvalue
-			// and not lvalue
+		// missing checks to see if rhs is actually a rvalue
+		// and not lvalue
 
-			return analyze_expr(unary_op->rhs);
-		}
+		auto ok = analyze_expr(unary_op->rhs);
+
+		unary_op->type.update_indirection(unary_op->rhs->type);
+
+		if (unary_op->op == UnaryOpType_And)
+			unary_op->type.increase_indirection();
+		else if (unary_op->op == UnaryOpType_Mul)
+			if (!unary_op->type.decrease_indirection())
+				add_error("Cannot deref non-pointer");
+
+		return ok;
 	}
+	else if (auto cast = rtti::cast<ast::ExprCast>(expr))
+		return analyze_expr(cast->rhs);
 	else if (auto call = rtti::cast<ast::ExprCall>(expr))
 	{
 		if (call->built_in)

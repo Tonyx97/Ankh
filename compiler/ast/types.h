@@ -42,6 +42,11 @@ namespace ast
 		uint8_t size = 0;
 
 		Type() {}
+		
+		void update_indirection(const Type& v)			{ indirection = v.indirection; }
+		void update_indirection(int v)					{ indirection = v; }
+		void increase_indirection()						{ ++indirection; }
+		bool decrease_indirection()						{ return --indirection >= 0; }
 
 		bool is_same_type(const Type& v) const			{ return type == v.type && indirection == v.indirection; }
 		bool is_same_type(TypeID v) const				{ return type == v && indirection == 0; }
@@ -105,6 +110,9 @@ namespace ast
 
 		std::string indirection_str() const
 		{
+			if (indirection <= 0)
+				return {};
+
 			std::string str;
 
 			str.resize(indirection);
@@ -117,6 +125,6 @@ namespace ast
 		std::string str() const							{ return STRIFY_TYPE(type); }
 		std::string str_full() const					{ return str() + indirection_str(); }
 
-		bool operator == (const Type& v) const			{ return type == v.type; }
+		bool operator == (const Type& v) const			{ return is_same_type(v); }
 	};
 }

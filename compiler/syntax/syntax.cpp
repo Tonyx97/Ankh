@@ -69,7 +69,7 @@ void Syntax::run()
 
 void Syntax::add_id_type(Token* id, const ast::Type& type)
 {
-	p_ctx.id_types.insert({ id->value, type });
+	p_ctx.id_types[id->value] = type;
 }
 
 ast::Type Syntax::get_id_type(Token* id)

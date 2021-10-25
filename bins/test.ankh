@@ -1,20 +1,9 @@
-/*i32 test(i32 a)
+i32 main()
 {
-	return a + 1;
-}
+	i32 a;
+	i16* b;
 
-i32 addition(i32 a, i32 b)
-{
-	return test(a) + b;
-}*/
+	i32 t = *b;
 
-i32* main()
-{
-	i32** a;
-
-	i32 b;
-
-	return &b;
-
-	//return addition(a, b);
+	return a--;
 }
