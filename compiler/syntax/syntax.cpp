@@ -380,7 +380,7 @@ Token* Syntax::parse_type(ast::Type& type_info, bool critical)
 
 	int type_indirection = 0;
 
-	while (g_lexer->eat_if_current_is(Token_Indirection))
+	while (g_lexer->eat_if_current_is(Token_Mul))
 		++type_indirection;
 
 	type_info = std::move(type->to_ast_type(type_indirection));

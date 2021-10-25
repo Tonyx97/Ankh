@@ -19,7 +19,6 @@ enum TokenID : int
 	Token_Sub,
 	Token_MulAssign,
 	Token_Mul,
-	Token_Indirection = Token_Mul,
 	Token_DivAssign,
 	Token_Div,
 	Token_ModAssign,
@@ -133,9 +132,39 @@ struct Token
 
 	BinOpType to_bin_op_type()
 	{
-		// make this a switch pls, prone to fail when refactoring...
+		switch (id)
+		{
+		case Token_AddAssign:	return BinOpType_AddAssign;
+		case Token_Add:			return BinOpType_Add;
+		case Token_SubAssign:	return BinOpType_SubAssign;
+		case Token_Sub:			return BinOpType_Sub;
+		case Token_MulAssign:	return BinOpType_MulAssign;
+		case Token_Mul:			return BinOpType_Mul;
+		case Token_DivAssign:	return BinOpType_DivAssign;
+		case Token_Div:			return BinOpType_Div;
+		case Token_ModAssign:	return BinOpType_ModAssign;
+		case Token_Mod:			return BinOpType_Mod;
+		case Token_AndAssign:	return BinOpType_AndAssign;
+		case Token_And:			return BinOpType_And;
+		case Token_OrAssign:	return BinOpType_OrAssign;
+		case Token_Or:			return BinOpType_Or;
+		case Token_XorAssign:	return BinOpType_XorAssign;
+		case Token_Xor:			return BinOpType_Xor;
+		case Token_ShrAssign:	return BinOpType_ShrAssign;
+		case Token_Shr:			return BinOpType_Shr;
+		case Token_ShlAssign:	return BinOpType_ShlAssign;
+		case Token_Shl:			return BinOpType_Shl;
+		case Token_Equal:		return BinOpType_Equal;
+		case Token_NotEqual:	return BinOpType_NotEqual;
+		case Token_Lt:			return BinOpType_Lt;
+		case Token_Lte:			return BinOpType_Lte;
+		case Token_Gt:			return BinOpType_Gt;
+		case Token_Gte:			return BinOpType_Gte;
+		case Token_LogicalAnd:	return BinOpType_LogicalAnd;
+		case Token_LogicalOr:	return BinOpType_LogicalOr;
+		}
 
-		return static_cast<BinOpType>(static_cast<int>(id) - static_cast<int>(Token_AddAssign));
+		return BinOpType_None;
 	}
 
 	UnaryOpType to_unary_op_type()

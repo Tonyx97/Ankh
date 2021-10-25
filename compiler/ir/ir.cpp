@@ -197,18 +197,50 @@ ir::ItemBase* IR::generate_expr_binary_op(ast::ExprBinaryOp* expr)
 	bin_op->v2 = generate_expr(expr->rhs)->v;
 	bin_op->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
 
+	/*if (rtti::cast<ast::ExprId>(expr->lhs))
+	{
+		auto existing_value = ctx.pt->find_value(expr->name);
+		if (!existing_value)
+			return nullptr;
+
+		auto store = ctx.pt->create_item<ir::Store>();
+
+		store->v = existing_value;
+		store->v1 = bin_op->v;
+
+		ctx.pt->add_item(store);
+	}*/
+
 	return ctx.pt->add_item(bin_op);
 }
 
 ir::ItemBase* IR::generate_expr_unary_op(ast::ExprUnaryOp* expr)
 {
 	auto unary_op = ctx.pt->create_item<ir::UnaryOp>();
+	auto store = ctx.pt->create_item<ir::Store>();
 
 	unary_op->op_type = expr->op;
 	unary_op->v1 = generate_expr(expr->rhs)->v;
 	unary_op->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
 
-	return ctx.pt->add_item(unary_op);
+	ctx.pt->add_item(unary_op);
+
+	if (rtti::cast<ast::ExprId>(expr->rhs))
+	{
+		auto existing_value = ctx.pt->find_value(expr->rhs->name);
+		if (!existing_value)
+			return nullptr;
+
+		store->v = existing_value;
+		store->v1 = unary_op->v;
+
+		ctx.pt->add_item(store);
+	}
+	
+	if (expr->on_left)
+		return store->v1;
+
+	return unary_op->v1;
 }
 
 ir::ItemBase* IR::generate_expr_call(ast::ExprCall* expr)

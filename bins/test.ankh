@@ -8,18 +8,11 @@ i32 addition(i32 a, i32 b)
 	return test(a) + b;
 }*/
 
-i32 ay(i32 x)
-{
-	return x;
-}
-
 i32 main()
 {
 	i32 a;
 
-	ay(a);
-
-	return 0;
+	return ++a;
 
 	//return addition(a, b);
 }
