@@ -32,6 +32,10 @@ namespace ir
 
 		int indirection;
 
-		std::string str() const { return STRIFY_TYPE(type); }
+		std::string str() const					{ return STRIFY_TYPE(type); }
+
+		bool is_same_type(const Type& v) const	{ return type == v.type && indirection == v.indirection; }
+		bool is_same_type(TypeID v) const		{ return type == v && indirection == 0; }
+		bool operator == (const Type& v) const	{ return is_same_type(v); }
 	};
 }

@@ -13,6 +13,8 @@ namespace ir
 
 		Type type {};
 
+		bool in_stack = false;
+
 		Value* param_value = nullptr;
 
 		virtual ~Value() = default;

@@ -129,17 +129,38 @@ ir::ItemBase* IR::generate_expr_decl(ast::ExprDecl* expr)
 	auto stack_alloc = ctx.pt->create_item<ir::StackAlloc>();
 
 	stack_alloc->v = ctx.pt->add_new_value_id(expr->type.to_ir_type(1), expr->name);
+	stack_alloc->v->in_stack = true;	// testing
 
 	ctx.pt->add_item(stack_alloc);
 
 	if (expr->rhs)
 	{
 		auto store = ctx.pt->create_item<ir::Store>();
+		auto rhs_expr = generate_expr(expr->rhs);
 
 		store->v = stack_alloc->v;
-		store->v1 = generate_expr(expr->rhs)->v;
 
-		ctx.pt->add_item(store);
+		if (expr->rhs->type.to_ir_type() != rhs_expr->v->type)
+		{
+			auto stack_load = ctx.pt->create_item<ir::Load>();
+
+			stack_load->v = ctx.pt->add_new_value_id(expr->rhs->type.to_ir_type());
+			stack_load->v1 = rhs_expr->v;
+
+			ctx.pt->add_item(stack_load);
+
+			store->v1 = stack_load->v;
+
+			ctx.pt->add_item(store);
+
+			return stack_load;
+		}
+		else
+		{
+			store->v1 = rhs_expr->v;
+
+			ctx.pt->add_item(store);
+		}
 	}
 
 	return stack_alloc;
@@ -174,17 +195,7 @@ ir::ItemBase* IR::generate_expr_cast(ast::ExprCast* expr)
 
 ir::ItemBase* IR::generate_expr_id(ast::ExprId* expr)
 {
-	auto existing_value = ctx.pt->find_value(expr->name);
-	if (existing_value->type.indirection == 0)
-		return existing_value;
-
-	auto load = ctx.pt->create_item<ir::Load>();
-	auto load_value_type = expr->type.to_ir_type();
-
-	load->v = ctx.pt->add_new_value_id(load_value_type);
-	load->v1 = existing_value->clone();
-
-	return ctx.pt->add_item(load);
+	return ctx.pt->find_value(expr->name);
 }
 
 ir::ItemBase* IR::generate_expr_binary_op(ast::ExprBinaryOp* expr)
@@ -205,25 +216,40 @@ ir::ItemBase* IR::generate_expr_unary_op(ast::ExprUnaryOp* expr)
 	{
 	case UnaryOpType_And:
 	{
-		// addressof requires rhs to be an id (actually a lvalue but we leave this for now)
+		auto rhs_expr = generate_expr(expr->rhs);
 
-		if (auto existing_value = ctx.pt->find_value(expr->rhs->name))
-			return existing_value;
-
-		return nullptr;
+		return rhs_expr;
 	}
 	case UnaryOpType_Mul:
 	{
-		// dereferencing requires rhs to be an id (actually a lvalue but we leave this for now)
-
 		auto load = ctx.pt->create_item<ir::Load>();
+		auto rhs_expr = generate_expr(expr->rhs);
 
-		load->v1 = generate_expr(expr->rhs)->v;
-		load->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
+		if (rhs_expr->v->in_stack)
+		{
+			auto stack_load = ctx.pt->create_item<ir::Load>();
 
-		ctx.pt->add_item(load);
+			stack_load->v = ctx.pt->add_new_value_id(expr->rhs->type.to_ir_type());
+			stack_load->v1 = rhs_expr->v;
 
-		return load;
+			load->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
+			load->v1 = stack_load->v;
+
+			if (stack_load->v->type == stack_load->v1->type)
+				return stack_load->v1;
+
+			ctx.pt->add_item(stack_load);
+		}
+		else
+		{
+			load->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
+			load->v1 = rhs_expr->v;
+
+			if (load->v->type == load->v1->type)
+				return load->v1;
+		}
+
+		return ctx.pt->add_item(load);
 	}
 	default:
 	{

@@ -290,7 +290,11 @@ ast::Expr* Syntax::parse_primary_expression()
 			 g_lexer->eat_if_current_is(Token_Dec) ||
 			 g_lexer->eat_if_current_is(Token_LogicalNot))
 	{
-		return _ALLOC(ast::ExprUnaryOp, parse_primary_expression(), first->to_unary_op_type());
+		auto rhs = parse_primary_expression();
+
+		check(rhs, "Expected expression");
+
+		return _ALLOC(ast::ExprUnaryOp, rhs, first->to_unary_op_type());
 	}
 	else if (auto id = g_lexer->eat_if_current_is(Token_Id))
 	{

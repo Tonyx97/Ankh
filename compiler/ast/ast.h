@@ -44,6 +44,7 @@ namespace ast
 			stmt_type = StmtExpr_IntLiteral;
 			this->name = name;
 			this->type = type;
+			this->type.lvalue = false;
 		}
 
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_IntLiteral; }
@@ -153,6 +154,7 @@ namespace ast
 		ExprUnaryOp(Expr* rhs, UnaryOpType op, bool on_left = true) : op(op), on_left(on_left)
 		{
 			stmt_type = StmtExpr_UnaryOp;
+			this->name = rhs->name;	// propagate the expected lvalue to the outer unary op
 			this->rhs = rhs;
 			this->type = rhs->type;
 		}

@@ -41,6 +41,8 @@ namespace ast
 
 		uint8_t size = 0;
 
+		bool lvalue = true;
+
 		Type() {}
 		
 		void update_indirection(const Type& v)			{ indirection = v.indirection; }
@@ -104,7 +106,7 @@ namespace ast
 			return
 			{
 				.type = type,
-				.indirection = this->indirection + indirection
+				.indirection = this->indirection + indirection,
 			};
 		}
 
