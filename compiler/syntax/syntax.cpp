@@ -255,6 +255,8 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 
 		auto op_type = op->to_bin_op_type();
 
+		check(rhs, "Expected expression");
+
 		if (auto casted_type = lhs->type.binary_implicit_cast(rhs->type))
 		{
 			if (lhs->type == *casted_type)

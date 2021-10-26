@@ -136,28 +136,28 @@ ir::ItemBase* IR::generate_expr_decl(ast::ExprDecl* expr)
 	if (expr->rhs)
 	{
 		auto store = ctx.pt->create_item<ir::Store>();
-		auto rhs_expr = generate_expr(expr->rhs);
+		auto rhs_value = generate_expr(expr->rhs)->v;
+
+		const auto& expr_rhs_type = expr->rhs->type.to_ir_type();
 
 		store->v = stack_alloc->v;
 
-		if (expr->rhs->type.to_ir_type() != rhs_expr->v->type)
+		if (expr_rhs_type != rhs_value->type)
 		{
 			auto stack_load = ctx.pt->create_item<ir::Load>();
 
-			stack_load->v = ctx.pt->add_new_value_id(expr->rhs->type.to_ir_type());
-			stack_load->v1 = rhs_expr->v;
-
-			ctx.pt->add_item(stack_load);
+			stack_load->v = ctx.pt->add_new_value_id(expr_rhs_type);
+			stack_load->v1 = rhs_value;
 
 			store->v1 = stack_load->v;
 
-			ctx.pt->add_item(store);
+			ctx.pt->add_items(stack_load, store);
 
 			return stack_load;
 		}
 		else
 		{
-			store->v1 = rhs_expr->v;
+			store->v1 = rhs_value;
 
 			ctx.pt->add_item(store);
 		}
@@ -214,67 +214,72 @@ ir::ItemBase* IR::generate_expr_unary_op(ast::ExprUnaryOp* expr)
 {
 	switch (expr->op)
 	{
-	case UnaryOpType_And:
-	{
-		auto rhs_expr = generate_expr(expr->rhs);
-
-		return rhs_expr;
-	}
+	case UnaryOpType_And: return generate_expr(expr->rhs);
 	case UnaryOpType_Mul:
 	{
-		auto load = ctx.pt->create_item<ir::Load>();
-		auto rhs_expr = generate_expr(expr->rhs);
+		auto rhs_value = generate_expr(expr->rhs)->v;
 
-		if (rhs_expr->v->in_stack)
+		const auto& expr_type = expr->type.to_ir_type(),
+					rhs_type = expr->rhs->type.to_ir_type();
+
+		if (rhs_value->in_stack)
 		{
+			if (rhs_type == rhs_value->type)
+				return rhs_value;
+
 			auto stack_load = ctx.pt->create_item<ir::Load>();
+			auto load = ctx.pt->create_item<ir::Load>();
 
-			stack_load->v = ctx.pt->add_new_value_id(expr->rhs->type.to_ir_type());
-			stack_load->v1 = rhs_expr->v;
+			stack_load->v = ctx.pt->add_new_value_id(rhs_type);
+			stack_load->v1 = rhs_value;
 
-			load->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
+			load->v = ctx.pt->add_new_value_id(expr_type);
 			load->v1 = stack_load->v;
 
-			if (stack_load->v->type == stack_load->v1->type)
-				return stack_load->v1;
-
 			ctx.pt->add_item(stack_load);
+
+			return ctx.pt->add_item(load);
 		}
 		else
 		{
-			load->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
-			load->v1 = rhs_expr->v;
+			if (expr_type == rhs_value->type)
+				return rhs_value;
 
-			if (load->v->type == load->v1->type)
-				return load->v1;
+			auto load = ctx.pt->create_item<ir::Load>();
+
+			load->v = ctx.pt->add_new_value_id(expr_type);
+			load->v1 = rhs_value;
+
+			return ctx.pt->add_item(load);
 		}
-
-		return ctx.pt->add_item(load);
 	}
 	default:
 	{
+		// check when we need to load and add the store.
+
 		auto unary_op = ctx.pt->create_item<ir::UnaryOp>();
-		auto store = ctx.pt->create_item<ir::Store>();
+		auto load = ctx.pt->create_item<ir::Load>();
+		auto rhs_value = generate_expr(expr->rhs)->v;
+
+		load->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
+		load->v1 = rhs_value;
+
+		ctx.pt->add_item(load);
 
 		unary_op->op_type = expr->op;
-		unary_op->v1 = generate_expr(expr->rhs)->v;
+		unary_op->v1 = load->v;
 		unary_op->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
 
 		ctx.pt->add_item(unary_op);
 
-		if (rtti::cast<ast::ExprId>(expr->rhs))
-		{
-			auto existing_value = ctx.pt->find_value(expr->rhs->name);
-			if (!existing_value)
-				return nullptr;
+		auto store = ctx.pt->create_item<ir::Store>();
 
-			store->v = existing_value;
-			store->v1 = unary_op->v;
+		store->v = rhs_value;
+		store->v1 = unary_op->v;
 
-			ctx.pt->add_item(store);
-		}
+		ctx.pt->add_item(store);
 
-		return expr->on_left ? store->v1 : unary_op->v1;
+		return expr->on_left ? unary_op->v : load->v;
 	}
 	}
 

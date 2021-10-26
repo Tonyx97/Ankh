@@ -139,16 +139,19 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 		auto& unary_op_type = unary_op->type,
 		    & rhs_type = unary_op->rhs->type;
 
-		if (!rhs_type.lvalue)
-			add_error("Expression must be an lvalue or function designator");
-
 		unary_op_type.update_indirection(rhs_type);
 
-		if (unary_op->op == UnaryOpType_And)
-			unary_op_type.increase_indirection();
-		else if (unary_op->op == UnaryOpType_Mul)
-			if (!unary_op_type.decrease_indirection())
-				add_error("Cannot deref non-pointer");
+		if (unary_op->op == UnaryOpType_And || unary_op->op == UnaryOpType_Mul)
+		{
+			if (!rhs_type.lvalue)
+				add_error("Expression must be an lvalue or function designator");
+
+			if (unary_op->op == UnaryOpType_And)
+				unary_op_type.increase_indirection();
+			else if (unary_op->op == UnaryOpType_Mul)
+				if (!unary_op_type.decrease_indirection())
+					add_error("Cannot deref non-pointer");
+		}
 
 		return ok;
 	}
