@@ -37,7 +37,7 @@ int main()
 
 	g_syntax->print_ast();
 
-	PRINT(Cyan, "\n---------- Semantic Analysis ----------\n");
+	/*PRINT(Cyan, "\n---------- Semantic Analysis ----------\n");
 
 	if (!semantic_ok)
 	{
@@ -55,7 +55,7 @@ int main()
 
 	PRINT(Cyan, "\n---------- IR ----------\n");
 
-	g_ir->print();
+	g_ir->print();*/
 
 finish:
 
