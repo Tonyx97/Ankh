@@ -27,5 +27,5 @@ i32 main()
 	i32 x;
 	i32* y = &x;
 
-	return (*y) + (*y) * 5i16;
+	return 1 + (*y)--;
 }
