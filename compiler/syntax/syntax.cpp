@@ -237,6 +237,15 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 
 	auto lookahead = g_lexer->current();
 
+	if ((lookahead->flags & TypeFlag_UnaryOp) && !(lookahead->flags & TypeFlag_Op))
+	{
+		check(lookahead->id == Token_Inc || lookahead->id == Token_Dec, "Invalid unary operator on the right side");
+
+		g_lexer->eat();
+
+		return _ALLOC(ast::ExprUnaryOp, lhs, lookahead->to_unary_op_type(), false);
+	}
+
 	while ((lookahead->flags & TypeFlag_Op) && lookahead->precedence <= min_precedence)
 	{
 		auto op = lookahead;

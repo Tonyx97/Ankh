@@ -22,12 +22,13 @@ enum TypeFlag : unsigned __int64
 {
 	TypeFlag_None			= 0ull,
 	TypeFlag_Op				= (1ull << 0),
-	TypeFlag_Keyword		= (1ull << 1),
-	TypeFlag_KeywordType	= (1ull << 2),
-	TypeFlag_StaticValue	= (1ull << 3),
-	TypeFlag_Unsigned		= (1ull << 4),
-	TypeFlag_Assignation	= (1ull << 5),
-	TypeFlag_Id				= (1ull << 6),
+	TypeFlag_UnaryOp		= (1ull << 1),
+	TypeFlag_Keyword		= (1ull << 2),
+	TypeFlag_KeywordType	= (1ull << 3),
+	TypeFlag_StaticValue	= (1ull << 4),
+	TypeFlag_Unsigned		= (1ull << 5),
+	TypeFlag_Assignation	= (1ull << 6),
+	TypeFlag_Id				= (1ull << 7),
 };
 
 enum BinOpType

@@ -131,6 +131,11 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 
 		if (!binary_op->rhs || !analyze_expr(binary_op->rhs))
 			add_error("Expected an expression");
+
+		// update the binary op type
+		// this is temporary until we add gep to ast I think
+		
+		binary_op->type = binary_op->lhs->type;
 	}
 	else if (auto unary_op = rtti::cast<ast::ExprUnaryOp>(expr))
 	{
@@ -156,7 +161,11 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 		return ok;
 	}
 	else if (auto cast = rtti::cast<ast::ExprCast>(expr))
-		return analyze_expr(cast->rhs);
+	{
+		auto ok = analyze_expr(cast->rhs);
+
+		return ok;
+	}
 	else if (auto call = rtti::cast<ast::ExprCall>(expr))
 	{
 		if (call->built_in)

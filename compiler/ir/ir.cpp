@@ -202,10 +202,38 @@ ir::ItemBase* IR::generate_expr_binary_op(ast::ExprBinaryOp* expr)
 {
 	auto bin_op = ctx.pt->create_item<ir::BinaryOp>();
 
+	auto lhs_expr = generate_expr(expr->lhs)->v,
+		 rhs_expr = generate_expr(expr->rhs)->v;
+
+	const auto& bin_op_type = expr->lhs->type.to_ir_type();
+
+	ir::Value* loaded_lhs = lhs_expr,
+			 * loaded_rhs = rhs_expr;
+
+	if (lhs_expr->in_stack)
+	{
+		auto load = ctx.pt->create_item<ir::Load>();
+
+		load->v = ctx.pt->add_new_value_id(bin_op_type);
+		load->v1 = lhs_expr;
+
+		loaded_lhs = ctx.pt->add_item(load)->v;
+	}
+
+	if (rhs_expr->in_stack)
+	{
+		auto load = ctx.pt->create_item<ir::Load>();
+
+		load->v = ctx.pt->add_new_value_id(bin_op_type);
+		load->v1 = rhs_expr;
+
+		loaded_rhs = ctx.pt->add_item(load)->v;
+	}
+
 	bin_op->op_type = expr->op;
-	bin_op->v1 = generate_expr(expr->lhs)->v;
-	bin_op->v2 = generate_expr(expr->rhs)->v;
-	bin_op->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
+	bin_op->v1 = loaded_lhs;
+	bin_op->v2 = loaded_rhs;
+	bin_op->v = ctx.pt->add_new_value_id(bin_op_type);
 
 	return ctx.pt->add_item(bin_op);
 }
@@ -266,7 +294,7 @@ ir::ItemBase* IR::generate_expr_unary_op(ast::ExprUnaryOp* expr)
 		ir::Value* temp_value = nullptr;
 		ir::Store* store = nullptr;
 
-		if (rhs_value->type != unary_op_type)
+		if (rhs_value->type != unary_op_type)	// maybe this check should be rhs_value->in_stack instead
 		{
 			auto load = ctx.pt->create_item<ir::Load>();
 

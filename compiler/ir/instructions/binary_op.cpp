@@ -12,7 +12,8 @@ void ir::BinaryOp::print()
 		Yellow, *v->ir_name,
 		White, " = ",
 		Green, STRIFY_BIN_OP(op_type), White, " ",
-		Blue, v->type.str(), White, " ",
+		Blue, v->type.str(),
+		White, v->type.indirection, White, " ",
 		Yellow, *v1->ir_name, White, ", ",
 		Yellow, *v2->ir_name);
 }
