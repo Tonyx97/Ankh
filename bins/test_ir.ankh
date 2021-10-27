@@ -1,0 +1,33 @@
+i32 main()
+{
+	/*i32** a;
+	i32* b = *a;
+	
+	i32** c;
+	i32 d = **c;
+	
+	i32 e;
+	i32* f = &e;
+
+	i32* g;
+	i32** h = &g;
+
+	i32* i;
+	i32** j = &*&*&*&i;
+	
+	i32* k;
+	i32 l = *&*&*&*k;
+	
+	i32** m;
+	i32*** n = &*&*&*&m;
+	
+	i32** o;
+	i32* p = *&*&*&*o;
+
+	i32 x;
+	i32* y = &x;*/
+
+	return 1 + (*y)--; // this gives 'missing ; error lol'
+
+	return 1 + (*y)--; // this gives 'missing ; error lol'
+}
