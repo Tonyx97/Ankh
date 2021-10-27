@@ -96,9 +96,9 @@ ast::StmtBody* Syntax::parse_body(ast::StmtBody* body)
 
 			if (g_ctx.expect_semicolon)
 			{
-				check(g_lexer->is_current(Token_Semicolon), "Missing token ';'");
-
 				g_ctx.expect_semicolon = false;
+
+				check(g_lexer->is_current(Token_Semicolon), "Missing token ';'");
 
 				g_lexer->eat();
 			}
@@ -126,13 +126,10 @@ ast::Base* Syntax::parse_statement()
 		add_id_type(id, ast_type);
 
 		auto expr_value = g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr;
-
 		auto casted_type = expr_value ? ast_type.normal_implicit_cast(expr_value->type) : nullptr;
 
-		g_ctx.expect_semicolon = true;
-
-		return (casted_type ? _ALLOC(ast::ExprDecl, id->value, ast_type, _ALLOC(ast::ExprCast, expr_value, *casted_type))
-							: _ALLOC(ast::ExprDecl, id->value, ast_type, expr_value));
+		return return_and_expect_semicolon(casted_type ? _ALLOC(ast::ExprDecl, id->value, ast_type, _ALLOC(ast::ExprCast, expr_value, *casted_type))
+													   : _ALLOC(ast::ExprDecl, id->value, ast_type, expr_value));
 	}
 	else if (type = g_lexer->eat_if_current_is_keyword())
 	{
@@ -204,12 +201,12 @@ ast::Base* Syntax::parse_statement()
 
 			return _ALLOC(ast::StmtDoWhile, condition, body);
 		}
-		else if (type->id == Token_Break)		return _ALLOC(ast::StmtBreak);
-		else if (type->id == Token_Continue)	return _ALLOC(ast::StmtContinue);
+		else if (type->id == Token_Break)
+			return return_and_expect_semicolon(_ALLOC(ast::StmtBreak));
+		else if (type->id == Token_Continue)
+			return return_and_expect_semicolon(_ALLOC(ast::StmtContinue));
 		else if (type->id == Token_Return)
 		{
-			g_ctx.expect_semicolon = true;
-
 			auto& ret = p_ctx.fn->type;
 
 			auto expr_value = g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression();
@@ -218,7 +215,7 @@ ast::Base* Syntax::parse_statement()
 				if (auto casted_type = ret.normal_implicit_cast(expr_value->type))
 					return _ALLOC(ast::StmtReturn, _ALLOC(ast::ExprCast, expr_value, *casted_type), ret);
 
-			return _ALLOC(ast::StmtReturn, expr_value, ret);
+			return return_and_expect_semicolon(_ALLOC(ast::StmtReturn, expr_value, ret));
 		}
 	}
 	

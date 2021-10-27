@@ -52,6 +52,13 @@ public:
 	void run();
 	void add_id_type(Token* id, const ast::Type& type);
 
+	template <typename T>
+	T* return_and_expect_semicolon(T* v)
+	{
+		g_ctx.expect_semicolon = true;
+		return v;
+	}
+
 	ast::Type get_id_type(Token* id);
 	ast::StmtBody* parse_body(ast::StmtBody* body);
 	ast::Base* parse_statement();
