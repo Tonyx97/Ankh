@@ -255,31 +255,46 @@ ir::ItemBase* IR::generate_expr_unary_op(ast::ExprUnaryOp* expr)
 	}
 	default:
 	{
-		// check when we need to load and add the store.
+		// check when we need to load.
 
+		const auto& unary_op_type = expr->type.to_ir_type();
 		auto unary_op = ctx.pt->create_item<ir::UnaryOp>();
-		auto load = ctx.pt->create_item<ir::Load>();
 		auto rhs_value = generate_expr(expr->rhs)->v;
 
-		load->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
-		load->v1 = rhs_value;
-
-		ctx.pt->add_item(load);
-
 		unary_op->op_type = expr->op;
-		unary_op->v1 = load->v;
-		unary_op->v = ctx.pt->add_new_value_id(expr->type.to_ir_type());
+
+		ir::Value* temp_value = nullptr;
+		ir::Store* store = nullptr;
+
+		if (rhs_value->type != unary_op_type)
+		{
+			auto load = ctx.pt->create_item<ir::Load>();
+
+			load->v = ctx.pt->add_new_value_id(unary_op_type);
+			load->v1 = rhs_value;
+
+			ctx.pt->add_item(load);
+
+			unary_op->v = ctx.pt->add_new_value_id(unary_op_type);
+			unary_op->v1 = temp_value = load->v;
+
+			store = ctx.pt->create_item<ir::Store>();
+
+			store->v = rhs_value;
+			store->v1 = unary_op->v;
+		}
+		else
+		{
+			unary_op->v = temp_value = ctx.pt->add_new_value_id(unary_op_type);
+			unary_op->v1 = rhs_value;
+		}
 
 		ctx.pt->add_item(unary_op);
 
-		auto store = ctx.pt->create_item<ir::Store>();
+		if (store)
+			ctx.pt->add_item(store);
 
-		store->v = rhs_value;
-		store->v1 = unary_op->v;
-
-		ctx.pt->add_item(store);
-
-		return expr->on_left ? unary_op->v : load->v;
+		return temp_value;
 	}
 	}
 
