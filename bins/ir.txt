@@ -1,18 +1,45 @@
-u32 addition(u32 v0, u32 v1)
-{
-entry:
-  ret u32 1
-}
-
 u32 main()
 {
 entry:
-  v0 = stackalloc u32
-  store u32* v0, u32 1
-  v1 = stackalloc u32
-  store u32* v1, u32 2
-  v3 = load u32, u32* v0
-  v4 = load u32, u32* v1
-  v2 = call u32 addition(u32 v3, u32 v4)
-  ret u32 v2
+  v0 = stackalloc u32**
+  v1 = stackalloc u32*
+  v2 = load u32**, u32*** v0
+  v3 = load u32*, u32** v2
+  store u32** v1, u32* v3
+  v4 = stackalloc u32**
+  v5 = stackalloc u32
+  v6 = load u32**, u32*** v4
+  v7 = load u32*, u32** v6
+  v8 = load u32, u32* v7
+  store u32* v5, u32 v8
+  v9 = stackalloc u32
+  v10 = stackalloc u32*
+  store u32** v10, u32* v9
+  v11 = stackalloc u32*
+  v12 = stackalloc u32**
+  store u32*** v12, u32** v11
+  v13 = stackalloc u32*
+  v14 = stackalloc u32**
+  store u32*** v14, u32** v13
+  v15 = stackalloc u32*
+  v16 = stackalloc u32
+  v17 = load u32*, u32** v15
+  v18 = load u32, u32* v17
+  store u32* v16, u32 v18
+  v19 = stackalloc u32**
+  v20 = stackalloc u32***
+  store u32**** v20, u32*** v19
+  v21 = stackalloc u32**
+  v22 = stackalloc u32*
+  v23 = load u32**, u32*** v21
+  v24 = load u32*, u32** v23
+  store u32** v22, u32* v24
+  v25 = stackalloc u32
+  v26 = stackalloc u32*
+  store u32** v26, u32* v25
+  v27 = load u32*, u32** v26
+  v28 = add u32* v27, 1
+  store u32** v26, u32* v28
+  v29 = load u32, u32* v27
+  ret u32 v29
 }
