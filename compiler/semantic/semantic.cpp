@@ -168,7 +168,7 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 	}
 	else if (auto call = rtti::cast<ast::ExprCall>(expr))
 	{
-		if (call->built_in)
+		if (call->intrinsic)
 			return true;
 
 		const auto& prototype_name = call->name;

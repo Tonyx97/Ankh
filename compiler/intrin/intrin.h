@@ -8,7 +8,7 @@ private:
 
 public:
 
-	Intrinsic() {}
+	Intrinsic();
 
 	bool is_intrinsic(const std::string& name);
 };
