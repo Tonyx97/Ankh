@@ -173,9 +173,9 @@ namespace ast
 
 		struct Prototype* prototype = nullptr;
 
-		bool built_in = false;
+		bool intrinsic = false;
 
-		ExprCall(Prototype* prototype, const std::string& name, const Type& type, bool built_in = false) : prototype(prototype), built_in(built_in)
+		ExprCall(Prototype* prototype, const std::string& name, const Type& type, bool built_in = false) : prototype(prototype), intrinsic(intrinsic)
 		{
 			stmt_type = StmtExpr_Call;
 			this->name = name;

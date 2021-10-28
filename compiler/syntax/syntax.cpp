@@ -2,6 +2,8 @@
 
 #include "syntax.h"
 
+#include <intrin/intrin.h>
+
 Syntax::Syntax()
 {
 	ast = _ALLOC(ast::AST);
@@ -350,7 +352,7 @@ ast::Expr* Syntax::parse_primary_expression()
 			g_lexer->eat();
 
 			auto called_prototype = g_ctx.get_prototype(id->value);
-			auto call = _ALLOC(ast::ExprCall, called_prototype, id->value, called_prototype->type, false);	// todo - get if it's intrinsic/built-in or not
+			auto call = _ALLOC(ast::ExprCall, called_prototype, id->value, called_prototype->type, g_intrin->is_intrinsic(called_prototype->name));
 
 			call->stmts = parse_call_params(called_prototype);
 

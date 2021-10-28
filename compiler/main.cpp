@@ -1,5 +1,6 @@
 #include <defs.h>
 
+#include <intrin/intrin.h>
 #include <lexer/lexer.h>
 #include <syntax/syntax.h>
 #include <semantic/semantic.h>
@@ -9,6 +10,7 @@ int main()
 {
 	setup_console();
 
+	g_intrin = std::make_unique<Intrinsic>();
 	g_lexer = std::make_unique<Lexer>();
 	g_syntax = std::make_unique<Syntax>();
 	g_semantic = std::make_unique<Semantic>();
@@ -63,6 +65,7 @@ finish:
 	g_semantic.reset();
 	g_syntax.reset();
 	g_lexer.reset();
+	g_intrin.reset();
 
 	if (!mem::check_and_dump_memory_leaks())
 		std::cin.get();

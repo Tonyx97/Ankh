@@ -243,6 +243,7 @@
   <ItemGroup>
     <ClCompile Include="ast\ast.cpp" />
     <ClCompile Include="gv\gv.cpp" />
+    <ClCompile Include="intrin\intrin.cpp" />
     <ClCompile Include="ir\instructions\binary_op.cpp" />
     <ClCompile Include="ir\instructions\call.cpp" />
     <ClCompile Include="ir\instructions\cast.cpp" />
@@ -270,6 +271,7 @@
     <ClInclude Include="defs.h" />
     <ClInclude Include="enums\ast_ir_types.h" />
     <ClInclude Include="gv\gv.h" />
+    <ClInclude Include="intrin\intrin.h" />
     <ClInclude Include="ir\instructions\binary_op.h" />
     <ClInclude Include="ir\instructions\call.h" />
     <ClInclude Include="ir\instructions\cast.h" />
