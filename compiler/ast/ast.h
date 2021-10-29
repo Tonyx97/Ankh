@@ -157,7 +157,7 @@ namespace ast
 	*/
 	struct ExprCall : public Expr
 	{
-		std::vector<Expr*> stmts;
+		std::vector<Expr*> exprs;
 
 		struct Prototype* prototype = nullptr;
 
@@ -172,7 +172,7 @@ namespace ast
 
 		~ExprCall()
 		{
-			for (auto stmt : stmts)
+			for (auto stmt : exprs)
 				_FREE(stmt);
 		}
 			

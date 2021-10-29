@@ -330,7 +330,7 @@ ir::ItemBase* IR::generate_expr_call(ast::ExprCall* expr)
 	call->type = called_pt->ret_type;
 	call->v = ctx.pt->add_new_value_id(call->type);
 
-	for (auto arg : expr->stmts)
+	for (auto arg : expr->exprs)
 		call->args.push_back(generate_expr(arg)->v);
 
 	return ctx.pt->add_item(call);

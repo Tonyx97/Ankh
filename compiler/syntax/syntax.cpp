@@ -307,7 +307,7 @@ ast::Expr* Syntax::parse_primary_expression()
 			auto called_prototype = g_ctx.get_prototype(id->value);
 			auto call = _ALLOC(ast::ExprCall, called_prototype, id->value, called_prototype->type, g_intrin->is_intrinsic(called_prototype->name));
 
-			call->stmts = parse_call_params(called_prototype);
+			call->exprs = parse_call_params(called_prototype);
 
 			g_lexer->eat_expect(Token_ParenClose);
 

@@ -263,7 +263,7 @@ void ast::Printer::print_expr_call(ExprCall* expr)
 {
 	PRINT_TABS_NL(Yellow, curr_level, "prototype Call ({})", expr->name);
 
-	for (auto param : expr->stmts)
+	for (auto param : expr->exprs)
 	{
 		if (auto call = rtti::cast<ExprCall>(param))
 		{

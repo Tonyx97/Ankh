@@ -175,17 +175,17 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 			return add_error("Prototype identifier '{}' not found", prototype_name);
 
 		const auto original_params_length = prototype->params.size(),
-				   current_params_length = call->stmts.size();
+				   current_params_length = call->exprs.size();
 
 		if (current_params_length < original_params_length)
 			add_error("Too few arguments in function call '{}'", prototype_name);
 		else if (current_params_length > original_params_length)
 			add_error("Too many arguments in function call '{}'", prototype_name);
 
-		for (size_t i = 0ull; i < call->stmts.size() && i < prototype->params.size(); ++i)
+		for (size_t i = 0ull; i < call->exprs.size() && i < prototype->params.size(); ++i)
 		{
 			const auto& original_param = rtti::cast<ast::ExprDecl>(prototype->params[i]);
-			const auto& current_param = call->stmts[i];
+			const auto& current_param = call->exprs[i];
 
 			if (!analyze_expr(current_param))
 				return false;
