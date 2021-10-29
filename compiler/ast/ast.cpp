@@ -6,7 +6,6 @@
 
 void ast::Printer::print(AST* ast)
 {
-	for (auto decl : ast->global_decls)	print_decl(decl);
 	for (auto prototype : ast->prototypes) print_prototype(prototype);
 }
 
@@ -168,7 +167,6 @@ void ast::Printer::print_expr(Expr* expr)
 	++curr_level;
 
 	if (auto int_literal = rtti::cast<ExprIntLiteral>(expr))		print_expr_int(int_literal);
-	else if (auto static_val = rtti::cast<ExprStaticValue>(expr))	print_static_val(static_val);
 	else if (auto id = rtti::cast<ExprId>(expr))					print_id(id);
 	else if (auto decl = rtti::cast<ExprDecl>(expr))				print_decl(decl);
 	else if (auto assign = rtti::cast<ExprAssign>(expr))			print_assign(assign);
@@ -199,29 +197,24 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 {
 	if (expr->type.flags & TypeFlag_Unsigned)
 	{
-		switch (auto size = expr->type.size)
+		switch (auto size = expr->type.get_size())
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type.integer.u8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type.integer.u16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type.integer.u32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->type.integer.u64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->integer.u8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->integer.u16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->integer.u32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->integer.u64); break;
 		}
 	}
 	else
 	{
-		switch (auto size = expr->type.size)
+		switch (auto size = expr->type.get_size())
 		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type.integer.i8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type.integer.i16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type.integer.i32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->type.integer.i64); break;
+		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->integer.i8);  break;
+		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->integer.i16); break;
+		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->integer.i32); break;
+		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->integer.i64); break;
 		}
 	}
-}
-
-void ast::Printer::print_static_val(ExprStaticValue* expr)
-{
-	PRINT_TABS_NL(Yellow, curr_level, "{} '{}'", expr->type.str(), expr->name);
 }
 
 void ast::Printer::print_id(ast::ExprId* expr)
@@ -231,14 +224,16 @@ void ast::Printer::print_id(ast::ExprId* expr)
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "unary op {} ({})", expr->on_left ? "on left side" : "on right side", STRIFY_UNARY_OP(expr->op));
+	PRINT_TABS_NL(Yellow, curr_level, "unary op {} ({})", expr->lhs ? "on left side" : "on right side", STRIFY_UNARY_OP(expr->op));
 
 	++curr_level;
 
-	PRINT_TABS_NL(Yellow, curr_level, "value '{}'", expr->rhs->name);
+	auto unary_op_expr = expr->lhs ? expr->lhs : expr->rhs;
 
-	if (auto value = rtti::cast<ExprBinaryOp>(expr->rhs))			print_expr_binary_op(value);
-	else if (auto value_unary = rtti::cast<ExprUnaryOp>(expr->rhs))	print_expr_unary_op(value_unary);
+	PRINT_TABS_NL(Yellow, curr_level, "value '{}'", unary_op_expr->name);
+
+	if (auto value = rtti::cast<ExprBinaryOp>(unary_op_expr))			print_expr_binary_op(value);
+	else if (auto value_unary = rtti::cast<ExprUnaryOp>(unary_op_expr))	print_expr_unary_op(value_unary);
 
 	--curr_level;
 }

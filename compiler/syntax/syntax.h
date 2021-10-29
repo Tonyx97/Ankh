@@ -6,13 +6,10 @@ namespace syntax
 {
 	struct PrototypeContext
 	{
-		std::unordered_map<std::string, ast::Type> id_types;
-
 		ast::Prototype* fn = nullptr;
 
 		PrototypeContext& operator = (ast::Prototype* prototype)
 		{
-			id_types.clear();
 			fn = prototype;
 			return *this;
 		}
@@ -50,7 +47,6 @@ public:
 
 	void print_ast();
 	void run();
-	void add_id_type(Token* id, const ast::Type& type);
 
 	template <typename T>
 	T* return_and_expect_semicolon(T* v)
@@ -59,7 +55,6 @@ public:
 		return v;
 	}
 
-	ast::Type get_id_type(Token* id);
 	ast::StmtBody* parse_body(ast::StmtBody* body);
 	ast::Base* parse_statement();
 	ast::Expr* parse_expression();

@@ -96,7 +96,6 @@ ir::Body* IR::generate_body(ast::StmtBody* ast_body)
 ir::ItemBase* IR::generate_expr(ast::Expr* expr)
 {
 	if (auto int_literal = rtti::cast<ast::ExprIntLiteral>(expr))			return generate_expr_int_literal(int_literal);
-	else if (auto static_val = rtti::cast<ast::ExprStaticValue>(expr))		return generate_expr_static_value(static_val);
 	else if (auto decl = rtti::cast<ast::ExprDecl>(expr))					return generate_expr_decl(decl);
 	else if (auto assign = rtti::cast<ast::ExprAssign>(expr))				return generate_expr_assign(assign);
 	else if (auto cast = rtti::cast<ast::ExprCast>(expr))					return generate_expr_cast(cast);
@@ -112,14 +111,7 @@ ir::ItemBase* IR::generate_expr(ast::Expr* expr)
 
 ir::ItemBase* IR::generate_expr_int_literal(ast::ExprIntLiteral* expr)
 {
-	auto v = ctx.pt->add_new_value_int(expr->type.to_ir_type(), std::to_string(expr->type.integer.u64));
-
-	return (v->v = v);
-}
-
-ir::ItemBase* IR::generate_expr_static_value(ast::ExprStaticValue* expr)
-{
-	auto v = ctx.pt->add_new_value_int(expr->type.to_ir_type(), std::to_string(expr->type.integer.u64));
+	auto v = ctx.pt->add_new_value_int(expr->type.to_ir_type(), std::to_string(expr->integer.u64));
 
 	return (v->v = v);
 }

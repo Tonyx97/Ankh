@@ -58,7 +58,6 @@ public:
 
 	ir::ItemBase* generate_expr(ast::Expr* expr);
 	ir::ItemBase* generate_expr_int_literal(ast::ExprIntLiteral* expr);
-	ir::ItemBase* generate_expr_static_value(ast::ExprStaticValue* expr);
 	ir::ItemBase* generate_expr_decl(ast::ExprDecl* expr);
 	ir::ItemBase* generate_expr_assign(ast::ExprAssign* expr);
 	ir::ItemBase* generate_expr_cast(ast::ExprCast* expr);

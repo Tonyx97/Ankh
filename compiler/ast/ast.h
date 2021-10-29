@@ -39,30 +39,16 @@ namespace ast
 	*/
 	struct ExprIntLiteral : public Expr
 	{
+		Int integer = { 0 };
+
 		ExprIntLiteral(const std::string& name, const Type& type)
 		{
 			stmt_type = StmtExpr_IntLiteral;
 			this->name = name;
 			this->type = type;
-			this->type.lvalue = false;
 		}
 
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_IntLiteral; }
-	};
-
-	/*
-	* ExprStaticValue
-	*/
-	struct ExprStaticValue : public Expr
-	{
-		ExprStaticValue(const std::string& name, const Type& type)
-		{
-			stmt_type = StmtExpr_StaticValue;
-			this->name = name;
-			this->type = type;
-		}
-
-		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_StaticValue; }
 	};
 
 	/*
@@ -70,11 +56,10 @@ namespace ast
 	*/
 	struct ExprId : public Expr
 	{
-		ExprId(const std::string& name, const Type& type)
+		ExprId(const std::string& name)
 		{
 			stmt_type = StmtExpr_Id;
 			this->name = name;
-			this->type = type;
 		}
 			
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_Id; }
@@ -105,12 +90,11 @@ namespace ast
 	*/
 	struct ExprAssign : public Expr
 	{
-		ExprAssign(const std::string& name, const Type& type, Expr* rhs)
+		ExprAssign(const std::string& name, Expr* rhs)
 		{
 			stmt_type = StmtExpr_Assign;
 			this->name = name;
 			this->rhs = rhs;
-			this->type = type;
 		}
 
 		~ExprAssign()						{ _FREE(rhs); }
@@ -149,17 +133,21 @@ namespace ast
 	{
 		UnaryOpType op;
 
-		bool on_left = false;
-
-		ExprUnaryOp(Expr* rhs, UnaryOpType op, bool on_left = true) : op(op), on_left(on_left)
+		ExprUnaryOp(Expr* expr, UnaryOpType op, bool on_left = true) : op(op)
 		{
 			stmt_type = StmtExpr_UnaryOp;
-			this->name = rhs->name;	// propagate the expected lvalue to the outer unary op
-			this->rhs = rhs;
-			this->type = rhs->type;
+			this->name = expr->name;	// propagate the expected lvalue to the outer unary op
+			this->type = expr->type;
+
+			if (on_left)	this->lhs = expr;
+			else			this->rhs = expr;
 		}
 
-		~ExprUnaryOp()						{ _FREE(rhs); }
+		~ExprUnaryOp()
+		{
+			_FREE(lhs);
+			_FREE(rhs);
+		}
 
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_UnaryOp; }
 	};
@@ -202,7 +190,7 @@ namespace ast
 											{ stmt_type = StmtExpr_Cast; this->rhs = rhs; this->type = type; }
 		~ExprCast()							{ _FREE(rhs); }
 
-		bool needs_ir_cast() const			{ return rhs->type.size != type.size; }
+		bool needs_ir_cast() const			{ return rhs->type.get_size() != type.get_size(); }
 
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_Cast; }
 	};
@@ -345,10 +333,7 @@ namespace ast
 	{
 		Expr* expr = nullptr;
 		
-		Type ret_type {};
-
-		StmtReturn(Expr* expr, const Type& ret_type) : expr(expr), ret_type(ret_type)
-											{ stmt_type = Stmt_Return; }
+		StmtReturn(Expr* expr) : expr(expr) { stmt_type = Stmt_Return; }
 		~StmtReturn()						{ _FREE(expr); }
 
 		static bool check_class(Base* i)	{ return i->stmt_type == Stmt_Return; }
@@ -391,13 +376,11 @@ namespace ast
 
 	struct AST
 	{
-		std::vector<ExprDecl*> global_decls;
 		std::vector<Prototype*> prototypes;
 
 		~AST()
 		{
 			for (auto prototype : prototypes)	_FREE(prototype);
-			for (auto decl : global_decls)		_FREE(decl);
 		}
 	};
 
@@ -422,7 +405,6 @@ namespace ast
 		void print_decl(ExprDecl* decl);
 		void print_assign(ExprAssign* assign);
 		void print_expr_int(ExprIntLiteral* expr);
-		void print_static_val(ExprStaticValue* expr);
 		void print_id(ExprId* expr);
 		void print_expr_unary_op(ExprUnaryOp* expr);
 		void print_expr_binary_op(ExprBinaryOp* expr);

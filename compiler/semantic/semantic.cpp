@@ -19,9 +19,6 @@ bool Semantic::run()
 {
 	ast = g_syntax->get_ast();
 
-	for (auto global_decl : ast->global_decls)
-		analyze_expr(global_decl);
-
 	for (auto prototype : ast->prototypes)
 		analyze_prototype(prototype);
 
@@ -148,8 +145,8 @@ bool Semantic::analyze_expr(ast::Expr* expr)
 
 		if (unary_op->op == UnaryOpType_And || unary_op->op == UnaryOpType_Mul)
 		{
-			if (!rhs_type.lvalue)
-				add_error("Expression must be an lvalue or function designator");
+			//if (!rhs_type.lvalue)
+			//	add_error("Expression must be an lvalue or function designator");
 
 			if (unary_op->op == UnaryOpType_And)
 				unary_op_type.increase_indirection();

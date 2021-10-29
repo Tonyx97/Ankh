@@ -1,8 +1,5 @@
 #pragma once
 
-#include <ir/types.h>
-#include <ast/types.h>
-
 enum TokenID : int
 {
 	Token_None = 0,
@@ -60,7 +57,6 @@ enum TokenID : int
 	Token_LogicalNot,
 
 	Token_Void,
-	Token_Bool,
 	Token_U8,
 	Token_U16,
 	Token_U32,
@@ -70,9 +66,6 @@ enum TokenID : int
 	Token_I32,
 	Token_I64,
 	Token_M128,
-
-	Token_True,
-	Token_False,
 
 	Token_For,
 	Token_While,
@@ -85,24 +78,21 @@ enum TokenID : int
 	Token_Extern,
 };
 
+#include <ir/types.h>
+#include <ast/types.h>
+
 struct Token
 {
 	static constexpr int LOWEST_PRECEDENCE = 16;
 
-	std::string value = "";
-
-	Int integer;
+	std::string value {};
 
 	TokenID id = Token_None;
 
-	uint64_t flags = TypeFlag_None;
+	uint64_t flags = TokenFlag_None;
 
 	int precedence = LOWEST_PRECEDENCE,
 		line = 0;
-
-	bool valid = false;
-	
-	uint8_t size = 0;
 
 	ast::Type to_ast_type(int indirection = 0)
 	{
@@ -111,21 +101,19 @@ struct Token
 		switch (id)
 		{
 		case Token_Void:	v.type = Type_Void; break;
-		case Token_Bool:
-		case Token_U8:
+		case Token_U8:		v.type = Type_u8;   break;
 		case Token_I8:		v.type = Type_i8;   break;
-		case Token_U16:
+		case Token_U16:		v.type = Type_u16;  break;
 		case Token_I16:		v.type = Type_i16;  break;
-		case Token_U32:
+		case Token_U32:		v.type = Type_u32;  break;
 		case Token_I32:		v.type = Type_i32;  break;
-		case Token_U64:
+		case Token_U64:		v.type = Type_u64;  break;
 		case Token_I64:		v.type = Type_i64;  break;
 		}
 
 		v.indirection = indirection;
-		v.integer = integer;
-		v.size = size;
-		v.flags = flags;
+
+		if (flags & TokenFlag_Unsigned)		v.flags |= TypeFlag_Unsigned;
 
 		return v;
 	}
@@ -190,12 +178,10 @@ struct Token
 		if (this != std::addressof(token))
 		{
 			value = token.value;
-			integer = token.integer;
 			id = token.id;
 			flags = token.flags;
 			precedence = token.precedence;
 			line = token.line;
-			valid = true;
 		}
 
 		return *this;
@@ -215,72 +201,72 @@ inline std::unordered_map<std::string, TokenID> g_keywords =
 	{ "extern",		Token_Extern },		// not an statement but we put it here for now
 };
 
-inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t, TypeFlag>> g_keywords_type =
+inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t, TokenFlag>> g_keywords_type =
 {
-	{ "void",	{ Token_Void,	 0,  TypeFlag_None } },
-	{ "bool",	{ Token_Bool,	 8,  TypeFlag_Unsigned } },
-	{ "u8",		{ Token_U8,		 8,  TypeFlag_Unsigned } },
-	{ "u16",	{ Token_U16,	16,  TypeFlag_Unsigned } },
-	{ "u32",	{ Token_U32,	32,  TypeFlag_Unsigned } },
-	{ "u64",	{ Token_U64,	64,  TypeFlag_Unsigned } },
-	{ "i8",		{ Token_I8,		 8,  TypeFlag_None } },
-	{ "i16",	{ Token_I16,	16,  TypeFlag_None } },
-	{ "i32",	{ Token_I32,	32,  TypeFlag_None } },
-	{ "i64",	{ Token_I64,	64,  TypeFlag_None } },
-	{ "m128",	{ Token_M128,	128, TypeFlag_None } },
+	{ "void",	{ Token_Void,	 0,  TokenFlag_None } },
+	{ "bool",	{ Token_U8,		 8,  TokenFlag_Unsigned } },
+	{ "u8",		{ Token_U8,		 8,  TokenFlag_Unsigned } },
+	{ "u16",	{ Token_U16,	16,  TokenFlag_Unsigned } },
+	{ "u32",	{ Token_U32,	32,  TokenFlag_Unsigned } },
+	{ "u64",	{ Token_U64,	64,  TokenFlag_Unsigned } },
+	{ "i8",		{ Token_I8,		 8,  TokenFlag_None } },
+	{ "i16",	{ Token_I16,	16,  TokenFlag_None } },
+	{ "i32",	{ Token_I32,	32,  TokenFlag_None } },
+	{ "i64",	{ Token_I64,	64,  TokenFlag_None } },
+	{ "m128",	{ Token_M128,	128, TokenFlag_None } },
 };
 
-inline std::unordered_map<std::string, std::tuple<TokenID, uint8_t>> g_static_values =
+inline std::unordered_map<std::string, TokenID> g_static_values =
 {
-	{ "true",	{ Token_True,	8 } },
-	{ "false",	{ Token_False,	8 } },
+	{ "true",	Token_U8 },
+	{ "false",	Token_U8 },
 };
 
 inline Token g_static_tokens[] =
 {
-	{ .value = ">>=", .id = Token_ShrAssign, .flags = TypeFlag_Op | TypeFlag_Assignation, .precedence = 14 },
-	{ .value = "<<=", .id = Token_ShlAssign, .flags = TypeFlag_Op | TypeFlag_Assignation, .precedence = 14 },
+	{ .value = ">>=", .id = Token_ShrAssign, .flags = TokenFlag_Op | TokenFlag_Assignation, .precedence = 14 },
+	{ .value = "<<=", .id = Token_ShlAssign, .flags = TokenFlag_Op | TokenFlag_Assignation, .precedence = 14 },
 
-	{ .value = "==", .id = Token_Equal,			.flags = TypeFlag_Op,							.precedence = 7 },
-	{ .value = "!=", .id = Token_NotEqual,		.flags = TypeFlag_Op,							.precedence = 7 },
-	{ .value = ">=", .id = Token_Gte,			.flags = TypeFlag_Op,							.precedence = 6 },
-	{ .value = "<=", .id = Token_Lte,			.flags = TypeFlag_Op,							.precedence = 6 },
-	{ .value = "+=", .id = Token_AddAssign,		.flags = TypeFlag_Op | TypeFlag_Assignation,	.precedence = 14 },
-	{ .value = "-=", .id = Token_SubAssign,		.flags = TypeFlag_Op | TypeFlag_Assignation,	.precedence = 14 },
-	{ .value = "++", .id = Token_Inc,			.flags = TypeFlag_UnaryOp,						.precedence = 1 },
-	{ .value = "--", .id = Token_Dec,			.flags = TypeFlag_UnaryOp,						.precedence = 1 },
-	{ .value = "*=", .id = Token_MulAssign,		.flags = TypeFlag_Op | TypeFlag_Assignation,	.precedence = 14 },
-	{ .value = "%=", .id = Token_ModAssign,		.flags = TypeFlag_Op | TypeFlag_Assignation,	.precedence = 14 },
-	{ .value = "/=", .id = Token_DivAssign,		.flags = TypeFlag_Op | TypeFlag_Assignation,	.precedence = 14 },
-	{ .value = "&=", .id = Token_AndAssign,		.flags = TypeFlag_Op | TypeFlag_Assignation,	.precedence = 14 },
-	{ .value = "|=", .id = Token_OrAssign,		.flags = TypeFlag_Op | TypeFlag_Assignation,	.precedence = 14 },
-	{ .value = "^=", .id = Token_XorAssign,		.flags = TypeFlag_Op | TypeFlag_Assignation,	.precedence = 14 },
-	{ .value = "&&", .id = Token_LogicalAnd,	.flags = TypeFlag_Op,							.precedence = 11 },
-	{ .value = "||", .id = Token_LogicalOr,		.flags = TypeFlag_Op,							.precedence = 12 },
-	{ .value = ">>", .id = Token_Shr,			.flags = TypeFlag_Op,							.precedence = 5 },
-	{ .value = "<<", .id = Token_Shl,			.flags = TypeFlag_Op,							.precedence = 5 },
+	{ .value = "==", .id = Token_Equal,			.flags = TokenFlag_Op,							.precedence = 7 },
+	{ .value = "!=", .id = Token_NotEqual,		.flags = TokenFlag_Op,							.precedence = 7 },
+	{ .value = ">=", .id = Token_Gte,			.flags = TokenFlag_Op,							.precedence = 6 },
+	{ .value = "<=", .id = Token_Lte,			.flags = TokenFlag_Op,							.precedence = 6 },
+	{ .value = "+=", .id = Token_AddAssign,		.flags = TokenFlag_Op | TokenFlag_Assignation,	.precedence = 14 },
+	{ .value = "-=", .id = Token_SubAssign,		.flags = TokenFlag_Op | TokenFlag_Assignation,	.precedence = 14 },
+	{ .value = "++", .id = Token_Inc,			.flags = TokenFlag_UnaryOp,						.precedence = 1 },
+	{ .value = "--", .id = Token_Dec,			.flags = TokenFlag_UnaryOp,						.precedence = 1 },
+	{ .value = "*=", .id = Token_MulAssign,		.flags = TokenFlag_Op | TokenFlag_Assignation,	.precedence = 14 },
+	{ .value = "%=", .id = Token_ModAssign,		.flags = TokenFlag_Op | TokenFlag_Assignation,	.precedence = 14 },
+	{ .value = "/=", .id = Token_DivAssign,		.flags = TokenFlag_Op | TokenFlag_Assignation,	.precedence = 14 },
+	{ .value = "&=", .id = Token_AndAssign,		.flags = TokenFlag_Op | TokenFlag_Assignation,	.precedence = 14 },
+	{ .value = "|=", .id = Token_OrAssign,		.flags = TokenFlag_Op | TokenFlag_Assignation,	.precedence = 14 },
+	{ .value = "^=", .id = Token_XorAssign,		.flags = TokenFlag_Op | TokenFlag_Assignation,	.precedence = 14 },
+	{ .value = "&&", .id = Token_LogicalAnd,	.flags = TokenFlag_Op,							.precedence = 11 },
+	{ .value = "||", .id = Token_LogicalOr,		.flags = TokenFlag_Op,							.precedence = 12 },
+	{ .value = ">>", .id = Token_Shr,			.flags = TokenFlag_Op,							.precedence = 5 },
+	{ .value = "<<", .id = Token_Shl,			.flags = TokenFlag_Op,							.precedence = 5 },
 
 	{ .value = ";", .id = Token_Semicolon },
-	{ .value = ",", .id = Token_Comma,		.flags = TypeFlag_None,						.precedence = 15 },
-	{ .value = "(", .id = Token_ParenOpen,	.flags = TypeFlag_None,						.precedence = 1 },
-	{ .value = ")", .id = Token_ParenClose,	.flags = TypeFlag_None,						.precedence = 1 },
+	{ .value = ",", .id = Token_Comma,		.flags = TokenFlag_None,						.precedence = 15 },
+	{ .value = "(", .id = Token_ParenOpen,	.flags = TokenFlag_None,						.precedence = 1 },
+	{ .value = ")", .id = Token_ParenClose,	.flags = TokenFlag_None,						.precedence = 1 },
 	{ .value = "{", .id = Token_BracketOpen },
 	{ .value = "}", .id = Token_BracketClose },
-	{ .value = "[", .id = Token_BraceOpen,	.flags = TypeFlag_Op,							.precedence = 1 },
-	{ .value = "]", .id = Token_BraceClose,	.flags = TypeFlag_Op,							.precedence = 1 },
-	{ .value = "+", .id = Token_Add,		.flags = TypeFlag_Op | TypeFlag_UnaryOp,		.precedence = 4 },
-	{ .value = "-", .id = Token_Sub,		.flags = TypeFlag_Op | TypeFlag_UnaryOp,		.precedence = 4 },
-	{ .value = "*", .id = Token_Mul,		.flags = TypeFlag_Op | TypeFlag_UnaryOp,		.precedence = 3 },
-	{ .value = "%", .id = Token_Mod,		.flags = TypeFlag_Op,							.precedence = 3 },
-	{ .value = "/", .id = Token_Div,		.flags = TypeFlag_Op,							.precedence = 3 },
-	{ .value = "&", .id = Token_And,		.flags = TypeFlag_Op | TypeFlag_UnaryOp,		.precedence = 8 },
-	{ .value = "|", .id = Token_Or,			.flags = TypeFlag_Op,							.precedence = 10 },
-	{ .value = "^", .id = Token_Xor,		.flags = TypeFlag_Op,							.precedence = 9 },
-	{ .value = "~", .id = Token_Not,		.flags = TypeFlag_UnaryOp,						.precedence = 2 },
-	{ .value = "!", .id = Token_LogicalNot,	.flags = TypeFlag_Op,							.precedence = 2 },
-	{ .value = "=", .id = Token_Assign,		.flags = TypeFlag_Op | TypeFlag_Assignation,	.precedence = 14 },
-	{ .value = ">", .id = Token_Gt,			.flags = TypeFlag_Op,							.precedence = 6 },
-	{ .value = "<", .id = Token_Lt,			.flags = TypeFlag_Op,							.precedence = 6 },
+	{ .value = "[", .id = Token_BraceOpen,	.flags = TokenFlag_Op,							.precedence = 1 },
+	{ .value = "]", .id = Token_BraceClose,	.flags = TokenFlag_Op,							.precedence = 1 },
+	{ .value = "+", .id = Token_Add,		.flags = TokenFlag_Op | TokenFlag_UnaryOp,		.precedence = 4 },
+	{ .value = "-", .id = Token_Sub,		.flags = TokenFlag_Op | TokenFlag_UnaryOp,		.precedence = 4 },
+	{ .value = "*", .id = Token_Mul,		.flags = TokenFlag_Op | TokenFlag_UnaryOp,		.precedence = 3 },
+	{ .value = "%", .id = Token_Mod,		.flags = TokenFlag_Op,							.precedence = 3 },
+	{ .value = "/", .id = Token_Div,		.flags = TokenFlag_Op,							.precedence = 3 },
+	{ .value = "&", .id = Token_And,		.flags = TokenFlag_Op | TokenFlag_UnaryOp,		.precedence = 8 },
+	{ .value = "|", .id = Token_Or,			.flags = TokenFlag_Op,							.precedence = 10 },
+	{ .value = "^", .id = Token_Xor,		.flags = TokenFlag_Op,							.precedence = 9 },
+	{ .value = "~", .id = Token_Not,		.flags = TokenFlag_UnaryOp,						.precedence = 2 },
+	{ .value = "!", .id = Token_LogicalNot,	.flags = TokenFlag_Op,							.precedence = 2 },
+	{ .value = "=", .id = Token_Assign,		.flags = TokenFlag_Op | TokenFlag_Assignation,	.precedence = 14 },
+	{ .value = ">", .id = Token_Gt,			.flags = TokenFlag_Op,							.precedence = 6 },
+	{ .value = "<", .id = Token_Lt,			.flags = TokenFlag_Op,							.precedence = 6 },
 };
 
 namespace regex
@@ -314,29 +300,28 @@ public:
 		errors.push_back(std::format(format, args...));
 	}
 	
-	bool is_token_operator()						{ return (current()->flags & TypeFlag_Op); }
-	bool is_token_keyword()							{ return (current()->flags & TypeFlag_Keyword); }
-	bool is_token_keyword_type()					{ return (current()->flags & TypeFlag_KeywordType); }
-	bool is_token_static_value()					{ return (current()->flags & TypeFlag_StaticValue); }
-	bool is_current(TokenID id)						{ return (current_token_id() == id); }
-	bool is_next(TokenID id)						{ return (next_token() == id); }
-	bool is(Token* token, TokenID id)				{ return (token->id == id); }
-	bool eof()										{ return tokens.empty(); }
+	bool is_token_operator()							{ return (current()->flags & TokenFlag_Op); }
+	bool is_token_keyword()								{ return (current()->flags & TokenFlag_Keyword); }
+	bool is_token_keyword_type()						{ return (current()->flags & TokenFlag_KeywordType); }
+	bool is_current(TokenID id)							{ return (current_token_id() == id); }
+	bool is_next(TokenID id)							{ return (next_token() == id); }
+	bool is(Token* token, TokenID id)					{ return (token->id == id); }
+	bool eof()											{ return tokens.empty(); }
 
 	Token* push_and_pop();
 	Token* eat_expect(TokenID expected_token);
 	Token* eat_expect_keyword_declaration();
 	Token* eat();
-	Token* eat_if_current_is(TokenID id)			{ return (is_current(id) ? eat() : nullptr); }
-	Token* eat_if_current_is_type()					{ return (is_token_keyword_type() ? eat() : nullptr); }
-	Token* eat_if_current_is_keyword()				{ return (is_token_keyword() ? eat() : nullptr); }
-	Token* eat_if_current_is_static_value()			{ return (is_token_static_value() ? eat() : nullptr); }
-	Token* current() const							{ return (tokens.empty() ? nullptr : tokens.back()); }
+	Token* eat_if_current_is_int_literal();
+	Token* eat_if_current_is_type()						{ return (is_token_keyword_type() ? eat() : nullptr); }
+	Token* eat_if_current_is_keyword()					{ return (is_token_keyword() ? eat() : nullptr); }
+	Token* eat_if_current_is(TokenID id)				{ return (is_current(id) ? eat() : nullptr); }
+	Token* current() const								{ return (tokens.empty() ? nullptr : tokens.back()); }
 
-	TokenID current_token_id() const				{ return (tokens.empty() ? Token_Eof : tokens.back()->id); }
-	TokenID next_token() const						{ return (tokens.size() < 2 ? Token_Eof : (*(tokens.rbegin() + 1))->id); }
+	TokenID current_token_id() const					{ return (tokens.empty() ? Token_Eof : tokens.back()->id); }
+	TokenID next_token() const							{ return (tokens.size() < 2 ? Token_Eof : (*(tokens.rbegin() + 1))->id); }
 		
-	const size_t get_tokens_count() const			{ return tokens.size(); }
+	const size_t get_tokens_count() const				{ return tokens.size(); }
 
 	// static methods
 
@@ -391,7 +376,6 @@ public:
 		case Token_Gt:					return "Token_Gt";
 		case Token_Lt:					return "Token_Lt";
 		case Token_Void:				return "Token_Void";
-		case Token_Bool:				return "Token_Bool";
 		case Token_U8:					return "Token_U8";
 		case Token_U16:					return "Token_U16";
 		case Token_U32:					return "Token_U32";
@@ -409,8 +393,6 @@ public:
 		case Token_Continue:			return "Token_Continue";
 		case Token_Return:				return "Token_Return";
 		case Token_Extern:				return "Token_Extern";
-		case Token_True:				return "Token_True";
-		case Token_False:				return "Token_False";
 		case Token_Eof:					return "Token_Eof";
 		}
 

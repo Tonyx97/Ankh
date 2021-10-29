@@ -89,12 +89,14 @@ bool Lexer::run(const std::string& filename)
 				break;
 
 			auto curr_token = _ALLOC(Token);
-			
+
+			bool valid = false;
+
 			auto check_token_regex = [&](const std::regex& rgx, TokenID token_type)
 			{
 				if (std::regex_search(line, sm, rgx))
 				{
-					if (auto token_found = sm.str(); curr_token->valid = (line.find(token_found) == 0))
+					if (auto token_found = sm.str(); valid = (line.find(token_found) == 0))
 					{
 						switch (token_type)
 						{
@@ -102,45 +104,35 @@ bool Lexer::run(const std::string& filename)
 						{
 							if (auto it = g_keywords.find(token_found); it != g_keywords.end())
 							{
+								curr_token->value = token_found;
 								curr_token->id = it->second;
-								curr_token->flags |= TypeFlag_Keyword;
+								curr_token->flags |= TokenFlag_Keyword;
 							}
 							else if (auto it_decl = g_keywords_type.find(token_found); it_decl != g_keywords_type.end())
 							{
+								curr_token->value = token_found;
 								curr_token->id = std::get<0>(it_decl->second);
-								curr_token->size = std::get<1>(it_decl->second);
-								curr_token->flags |= TypeFlag_KeywordType | std::get<2>(it_decl->second);
+								curr_token->flags |= TokenFlag_KeywordType | std::get<2>(it_decl->second);
 							}
 							else if (auto it_static_val = g_static_values.find(token_found); it_static_val != g_static_values.end())
 							{
-								switch (std::get<0>(it_static_val->second))
+								switch (it_static_val->second)
 								{
-								case Token_True:
+								case Token_U8:
 								{
-									curr_token->id = Token_Bool;
-									curr_token->integer.u8 = 1;
-									curr_token->flags |= TypeFlag_Unsigned;
-									break;
-								}
-								case Token_False:
-								{
-									curr_token->id = Token_Bool;
-									curr_token->integer.u8 = 0;
-									curr_token->flags |= TypeFlag_Unsigned;
+									curr_token->value = token_found == "true" ? "1" : "0";
+									curr_token->id = Token_U8;
+									curr_token->flags |= TokenFlag_Unsigned;
 									break;
 								}
 								}
-
-								curr_token->size = std::get<1>(it_static_val->second);
-								curr_token->flags |= TypeFlag_StaticValue;
 							}
 							else
 							{
+								curr_token->value = token_found;
 								curr_token->id = token_type;
-								curr_token->flags |= TypeFlag_Id;
+								curr_token->flags |= TokenFlag_Id;
 							}
-
-							curr_token->value = token_found;
 
 							break;
 						}
@@ -154,13 +146,22 @@ bool Lexer::run(const std::string& filename)
 
 							if (unsigned_group.matched && size_group.matched)
 							{
-								curr_token->flags |= unsigned_group.str() == "u" ? TypeFlag_Unsigned : 0;
-								curr_token->size = std::stoi(size_group.str());
+								const bool is_unsigned = unsigned_group.str() == "u";
+
+								curr_token->flags |= is_unsigned ? TokenFlag_Unsigned : 0;
+
+								switch (std::stoll(size_group))
+								{
+								case 0:		curr_token->id = Token_Void; break;
+								case 8:		curr_token->id = is_unsigned ? Token_U8  : Token_I8;   break;
+								case 16:	curr_token->id = is_unsigned ? Token_U16 : Token_I16;  break;
+								case 32:	curr_token->id = is_unsigned ? Token_U32 : Token_I32;  break;
+								case 64:	curr_token->id = is_unsigned ? Token_U64 : Token_I64;  break;
+								}
 							}
-							else curr_token->size = 32;
+							else curr_token->id = Token_I32;
 
 							curr_token->value = token_found;
-							curr_token->integer.u64 = std::stoull(int_group.str());
 
 							break;
 						}
@@ -180,14 +181,15 @@ bool Lexer::run(const std::string& filename)
 				if (!line.compare(0, token.value.length(), token.value))
 				{
 					*curr_token = token;
+					valid = true;
 					break;
 				}
 			}
 
-			if (!curr_token->valid)
+			if (!valid)
 				check_token_regex(regex::WORD, Token_Id);
 
-			if (curr_token->valid)
+			if (valid)
 			{
 				curr_token->line = line_num;
 
@@ -261,7 +263,7 @@ Token* Lexer::eat_expect_keyword_declaration()
 
 	auto curr = current();
 
-	check(curr->flags & TypeFlag_KeywordType, "Unexpected token '{}'", curr->value);
+	check(curr->flags & TokenFlag_KeywordType, "Unexpected token '{}'", curr->value);
 
 	return push_and_pop();
 }
@@ -271,4 +273,21 @@ Token* Lexer::eat()
 	check(!eof(), "Expected a keyword, EOF found");
 
 	return push_and_pop();
+}
+
+Token* Lexer::eat_if_current_is_int_literal()
+{
+	switch (current_token_id())
+	{
+	case Token_U8:
+	case Token_U16:
+	case Token_U32:
+	case Token_U64:
+	case Token_I8:
+	case Token_I16:
+	case Token_I32:
+	case Token_I64: return eat();
+	}
+
+	return nullptr;
 }

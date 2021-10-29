@@ -18,17 +18,23 @@ union Int
 	Int& operator = (T v) { u64 = v; return *this; }
 };
 
+enum TokenFlag : unsigned __int64
+{
+	TokenFlag_None			= 0ull,
+	TokenFlag_Op			= (1ull << 0),
+	TokenFlag_UnaryOp		= (1ull << 1),
+	TokenFlag_Keyword		= (1ull << 2),
+	TokenFlag_KeywordType	= (1ull << 3),
+	TokenFlag_Unsigned		= (1ull << 4),
+	TokenFlag_Assignation	= (1ull << 5),
+	TokenFlag_Id			= (1ull << 6),
+};
+
 enum TypeFlag : unsigned __int64
 {
 	TypeFlag_None			= 0ull,
-	TypeFlag_Op				= (1ull << 0),
-	TypeFlag_UnaryOp		= (1ull << 1),
-	TypeFlag_Keyword		= (1ull << 2),
-	TypeFlag_KeywordType	= (1ull << 3),
-	TypeFlag_StaticValue	= (1ull << 4),
-	TypeFlag_Unsigned		= (1ull << 5),
-	TypeFlag_Assignation	= (1ull << 6),
-	TypeFlag_Id				= (1ull << 7),
+	TypeFlag_Unsigned		= (1ull << 0),
+	TypeFlag_StaticValue	= (1ull << 1),
 };
 
 enum BinOpType
@@ -85,7 +91,11 @@ enum TypeID
 	Type_i8,
 	Type_i16,
 	Type_i32,
-	Type_i64
+	Type_i64,
+	Type_u8,
+	Type_u16,
+	Type_u32,
+	Type_u64
 };
 
 inline std::string STRIFY_TYPE(TypeID id)

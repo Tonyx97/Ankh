@@ -33,9 +33,9 @@ int main()
 		g_syntax->run();
 	}
 
-	const bool semantic_ok = g_semantic->run();
+	//const bool semantic_ok = g_semantic->run();
 
-	PRINT(Cyan, "\n---------- AST ----------\n");
+	//PRINT(Cyan, "\n---------- AST ----------\n");
 
 	g_syntax->print_ast();
 

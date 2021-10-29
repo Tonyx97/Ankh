@@ -31,27 +31,43 @@ namespace ast
 
 	struct Type
 	{
-		Int integer = { 0 };
-
 		TypeID type = Type_None;
 
 		uint64_t flags = TypeFlag_None;
 
 		int indirection = -1;
 
-		uint8_t size = 0;
-
-		bool lvalue = true;
-
-		Type() {}
-		
 		void update_indirection(const Type& v)			{ indirection = v.indirection; }
 		void update_indirection(int v)					{ indirection = v; }
 		void increase_indirection()						{ ++indirection; }
 		bool decrease_indirection()						{ return --indirection >= 0; }
+		bool is_unsigned() const						{ return (flags & TypeFlag_Unsigned); }
 
 		bool is_same_type(const Type& v) const			{ return type == v.type && indirection == v.indirection; }
 		bool is_same_type(TypeID v) const				{ return type == v && indirection == 0; }
+
+		size_t get_size() const
+		{
+			if (indirection > 0)
+				return sizeof(uint64_t) * 8ull;
+
+			switch (type)
+			{
+			case Type_Void: return 0ull;
+			case Type_u8:
+			case Type_i8:	return sizeof(int8_t) * 8ull;
+			case Type_u16:
+			case Type_i16:	return sizeof(int16_t) * 8ull;
+			case Type_u32:
+			case Type_i32:	return sizeof(int32_t) * 8ull;
+			case Type_u64:
+			case Type_i64:	return sizeof(int64_t) * 8ull;
+			}
+
+			global_error("Invalid type while getting size");
+
+			return 0;
+		}
 
 		const Type* normal_implicit_cast(const Type& rhs) const
 		{
@@ -73,8 +89,11 @@ namespace ast
 
 			if (lhs_signed == rhs_signed)
 			{
-				if (lhs.size > rhs.size)	  return &lhs;
-				else if (lhs.size < rhs.size) return &rhs;
+				const auto lhs_size = lhs.get_size(),
+						   rhs_size = rhs.get_size();
+
+				if (lhs_size > rhs_size)	  return &lhs;
+				else if (lhs_size < rhs_size) return &rhs;
 
 				global_error("Invalid sides sizes while casting");
 			}
@@ -94,8 +113,8 @@ namespace ast
 					unsigned_t = &lhs;
 				}
 
-				if (unsigned_t->size >= signed_t->size) return unsigned_t;
-				else									return signed_t;
+				if (unsigned_t->get_size() >= signed_t->get_size()) return unsigned_t;
+				else												return signed_t;
 			}
 
 			return nullptr;
@@ -103,9 +122,24 @@ namespace ast
 
 		ir::Type to_ir_type(int indirection = 0) const
 		{
+			TypeID new_type;
+
+			switch (type)
+			{
+			case Token_Void:	new_type = Type_Void; break;
+			case Token_U8:
+			case Token_I8:		new_type = Type_i8;   break;
+			case Token_U16:
+			case Token_I16:		new_type = Type_i16;  break;
+			case Token_U32:
+			case Token_I32:		new_type = Type_i32;  break;
+			case Token_U64:
+			case Token_I64:		new_type = Type_i64;  break;
+			}
+
 			return
 			{
-				.type = type,
+				.type = new_type,
 				.indirection = this->indirection + indirection,
 			};
 		}
