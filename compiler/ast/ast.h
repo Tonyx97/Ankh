@@ -44,6 +44,7 @@ namespace ast
 		ExprIntLiteral(const std::string& name, const Type& type)
 		{
 			stmt_type = StmtExpr_IntLiteral;
+			integer = std::stoll(name);
 			this->name = name;
 			this->type = type;
 		}

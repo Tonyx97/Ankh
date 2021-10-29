@@ -240,7 +240,7 @@ void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 
 void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "binary op ({})", expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "binary op ({})", STRIFY_BIN_OP(expr->op));
 
 	++curr_level;
 

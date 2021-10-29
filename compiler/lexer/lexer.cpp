@@ -90,6 +90,8 @@ bool Lexer::run(const std::string& filename)
 
 			auto curr_token = _ALLOC(Token);
 
+			size_t token_len = 0;
+
 			bool valid = false;
 
 			auto check_token_regex = [&](const std::regex& rgx, TokenID token_type)
@@ -98,6 +100,8 @@ bool Lexer::run(const std::string& filename)
 				{
 					if (auto token_found = sm.str(); valid = (line.find(token_found) == 0))
 					{
+						token_len = token_found.length();
+
 						switch (token_type)
 						{
 						case Token_Id:
@@ -178,10 +182,13 @@ bool Lexer::run(const std::string& filename)
 
 			for (const auto& token : g_static_tokens)
 			{
-				if (!line.compare(0, token.value.length(), token.value))
+				const auto len = token.value.length();
+
+				if (!line.compare(0, len, token.value))
 				{
 					*curr_token = token;
 					valid = true;
+					token_len = len;
 					break;
 				}
 			}
@@ -195,7 +202,7 @@ bool Lexer::run(const std::string& filename)
 
 				tokens.push_back(curr_token);
 
-				next(curr_token->value.length());
+				next(token_len);
 			}
 			else
 			{
