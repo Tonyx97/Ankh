@@ -192,8 +192,8 @@ ast::Base* Syntax::parse_statement()
 		}
 		}
 	}
-	
-	return parse_expression();
+
+	return return_and_expect_semicolon(parse_expression());
 }
 
 ast::Expr* Syntax::parse_expression()
@@ -224,11 +224,40 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 			lookahead = g_lexer->current();
 		}
 
-		auto op_type = op->to_bin_op_type();
-
 		check(rhs, "Expected expression");
 
-		lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op_type, lhs->type);
+		if (op->flags & TokenFlag_Assignation)
+		{
+			TokenID new_operator = Token_None;
+
+			switch (op->id)
+			{
+			case Token_ShrAssign: new_operator = Token_Shr; break;
+			case Token_ShlAssign: new_operator = Token_Shl; break;
+			case Token_AddAssign: new_operator = Token_Add; break;
+			case Token_SubAssign: new_operator = Token_Sub; break;
+			case Token_MulAssign: new_operator = Token_Mul; break;
+			case Token_ModAssign: new_operator = Token_Mod; break;
+			case Token_DivAssign: new_operator = Token_Div; break;
+			case Token_AndAssign: new_operator = Token_And; break;
+			case Token_OrAssign: new_operator = Token_Or; break;
+			case Token_XorAssign: new_operator = Token_Xor; break;
+			}
+
+			if (new_operator != Token_None)
+			{
+				lhs = _ALLOC(ast::ExprBinaryAssign, lhs, Token::to_bin_op_type(new_operator), rhs);
+			}
+			else
+			{
+				lhs = _ALLOC(ast::ExprAssign, lhs, rhs);
+			}
+		}
+		else
+		{
+			auto op_type = op->to_bin_op_type();
+			lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op_type, lhs->type);
+		}
 	}
 
 	return lhs;
@@ -257,50 +286,7 @@ ast::Expr* Syntax::parse_primary_expression()
 	}
 	else if (auto id = g_lexer->eat_if_current_is(Token_Id))
 	{
-		auto curr = g_lexer->current();
-
-		switch (g_lexer->current_token_id())
-		{
-		case Token_Assign:
-		{
-			g_lexer->eat();
-
-			auto expr_value = parse_expression();
-
-			check(expr_value, "Expected expression");
-
-			ret_expr = _ALLOC(ast::ExprAssign, id->value, expr_value);
-
-			break;
-		}
-		case Token_Inc:
-		case Token_Dec:
-		{
-			g_lexer->eat();
-
-			ret_expr = _ALLOC(ast::ExprUnaryOp, _ALLOC(ast::ExprId, id->value), curr->to_unary_op_type(), false);
-
-			break;
-		}
-		case Token_AddAssign:
-		case Token_SubAssign:
-		case Token_MulAssign:
-		case Token_DivAssign:
-		case Token_XorAssign:
-		{
-			g_lexer->eat();
-
-			auto expr_value = parse_expression();
-
-			check(expr_value, "Expected expression");
-
-			auto op = curr->to_bin_op_type();
-
-			ret_expr = _ALLOC(ast::ExprBinaryOp, _ALLOC(ast::ExprId, id->value), expr_value, op, expr_value->type);
-
-			break;
-		}
-		case Token_ParenOpen:
+		if (g_lexer->current_token_id() == Token_ParenOpen) 
 		{
 			g_lexer->eat();
 
@@ -312,13 +298,10 @@ ast::Expr* Syntax::parse_primary_expression()
 			g_lexer->eat_expect(Token_ParenClose);
 
 			ret_expr = call;
-
-			break;
 		}
-		default:
+		else
 		{
 			ret_expr = _ALLOC(ast::ExprId, id->value);
-		}
 		}
 	}
 	else if (g_lexer->eat_if_current_is(Token_ParenOpen))

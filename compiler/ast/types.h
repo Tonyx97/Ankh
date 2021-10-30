@@ -14,6 +14,7 @@ namespace ast
 			StmtExpr_Id,
 			StmtExpr_Decl,
 			StmtExpr_Assign,
+			StmtExpr_BinaryAssign,
 			StmtExpr_BinOp,
 			StmtExpr_UnaryOp,
 			StmtExpr_Call,

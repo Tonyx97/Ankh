@@ -1,0 +1,8 @@
+i32* call() {
+	return 0;
+}
+
+i32 main()
+{
+	*call() += 1 + 1;
+}

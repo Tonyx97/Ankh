@@ -91,16 +91,36 @@ namespace ast
 	*/
 	struct ExprAssign : public Expr
 	{
-		ExprAssign(const std::string& name, Expr* rhs)
+		ExprAssign(Expr* lhs, Expr* rhs)
 		{
 			stmt_type = StmtExpr_Assign;
-			this->name = name;
+			this->lhs = lhs;
 			this->rhs = rhs;
 		}
 
-		~ExprAssign()						{ _FREE(rhs); }
+		~ExprAssign()						{ _FREE(lhs); _FREE(rhs); }
 
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_Assign; }
+	};
+
+	/*
+	* ExprBinaryAssign
+	*/
+	struct ExprBinaryAssign : public Expr
+	{
+		BinOpType op;
+
+		ExprBinaryAssign(Expr* lhs, BinOpType op, Expr* rhs)
+		{
+			stmt_type = StmtExpr_BinaryAssign;
+			this->op = op;
+			this->lhs = lhs;
+			this->rhs = rhs;
+		}
+
+		~ExprBinaryAssign() { _FREE(lhs); _FREE(rhs); }
+
+		static bool check_class(Base* i) { return i->stmt_type == StmtExpr_BinaryAssign; }
 	};
 
 	/*
@@ -404,6 +424,7 @@ namespace ast
 		void print_expr(Expr* expr);
 		void print_decl(ExprDecl* decl);
 		void print_assign(ExprAssign* assign);
+		void print_binary_assign(ExprBinaryAssign* bin_assign);
 		void print_expr_int(ExprIntLiteral* expr);
 		void print_id(ExprId* expr);
 		void print_expr_unary_op(ExprUnaryOp* expr);

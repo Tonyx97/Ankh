@@ -170,6 +170,7 @@ void ast::Printer::print_expr(Expr* expr)
 	else if (auto id = rtti::cast<ExprId>(expr))					print_id(id);
 	else if (auto decl = rtti::cast<ExprDecl>(expr))				print_decl(decl);
 	else if (auto assign = rtti::cast<ExprAssign>(expr))			print_assign(assign);
+	else if (auto bin_assign = rtti::cast<ExprBinaryAssign>(expr))  print_binary_assign(bin_assign);
 	else if (auto binary_op = rtti::cast<ExprBinaryOp>(expr))		print_expr_binary_op(binary_op);
 	else if (auto unary_op = rtti::cast<ExprUnaryOp>(expr))			print_expr_unary_op(unary_op);
 	else if (auto call = rtti::cast<ExprCall>(expr))				print_expr_call(call);
@@ -188,9 +189,18 @@ void ast::Printer::print_decl(ExprDecl* decl)
 
 void ast::Printer::print_assign(ExprAssign* assign)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "assignment '{}'", assign->name);
+	PRINT_TABS_NL(Yellow, curr_level, "assignment");
 
+	print_expr(assign->lhs);
 	print_expr(assign->rhs);
+}
+
+void ast::Printer::print_binary_assign(ExprBinaryAssign* bin_assign)
+{
+	PRINT_TABS_NL(Yellow, curr_level, "binary assignment ({})", STRIFY_BIN_OP(bin_assign->op));
+
+	print_expr(bin_assign->lhs);
+	print_expr(bin_assign->rhs);
 }
 
 void ast::Printer::print_expr_int(ExprIntLiteral* expr)
