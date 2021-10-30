@@ -228,12 +228,7 @@ void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 
 	++curr_level;
 
-	auto unary_op_expr = expr->lhs ? expr->lhs : expr->rhs;
-
-	PRINT_TABS_NL(Yellow, curr_level, "value '{}'", unary_op_expr->name);
-
-	if (auto value = rtti::cast<ExprBinaryOp>(unary_op_expr))			print_expr_binary_op(value);
-	else if (auto value_unary = rtti::cast<ExprUnaryOp>(unary_op_expr))	print_expr_unary_op(value_unary);
+	print_expr(expr->lhs ? expr->lhs : expr->rhs);
 
 	--curr_level;
 }

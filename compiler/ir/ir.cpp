@@ -111,7 +111,7 @@ ir::ItemBase* IR::generate_expr(ast::Expr* expr)
 
 ir::ItemBase* IR::generate_expr_int_literal(ast::ExprIntLiteral* expr)
 {
-	auto v = ctx.pt->add_new_value_int(expr->type.to_ir_type(), std::to_string(expr->integer.u64));
+	auto v = ctx.pt->add_new_value_int(expr->type.to_ir_type(), expr->int_to_str());
 
 	return (v->v = v);
 }

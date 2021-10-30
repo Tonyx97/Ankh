@@ -49,6 +49,8 @@ namespace ast
 			this->type = type;
 		}
 
+		std::string int_to_str() const		{ return std::to_string(integer.u64); }
+
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_IntLiteral; }
 	};
 
@@ -135,7 +137,6 @@ namespace ast
 		ExprUnaryOp(Expr* expr, UnaryOpType op, bool on_left = true) : op(op)
 		{
 			stmt_type = StmtExpr_UnaryOp;
-			this->name = expr->name;	// propagate the expected lvalue to the outer unary op
 			this->type = expr->type;
 
 			if (on_left)	this->lhs = expr;
