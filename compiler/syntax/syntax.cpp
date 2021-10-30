@@ -22,40 +22,42 @@ void Syntax::print_ast()
 void Syntax::run()
 {
 	while (!g_lexer->eof())
+		ast->prototypes.push_back(parse_prototype());
+}
+
+ast::Prototype* Syntax::parse_prototype()
+{
+	auto type = parse_type(true);
+	auto id = g_lexer->eat_expect(Token_Id);
+
+	check(id, "Expected an id");
+
+	const auto& id_name = id->value;
+
+	check(g_lexer->eat_expect(Token_ParenOpen), "Expected '('");
+
+	auto prototype = _ALLOC(ast::Prototype, id_name, type.value());
+
+	p_ctx = prototype;
+
+	prototype->params = parse_prototype_params_decl();
+
+	if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
 	{
-		auto type = parse_type(true);
-		auto id = g_lexer->eat_expect(Token_Id);
+		// we add the prototype here because a call inside this prototype
+		// could make it recursive
 
-		check(id, "Expected an id");
+		g_ctx.add_prototype(prototype);
 
-		const auto& id_name = id->value;
-		
-		if (auto next = g_lexer->eat(); next->id == Token_ParenOpen)
-		{
-			auto prototype = _ALLOC(ast::Prototype, id_name, type.value());
+		if (!g_lexer->eat_if_current_is(Token_Semicolon))
+			prototype->body = parse_body(nullptr);
 
-			p_ctx = prototype;
-
-			prototype->params = parse_prototype_params_decl();
-
-			if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
-			{
-				// we add the prototype here because a call inside this prototype
-				// could make it recursive
-
-				g_ctx.add_prototype(prototype);
-
-				if (!g_lexer->eat_if_current_is(Token_Semicolon))
-					prototype->body = parse_body(nullptr);
-
-				ast->prototypes.push_back(prototype);
-
-				if (auto previous_pt = g_ctx.get_prototype(id_name))
-					if (previous_pt->is_decl())
-						previous_pt->def = prototype;
-			}
-		}
+		if (auto previous_pt = g_ctx.get_prototype(id_name))
+			if (previous_pt->is_decl())
+				previous_pt->def = prototype;
 	}
+
+	return prototype;
 }
 
 ast::StmtBody* Syntax::parse_body(ast::StmtBody* body)

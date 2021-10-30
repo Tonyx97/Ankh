@@ -55,6 +55,7 @@ public:
 		return v;
 	}
 
+	ast::Prototype* parse_prototype();
 	ast::StmtBody* parse_body(ast::StmtBody* body);
 	ast::Base* parse_statement();
 	ast::Expr* parse_expression();
