@@ -71,9 +71,7 @@ namespace ast
 	*/
 	struct ExprDecl : public Expr
 	{
-		bool global = false;
-
-		ExprDecl(const std::string& name, const Type& type, Expr* rhs = nullptr, bool global = false) : global(global)
+		ExprDecl(const std::string& name, const Type& type, Expr* rhs = nullptr)
 		{
 			stmt_type = StmtExpr_Decl;
 			this->name = name;

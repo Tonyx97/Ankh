@@ -180,7 +180,7 @@ void ast::Printer::print_expr(Expr* expr)
 
 void ast::Printer::print_decl(ExprDecl* decl)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{}{} ({}) '{}'", decl->global ? "global" : "decl.", decl->rhs ? " assignment" : "", decl->type.str(), decl->name);
+	PRINT_TABS_NL(Yellow, curr_level, "decl.{} ({}) '{}'", decl->rhs ? " assignment" : "", decl->type.str(), decl->name);
 
 	if (decl->rhs)
 		print_expr(decl->rhs);
