@@ -23,10 +23,7 @@ void Syntax::run()
 {
 	while (!g_lexer->eof())
 	{
-		ast::Type ast_type {};
-
-		parse_type(ast_type, true);
-
+		auto type = parse_type(true);
 		auto id = g_lexer->eat_expect(Token_Id);
 
 		check(id, "Expected an id");
@@ -35,7 +32,7 @@ void Syntax::run()
 		
 		if (auto next = g_lexer->eat(); next->id == Token_ParenOpen)
 		{
-			auto prototype = _ALLOC(ast::Prototype, id_name, ast_type);
+			auto prototype = _ALLOC(ast::Prototype, id_name, type.value());
 
 			p_ctx = prototype;
 
@@ -98,9 +95,7 @@ ast::StmtBody* Syntax::parse_body(ast::StmtBody* body)
 
 ast::Base* Syntax::parse_statement()
 {
-	ast::Type ast_type {};
-
-	if (auto type = parse_type(ast_type))
+	if (auto type = parse_type())
 	{
 		auto id = g_lexer->eat_if_current_is(Token_Id);
 
@@ -108,11 +103,13 @@ ast::Base* Syntax::parse_statement()
 
 		auto expr_value = g_lexer->eat_if_current_is(Token_Assign) ? parse_expression() : nullptr;
 
-		return return_and_expect_semicolon(_ALLOC(ast::ExprDecl, id->value, ast_type, expr_value));
+		return return_and_expect_semicolon(_ALLOC(ast::ExprDecl, id->value, type.value(), expr_value));
 	}
-	else if (type = g_lexer->eat_if_current_is_keyword())
+	else if (auto curr_type = g_lexer->eat_if_current_is_keyword())
 	{
-		if (type->id == Token_If)
+		switch (curr_type->id)
+		{
+		case Token_If:
 		{
 			g_lexer->eat_expect(Token_ParenOpen);
 
@@ -151,17 +148,17 @@ ast::Base* Syntax::parse_statement()
 
 			return if_stmt;
 		}
-		else if (type->id == Token_For)
+		case Token_For:
 		{
 			g_lexer->eat_expect(Token_ParenOpen);
 
-			auto init		= g_lexer->is_current(Token_Semicolon) ? nullptr : parse_statement();	g_lexer->eat_expect(Token_Semicolon);
-			auto condition	= g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression();	g_lexer->eat_expect(Token_Semicolon);
-			auto step		= g_lexer->is_current(Token_ParenClose) ? nullptr : parse_statement();	g_lexer->eat_expect(Token_ParenClose);
+			auto init = g_lexer->is_current(Token_Semicolon) ? nullptr : parse_statement();	g_lexer->eat_expect(Token_Semicolon);
+			auto condition = g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression();	g_lexer->eat_expect(Token_Semicolon);
+			auto step = g_lexer->is_current(Token_ParenClose) ? nullptr : parse_statement();	g_lexer->eat_expect(Token_ParenClose);
 
 			return _ALLOC(ast::StmtFor, condition, init, step, parse_body(nullptr));
 		}
-		else if (type->id == Token_While)
+		case Token_While:
 		{
 			g_lexer->eat_expect(Token_ParenOpen);
 
@@ -169,7 +166,7 @@ ast::Base* Syntax::parse_statement()
 
 			return _ALLOC(ast::StmtWhile, condition, parse_body(nullptr));
 		}
-		else if (type->id == Token_Do)
+		case Token_Do:
 		{
 			auto body = parse_body(nullptr);
 
@@ -180,9 +177,9 @@ ast::Base* Syntax::parse_statement()
 
 			return _ALLOC(ast::StmtDoWhile, condition, body);
 		}
-		else if (type->id == Token_Break)		return return_and_expect_semicolon(_ALLOC(ast::StmtBreak));
-		else if (type->id == Token_Continue)	return return_and_expect_semicolon(_ALLOC(ast::StmtContinue));
-		else if (type->id == Token_Return)
+		case Token_Break:		return return_and_expect_semicolon(_ALLOC(ast::StmtBreak));
+		case Token_Continue:	return return_and_expect_semicolon(_ALLOC(ast::StmtContinue));
+		case Token_Return:
 		{
 			auto& ret = p_ctx.fn->type;
 
@@ -190,6 +187,7 @@ ast::Base* Syntax::parse_statement()
 				return _ALLOC(ast::StmtReturn, expr_value);
 
 			return return_and_expect_semicolon(_ALLOC(ast::StmtReturn, nullptr));
+		}
 		}
 	}
 	
@@ -347,22 +345,20 @@ ast::Expr* Syntax::parse_primary_expression()
 	return ret_expr;
 }
 
-Token* Syntax::parse_type(ast::Type& type_info, bool critical)
+ast::TypeOpt Syntax::parse_type(bool expect)
 {
-	auto type = critical ? g_lexer->eat_expect_keyword_declaration()
-						 : g_lexer->eat_if_current_is_type();
+	auto token = expect ? g_lexer->eat_expect_keyword_declaration()
+						: g_lexer->eat_if_current_is_type();
 
-	if (!type)
-		return nullptr;
+	if (!token)
+		return {};
 
 	int type_indirection = 0;
 
 	while (g_lexer->eat_if_current_is(Token_Mul))
 		++type_indirection;
 
-	type_info = std::move(type->to_ast_type(type_indirection));
-
-	return type;
+	return token->to_ast_type(type_indirection);
 }
 
 std::vector<ast::Expr*> Syntax::parse_prototype_params_decl()
@@ -371,9 +367,7 @@ std::vector<ast::Expr*> Syntax::parse_prototype_params_decl()
 
 	while (!g_lexer->eof())
 	{
-		ast::Type ast_type {};
-
-		auto type = parse_type(ast_type);
+		auto type = parse_type();
 		if (!type)
 			break;
 
@@ -381,7 +375,7 @@ std::vector<ast::Expr*> Syntax::parse_prototype_params_decl()
 
 		check(id, "Expected identifier");
 
-		exprs.push_back(_ALLOC(ast::ExprDecl, id->value, ast_type));
+		exprs.push_back(_ALLOC(ast::ExprDecl, id->value, type.value()));
 
 		if (!g_lexer->is_current(Token_Comma))
 			break;

@@ -62,7 +62,7 @@ public:
 	ast::Expr* parse_primary_expression();
 	ast::AST* get_ast()			{ return ast; }
 
-	Token* parse_type(ast::Type& type_info, bool critical = false);
+	ast::TypeOpt parse_type(bool expect = false);
 
 	std::vector<ast::Expr*> parse_prototype_params_decl();
 	std::vector<ast::Expr*> parse_call_params(ast::Prototype* prototype);

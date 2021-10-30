@@ -163,4 +163,6 @@ namespace ast
 
 		bool operator == (const Type& v) const			{ return is_same_type(v); }
 	};
+
+	using TypeOpt = std::optional<Type>;
 }
