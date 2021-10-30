@@ -228,36 +228,27 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 
 		if (op->flags & TokenFlag_Assignation)
 		{
-			TokenID new_operator = Token_None;
+			auto new_op = Token_None;
 
 			switch (op->id)
 			{
-			case Token_ShrAssign: new_operator = Token_Shr; break;
-			case Token_ShlAssign: new_operator = Token_Shl; break;
-			case Token_AddAssign: new_operator = Token_Add; break;
-			case Token_SubAssign: new_operator = Token_Sub; break;
-			case Token_MulAssign: new_operator = Token_Mul; break;
-			case Token_ModAssign: new_operator = Token_Mod; break;
-			case Token_DivAssign: new_operator = Token_Div; break;
-			case Token_AndAssign: new_operator = Token_And; break;
-			case Token_OrAssign: new_operator = Token_Or; break;
-			case Token_XorAssign: new_operator = Token_Xor; break;
+			case Token_ShrAssign:	new_op = Token_Shr;	break;
+			case Token_ShlAssign:	new_op = Token_Shl;	break;
+			case Token_AddAssign:	new_op = Token_Add;	break;
+			case Token_SubAssign:	new_op = Token_Sub;	break;
+			case Token_MulAssign:	new_op = Token_Mul;	break;
+			case Token_ModAssign:	new_op = Token_Mod;	break;
+			case Token_DivAssign:	new_op = Token_Div;	break;
+			case Token_AndAssign:	new_op = Token_And;	break;
+			case Token_OrAssign:	new_op = Token_Or;	break;
+			case Token_XorAssign:	new_op = Token_Xor;	break;
 			}
 
-			if (new_operator != Token_None)
-			{
-				lhs = _ALLOC(ast::ExprBinaryAssign, lhs, Token::to_bin_op_type(new_operator), rhs);
-			}
-			else
-			{
-				lhs = _ALLOC(ast::ExprAssign, lhs, rhs);
-			}
+			if (new_op != Token_None)
+				lhs = _ALLOC(ast::ExprBinaryAssign, lhs, rhs, Token::to_bin_op_type(new_op));
+			else lhs = _ALLOC(ast::ExprAssign, lhs, rhs);
 		}
-		else
-		{
-			auto op_type = op->to_bin_op_type();
-			lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op_type, lhs->type);
-		}
+		else lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op->to_bin_op_type(), lhs->type);
 	}
 
 	return lhs;
@@ -299,10 +290,7 @@ ast::Expr* Syntax::parse_primary_expression()
 
 			ret_expr = call;
 		}
-		else
-		{
-			ret_expr = _ALLOC(ast::ExprId, id->value);
-		}
+		else ret_expr = _ALLOC(ast::ExprId, id->value);
 	}
 	else if (g_lexer->eat_if_current_is(Token_ParenOpen))
 	{

@@ -6,9 +6,6 @@
 
 namespace ast
 {
-	/*
-	* Base
-	*/
 	struct Base
 	{
 		StmtExprType stmt_type = Stmt_None;
@@ -16,9 +13,6 @@ namespace ast
 		virtual ~Base() = default;
 	};
 
-	/*
-	* Expr
-	*/
 	struct Expr : public Base
 	{
 		std::string name;
@@ -34,9 +28,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type > StmtExpr_Begin && i->stmt_type < StmtExpr_End; }
 	};
 
-	/*
-	* ExprIntLiteral
-	*/
 	struct ExprIntLiteral : public Expr
 	{
 		Int integer = { 0 };
@@ -54,9 +45,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_IntLiteral; }
 	};
 
-	/*
-	* ExprId
-	*/
 	struct ExprId : public Expr
 	{
 		ExprId(const std::string& name)
@@ -68,9 +56,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_Id; }
 	};
 
-	/*
-	* ExprDecl
-	*/
 	struct ExprDecl : public Expr
 	{
 		ExprDecl(const std::string& name, const Type& type, Expr* rhs = nullptr)
@@ -86,9 +71,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_Decl; }
 	};
 
-	/*
-	* ExprAssign
-	*/
 	struct ExprAssign : public Expr
 	{
 		ExprAssign(Expr* lhs, Expr* rhs)
@@ -103,29 +85,27 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_Assign; }
 	};
 
-	/*
-	* ExprBinaryAssign
-	*/
 	struct ExprBinaryAssign : public Expr
 	{
 		BinOpType op;
 
-		ExprBinaryAssign(Expr* lhs, BinOpType op, Expr* rhs)
+		ExprBinaryAssign(Expr* lhs, Expr* rhs, BinOpType op)
 		{
-			stmt_type = StmtExpr_BinaryAssign;
+			stmt_type = StmtExpr_BinAssign;
 			this->op = op;
 			this->lhs = lhs;
 			this->rhs = rhs;
 		}
 
-		~ExprBinaryAssign() { _FREE(lhs); _FREE(rhs); }
+		~ExprBinaryAssign()
+		{
+			_FREE(lhs);
+			_FREE(rhs);
+		}
 
-		static bool check_class(Base* i) { return i->stmt_type == StmtExpr_BinaryAssign; }
+		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_BinAssign; }
 	};
-
-	/*
-	* ExprBinaryOp
-	*/
+	
 	struct ExprBinaryOp : public Expr
 	{
 		BinOpType op;
@@ -147,9 +127,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_BinOp; }
 	};
 
-	/*
-	* UnaryOp
-	*/
 	struct ExprUnaryOp : public Expr
 	{
 		UnaryOpType op;
@@ -172,9 +149,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_UnaryOp; }
 	};
 
-	/*
-	* ExprCall
-	*/
 	struct ExprCall : public Expr
 	{
 		std::vector<Expr*> exprs;
@@ -199,9 +173,6 @@ namespace ast
 		static bool check_class(Base* i)				{ return i->stmt_type == StmtExpr_Call; }
 	};
 
-	/*
-	* ExprCast
-	*/
 	struct ExprCast : public Expr
 	{
 		bool implicit = false;
@@ -215,9 +186,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == StmtExpr_Cast; }
 	};
 
-	/*
-	* StmtBody
-	*/
 	struct StmtBody : public Base
 	{
 		std::vector<Base*> stmts;
@@ -232,9 +200,6 @@ namespace ast
 		static bool check_class(Base* i) { return i->stmt_type == Stmt_Body; }
 	};
 
-	/*
-	* StmtIf
-	*/
 	struct StmtIf : public Base
 	{
 		Expr* expr = nullptr;
@@ -260,9 +225,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == Stmt_If; }
 	};
 
-	/*
-	* StmtFor
-	*/
 	struct StmtFor : public Base
 	{
 		Expr* condition = nullptr;
@@ -286,9 +248,6 @@ namespace ast
 		static bool check_class(Base* i) { return i->stmt_type == Stmt_For; }
 	};
 
-	/*
-	* StmtWhile
-	*/
 	struct StmtWhile : public Base
 	{
 		Expr* condition = nullptr;
@@ -306,9 +265,6 @@ namespace ast
 		static bool check_class(Base* i) { return i->stmt_type == Stmt_While; }
 	};
 
-	/*
-	* StmtDoWhile
-	*/
 	struct StmtDoWhile : public Base
 	{
 		Expr* condition = nullptr;
@@ -326,9 +282,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == Stmt_DoWhile; }
 	};
 
-	/*
-	* StmtBreak
-	*/
 	struct StmtBreak : public Base
 	{
 		StmtBreak()							{ stmt_type = Stmt_Break; }
@@ -336,9 +289,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == Stmt_Break; }
 	};
 
-	/*
-	* StmtContinue
-	*/
 	struct StmtContinue : public Base
 	{
 		StmtContinue()						{ stmt_type = Stmt_Continue; }
@@ -346,9 +296,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == Stmt_Continue; }
 	};
 
-	/*
-	* StmtReturn
-	*/
 	struct StmtReturn : public Base
 	{
 		Expr* expr = nullptr;
@@ -359,9 +306,6 @@ namespace ast
 		static bool check_class(Base* i)	{ return i->stmt_type == Stmt_Return; }
 	};
 
-	/*
-	* Prototype
-	*/
 	struct Prototype
 	{
 		std::vector<Expr*> params;

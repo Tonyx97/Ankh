@@ -6,6 +6,8 @@
 
 void ast::Printer::print(AST* ast)
 {
+	PRINT_NL;
+
 	for (auto prototype : ast->prototypes) print_prototype(prototype);
 }
 
@@ -249,24 +251,15 @@ void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 
 	++curr_level;
 
-	if (expr->lhs)
-	{
-		PRINT_TABS_NL(Yellow, curr_level, "left operand:");
-		print_expr(expr->lhs);
-	}
-
-	if (expr->rhs)
-	{
-		PRINT_TABS_NL(Yellow, curr_level, "right operand:");
-		print_expr(expr->rhs);
-	}
+	if (expr->lhs) print_expr(expr->lhs);
+	if (expr->rhs) print_expr(expr->rhs);
 
 	--curr_level;
 }
 
 void ast::Printer::print_expr_call(ExprCall* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "prototype Call ({})", expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "prototype call ({})", expr->name);
 
 	for (auto param : expr->exprs)
 	{
