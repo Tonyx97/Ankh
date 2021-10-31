@@ -162,6 +162,7 @@ namespace ast
 		std::string str_full() const					{ return str() + indirection_str(); }
 
 		bool operator == (const Type& v) const			{ return is_same_type(v); }
+		bool operator == (TypeID v) const				{ return is_same_type(v); }
 	};
 
 	using TypeOpt = std::optional<Type>;

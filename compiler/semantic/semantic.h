@@ -11,7 +11,7 @@ namespace semantic
 
 		ast::Prototype* pt = nullptr;
 
-		void set_id_type(const std::string& id, ast::Type type);
+		void set_id_type(const std::string& id, const ast::Type& type);
 
 		ast::TypeOpt get_id_type(const std::string& id);
 
@@ -82,8 +82,8 @@ private:
 	ast::Type get_expr_type(ast::Expr* expr);
 	ast::Type get_id_type(const std::string& id);
 
-	ast::Expr* implicit_cast(ast::Expr* expr, ast::Type type);
-	void implicit_cast_replace(ast::Expr*& expr, ast::Type type);
+	ast::Expr* implicit_cast(ast::Expr* expr, const ast::Type& type);
+	void implicit_cast_replace(ast::Expr*& expr, const ast::Type& type);
 
 public:
 

@@ -22,7 +22,7 @@ void Semantic::analyze_function(ast::Prototype* function)
 {
 	p_ctx = function;
 
-	for (const auto parameter : function->params) 
+	for (auto parameter : function->params) 
 		p_ctx.set_id_type(parameter->name, parameter->type);
 
 	analyze_body(function->body, semantic::BodyData{});
@@ -98,11 +98,11 @@ void Semantic::analyze_do_while(ast::StmtDoWhile* stmt, semantic::BodyData data)
 
 void Semantic::analyze_return(ast::StmtReturn* stmt, semantic::BodyData data)
 {
-	auto return_type = p_ctx.pt->type;
+	const auto& return_type = p_ctx.pt->type;
 
 	if (stmt->expr)
 		implicit_cast_replace(stmt->expr, return_type);
-	else if (return_type.is_same_type(TypeID::Type_Void))
+	else if (return_type == Type_Void)
 		add_error("Cannot return void from non void function.");
 }
 
@@ -132,23 +132,26 @@ void Semantic::analyze_expr_id(ast::ExprId* expr)
 
 void Semantic::analyze_expr_decl(ast::ExprDecl* expr) 
 {
-	// Already has type filled.
+	if (p_ctx.get_id_type(expr->name))
+		add_error("Identifier '{}' redefined", expr->name);
+	else
+	{
+		p_ctx.set_id_type(expr->name, expr->type);
 
-	p_ctx.set_id_type(expr->name, expr->type);
-	implicit_cast_replace(expr->rhs, expr->type);
+		implicit_cast_replace(expr->rhs, expr->type);
+	}
 }
 
 void Semantic::analyze_expr_assign(ast::ExprAssign* expr) 
 {
-	const auto lhs_type = get_expr_type(expr->lhs);
-	implicit_cast_replace(expr->rhs, lhs_type);
+	const auto& lhs_type = expr->type = get_expr_type(expr->lhs);
 
-	expr->type = lhs_type;
+	implicit_cast_replace(expr->rhs, lhs_type);
 }
 
 void Semantic::analyze_expr_bin_assign(ast::ExprBinaryAssign* expr) 
 {
-	auto lhs_type = expr->type = get_expr_type(expr->lhs);
+	const auto& lhs_type = expr->type = get_expr_type(expr->lhs);
 
 	implicit_cast_replace(expr->rhs, lhs_type);
 }
@@ -220,7 +223,7 @@ ast::Type Semantic::get_expr_type(ast::Expr* expr)
 
 ast::Type Semantic::get_id_type(const std::string& id)
 {
-	if (const auto type = p_ctx.get_id_type(id))
+	if (auto type = p_ctx.get_id_type(id))
 		return *type;
 
 	add_error("Undefined identifier {} used.", id);
@@ -228,9 +231,9 @@ ast::Type Semantic::get_id_type(const std::string& id)
 	return ast::Type(Type_None, 0);
 }
 
-ast::Expr* Semantic::implicit_cast(ast::Expr* expr, ast::Type type)
+ast::Expr* Semantic::implicit_cast(ast::Expr* expr, const ast::Type& type)
 {
-	const auto source_type = get_expr_type(expr);
+	const auto& source_type = get_expr_type(expr);
 
 	if (source_type == type)
 		return expr;
@@ -244,7 +247,7 @@ ast::Expr* Semantic::implicit_cast(ast::Expr* expr, ast::Type type)
 	return _ALLOC(ast::ExprCast, expr, type, true);
 }
 
-void Semantic::implicit_cast_replace(ast::Expr*& expr, ast::Type type)
+void Semantic::implicit_cast_replace(ast::Expr*& expr, const ast::Type& type)
 {
 	expr = implicit_cast(expr, type);
 }
@@ -268,7 +271,7 @@ bool Semantic::run()
 	return errors.empty();
 }
 
-void semantic::PrototypeInfo::set_id_type(const std::string& id, ast::Type type)
+void semantic::PrototypeInfo::set_id_type(const std::string& id, const ast::Type& type)
 {
 	if (auto it = id_types.find(id); it == id_types.end())
 		id_types[id] = type;
