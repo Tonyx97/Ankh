@@ -15,11 +15,12 @@ namespace semantic
 
 		ast::TypeOpt get_id_type(const std::string& id);
 
-		void clear()
+		PrototypeInfo& operator = (ast::Prototype* prototype)
 		{
 			id_types.clear();
 			analyzed_exprs.clear();
-			pt = nullptr;
+			pt = prototype;
+			return *this;
 		}
 	};
 
@@ -32,16 +33,14 @@ namespace semantic
 		ast::Prototype* get_prototype(const std::string& name)
 		{
 			const auto it = prototypes.find(name);
-			if (it == prototypes.end())
-				return nullptr;
-
-			return it->second;
+			return (it == prototypes.end() ? nullptr : it->second);
 		}
 	};
 
 	struct BodyData 
 	{
 		int depth = 0;
+
 		bool is_in_loop = false;
 	};
 }

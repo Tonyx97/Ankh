@@ -20,8 +20,7 @@ void Semantic::exit_scope()
 
 void Semantic::analyze_function(ast::Prototype* function)
 {
-	p_ctx.clear();
-	p_ctx.pt = function;
+	p_ctx = function;
 
 	for (const auto parameter : function->params) 
 		p_ctx.set_id_type(parameter->name, parameter->type);
@@ -35,8 +34,7 @@ void Semantic::analyze_body(ast::StmtBody* body, semantic::BodyData body_data)
 
 	for (auto stmt : body->stmts)
 	{
-		if (auto body = rtti::cast<ast::StmtBody>(stmt))
-			analyze_body(body, semantic::BodyData{body_data.depth + 1, body_data.is_in_loop});
+		if (auto body = rtti::cast<ast::StmtBody>(stmt))					analyze_body(body, semantic::BodyData { body_data.depth + 1, body_data.is_in_loop });
 		else if (auto expr = rtti::cast<ast::Expr>(stmt))					analyze_expr(expr);
 		else if (auto stmt_if = rtti::cast<ast::StmtIf>(stmt))				analyze_if(stmt_if, body_data);
 		else if (auto stmt_for = rtti::cast<ast::StmtFor>(stmt))			analyze_for(stmt_for, body_data);
@@ -62,7 +60,7 @@ void Semantic::analyze_if(ast::StmtIf* stmt, semantic::BodyData data)
 	for (auto if_ : stmt->ifs)
 		analyze_if(if_, data);
 
-	const auto new_data = semantic::BodyData{ data.depth + 1, data.is_in_loop };
+	const auto new_data = semantic::BodyData { data.depth + 1, data.is_in_loop };
 
 	analyze_body(stmt->if_body, new_data);
 	analyze_body(stmt->else_body, new_data);
@@ -102,15 +100,10 @@ void Semantic::analyze_return(ast::StmtReturn* stmt, semantic::BodyData data)
 {
 	auto return_type = p_ctx.pt->type;
 
-	if (!stmt->expr)
-	{
-		if (return_type.is_same_type(TypeID::Type_Void))
-			add_error("Cannot return void from non void function.");
-	}
-	else
-	{
+	if (stmt->expr)
 		implicit_cast_replace(stmt->expr, return_type);
-	}
+	else if (return_type.is_same_type(TypeID::Type_Void))
+		add_error("Cannot return void from non void function.");
 }
 
 void Semantic::analyze_expr(ast::Expr* expr)
@@ -155,25 +148,23 @@ void Semantic::analyze_expr_assign(ast::ExprAssign* expr)
 
 void Semantic::analyze_expr_bin_assign(ast::ExprBinaryAssign* expr) 
 {
-	auto lhs_type = get_expr_type(expr->lhs);
-	implicit_cast_replace(expr->rhs, lhs_type);
+	auto lhs_type = expr->type = get_expr_type(expr->lhs);
 
-	expr->type = lhs_type;
+	implicit_cast_replace(expr->rhs, lhs_type);
 }
 
-void Semantic::analyze_expr_bin_op(ast::ExprBinaryOp* expr) {
+void Semantic::analyze_expr_bin_op(ast::ExprBinaryOp* expr)
+{
 	// TODO: 
 	// 1. Check if types are arithmetic
 	// 2. Handle +/- for pointers
 
 	auto lhs_type = get_expr_type(expr->lhs);
 	auto rhs_type = get_expr_type(expr->rhs);
-	auto common_type = *lhs_type.binary_implicit_cast(rhs_type);
+	auto common_type = expr->type = *lhs_type.binary_implicit_cast(rhs_type);
 
 	implicit_cast_replace(expr->lhs, common_type);
 	implicit_cast_replace(expr->rhs, common_type);
-
-	expr->type = common_type;
 }
 
 void Semantic::analyze_expr_unary_op(ast::ExprUnaryOp* expr) 
@@ -186,9 +177,7 @@ void Semantic::analyze_expr_unary_op(ast::ExprUnaryOp* expr)
 		type.decrease_indirection();
 	}
 	else if (expr->op == UnaryOpType_And)
-	{
 		type.increase_indirection();
-	}
 
 	expr->type = type;
 }
@@ -198,20 +187,21 @@ void Semantic::analyze_expr_call(ast::ExprCall* expr)
 	for (auto param : expr->exprs)
 		analyze_expr(param);
 
-	const auto prototype = g_ctx.get_prototype(expr->name);
-	if (!prototype)
+	if (const auto prototype = g_ctx.get_prototype(expr->name))
+	{
+		check(expr->exprs.size() == prototype->params.size(), "Invalid parameter count.");
+
+		for (int i = 0; i < expr->exprs.size(); ++i)
+			implicit_cast_replace(expr->exprs[i], get_expr_type(prototype->params[i]));
+
+		expr->prototype = prototype;
+		expr->type = prototype->type;
+	}
+	else
 	{
 		add_error("Cannot call unknown function {}.", expr->name);
 		return;
 	}
-
-	check(expr->exprs.size() == prototype->params.size(), "Invalid parameter count.");
-
-	for (int i = 0; i < expr->exprs.size(); ++i)
-		implicit_cast_replace(expr->exprs[i], get_expr_type(prototype->params[i]));
-
-	expr->prototype = prototype;
-	expr->type = prototype->type;
 }
 
 void Semantic::analyze_expr_cast(ast::ExprCast* expr)
@@ -230,17 +220,12 @@ ast::Type Semantic::get_expr_type(ast::Expr* expr)
 
 ast::Type Semantic::get_id_type(const std::string& id)
 {
-	const auto type = p_ctx.get_id_type(id);
-
-	if (type)
-	{
+	if (const auto type = p_ctx.get_id_type(id))
 		return *type;
-	}
-	else
-	{
-		add_error("Undefined identifier {} used.", id);
-		return ast::Type(Type_None, 0);
-	}
+
+	add_error("Undefined identifier {} used.", id);
+
+	return ast::Type(Type_None, 0);
 }
 
 ast::Expr* Semantic::implicit_cast(ast::Expr* expr, ast::Type type)
@@ -275,31 +260,26 @@ bool Semantic::run()
 	{
 		if (prototype->body)
 			analyze_function(prototype);
-		else
-			add_error("Function {} doesn't have a body.", prototype->name);
+		else add_error("Function {} doesn't have a body.", prototype->name);
 	}
+
+	p_ctx = nullptr;
 
 	return errors.empty();
 }
 
 void semantic::PrototypeInfo::set_id_type(const std::string& id, ast::Type type)
 {
-	auto it = id_types.find(id);
-	if (it == id_types.end())
-	{
+	if (auto it = id_types.find(id); it == id_types.end())
 		id_types[id] = type;
-		return;
-	}
-
-	if (it->second != type)
-	{
+	else if (it->second != type)
 		g_semantic->add_error("ID {} has differing types.", id);
-	}
 }
 
 ast::TypeOpt semantic::PrototypeInfo::get_id_type(const std::string& id)
 {
 	auto it = id_types.find(id);
+
 	if (it == id_types.end())
 		return std::nullopt;
 

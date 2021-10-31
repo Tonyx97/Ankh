@@ -45,29 +45,22 @@ ast::Prototype* Syntax::parse_prototype()
 
 	g_lexer->eat_expect(Token_ParenClose);
 
-	// we add the prototype here because a call inside this prototype
-	// could make it recursive
-
 	auto prev_prototype = g_ctx.get_prototype(id_name);
-	if (!prev_prototype)
-	{
-		g_ctx.add_prototype(prototype);
-	}
-	else
+
+	if (prev_prototype)
 	{
 		check(prototype->type == prev_prototype->type, "Function {} has mismatched return types.", prototype->name);
 		check(prototype->params.size() == prev_prototype->params.size(), "Function {} has different number of parameters.", prototype->name);
 
-		for (int i = 0; i < prototype->params.size(); ++i) 
-		{
+		for (int i = 0; i < prototype->params.size(); ++i)
 			check(prototype->params[i]->type == prev_prototype->params[i]->type,
 				"Function {} has mismatched parameters.", prototype->name);
-		}
 
 		_FREE(prototype);
 
 		prototype = prev_prototype;
 	}
+	else g_ctx.add_prototype(prototype);
 
 	if (!g_lexer->eat_if_current_is(Token_Semicolon))
 	{

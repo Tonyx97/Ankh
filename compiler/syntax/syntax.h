@@ -4,17 +4,6 @@
 
 namespace syntax
 {
-	struct PrototypeContext
-	{
-		ast::Prototype* fn = nullptr;
-
-		PrototypeContext& operator = (ast::Prototype* prototype)
-		{
-			fn = prototype;
-			return *this;
-		}
-	};
-
 	struct GlobalContext
 	{
 		std::unordered_map<std::string, ast::Prototype*> prototypes;
