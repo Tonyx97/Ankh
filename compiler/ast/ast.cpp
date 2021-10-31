@@ -281,10 +281,9 @@ void ast::Printer::print_expr_call(ExprCall* expr)
 
 void ast::Printer::print_cast(ExprCast* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} {} to {}",
+	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} to {}",
 		expr->implicit ? "implicit" : "explicit",
 		expr->rhs->type.str(),
-		expr->rhs->name,
 		expr->type.str());
 
 	print_expr(expr->rhs);

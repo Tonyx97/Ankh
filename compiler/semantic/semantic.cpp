@@ -25,30 +25,36 @@ void Semantic::analyze_function(ast::Prototype* function)
 	for (auto parameter : function->params) 
 		p_ctx.set_id_type(parameter->name, parameter->type);
 
-	analyze_body(function->body, semantic::BodyData{});
+	analyze_body(function->body, semantic::BodyData {});
 }
 
 void Semantic::analyze_body(ast::StmtBody* body, semantic::BodyData body_data)
 {
+	if (!body)
+		return;
+
 	enter_scope();
 
 	for (auto stmt : body->stmts)
-	{
-		if (auto body = rtti::cast<ast::StmtBody>(stmt))					analyze_body(body, semantic::BodyData { body_data.depth + 1, body_data.is_in_loop });
-		else if (auto expr = rtti::cast<ast::Expr>(stmt))					analyze_expr(expr);
-		else if (auto stmt_if = rtti::cast<ast::StmtIf>(stmt))				analyze_if(stmt_if, body_data);
-		else if (auto stmt_for = rtti::cast<ast::StmtFor>(stmt))			analyze_for(stmt_for, body_data);
-		else if (auto stmt_while = rtti::cast<ast::StmtWhile>(stmt))		analyze_while(stmt_while, body_data);
-		else if (auto stmt_do_while = rtti::cast<ast::StmtDoWhile>(stmt))	analyze_do_while(stmt_do_while, body_data);
-		else if (auto stmt_return = rtti::cast<ast::StmtReturn>(stmt))		analyze_return(stmt_return, body_data);
-		else if (rtti::cast<ast::StmtContinue>(stmt) || rtti::cast<ast::StmtBreak>(stmt))
-		{
-			if (!body_data.is_in_loop)
-				add_error("Cannot use continue and break when not in loop.");
-		}
-	}
+		analyze_stmt(stmt, body_data);
 
 	exit_scope();
+}
+
+void Semantic::analyze_stmt(ast::Base* stmt, semantic::BodyData data)
+{
+	if (auto body = rtti::cast<ast::StmtBody>(stmt))					analyze_body(body, semantic::BodyData { data.depth + 1, data.is_in_loop });
+	else if (auto expr = rtti::cast<ast::Expr>(stmt))					analyze_expr(expr);
+	else if (auto stmt_if = rtti::cast<ast::StmtIf>(stmt))				analyze_if(stmt_if, data);
+	else if (auto stmt_for = rtti::cast<ast::StmtFor>(stmt))			analyze_for(stmt_for, data);
+	else if (auto stmt_while = rtti::cast<ast::StmtWhile>(stmt))		analyze_while(stmt_while, data);
+	else if (auto stmt_do_while = rtti::cast<ast::StmtDoWhile>(stmt))	analyze_do_while(stmt_do_while, data);
+	else if (auto stmt_return = rtti::cast<ast::StmtReturn>(stmt))		analyze_return(stmt_return, data);
+	else if (rtti::cast<ast::StmtContinue>(stmt) || rtti::cast<ast::StmtBreak>(stmt))
+	{
+		if (!data.is_in_loop)
+			add_error("Cannot use continue and break when not in loop.");
+	}
 }
 
 void Semantic::analyze_if(ast::StmtIf* stmt, semantic::BodyData data)
@@ -72,7 +78,10 @@ void Semantic::analyze_for(ast::StmtFor* stmt, semantic::BodyData data)
 {
 	enter_scope();
 
-	check(false, "TODO");
+	analyze_stmt(stmt->init, data);
+	analyze_expr(stmt->condition);
+	analyze_stmt(stmt->step, data);
+	analyze_body(stmt->body, data);
 
 	exit_scope();
 }
@@ -82,7 +91,7 @@ void Semantic::analyze_while(ast::StmtWhile* stmt, semantic::BodyData data)
 	enter_scope();
 
 	analyze_expr(stmt->condition);
-	analyze_body(stmt->body, semantic::BodyData{ data.depth + 1, true });
+	analyze_body(stmt->body, semantic::BodyData { data.depth + 1, true });
 
 	exit_scope();
 }
@@ -91,7 +100,8 @@ void Semantic::analyze_do_while(ast::StmtDoWhile* stmt, semantic::BodyData data)
 {
 	enter_scope();
 
-	check(false, "TODO");
+	analyze_expr(stmt->condition);
+	analyze_body(stmt->body, semantic::BodyData { data.depth + 1, true });
 
 	exit_scope();
 }
@@ -122,7 +132,7 @@ void Semantic::analyze_expr(ast::Expr* expr)
 	else if (auto c_expr = rtti::cast<ast::ExprCall>(expr))			analyze_expr_call(c_expr);
 	else if (auto c_expr = rtti::cast<ast::ExprCast>(expr))			analyze_expr_cast(c_expr);
 
-	check(expr->type.type != Type_None, "???");
+	//check(expr->type.type != Type_None, "???");
 }
 
 void Semantic::analyze_expr_id(ast::ExprId* expr) 
@@ -138,7 +148,8 @@ void Semantic::analyze_expr_decl(ast::ExprDecl* expr)
 	{
 		p_ctx.set_id_type(expr->name, expr->type);
 
-		implicit_cast_replace(expr->rhs, expr->type);
+		if (expr->rhs)
+			implicit_cast_replace(expr->rhs, expr->type);
 	}
 }
 
@@ -159,15 +170,19 @@ void Semantic::analyze_expr_bin_assign(ast::ExprBinaryAssign* expr)
 void Semantic::analyze_expr_bin_op(ast::ExprBinaryOp* expr)
 {
 	// TODO: 
-	// 1. Check if types are arithmetic
 	// 2. Handle +/- for pointers
 
 	auto lhs_type = get_expr_type(expr->lhs);
 	auto rhs_type = get_expr_type(expr->rhs);
-	auto common_type = expr->type = *lhs_type.binary_implicit_cast(rhs_type);
 
-	implicit_cast_replace(expr->lhs, common_type);
-	implicit_cast_replace(expr->rhs, common_type);
+	if (lhs_type.is_arithmetic() && rhs_type.is_arithmetic())
+	{
+		const auto& common_type = expr->type = *lhs_type.binary_implicit_cast(rhs_type);
+
+		implicit_cast_replace(expr->lhs, common_type);
+		implicit_cast_replace(expr->rhs, common_type);
+	}
+	else add_error("Binary operation must treat with arithmetic types only");
 }
 
 void Semantic::analyze_expr_unary_op(ast::ExprUnaryOp* expr) 
@@ -216,7 +231,7 @@ ast::Type Semantic::get_expr_type(ast::Expr* expr)
 {
 	analyze_expr(expr);
 
-	check(expr->type.type != Type_None, "???");
+	//check(expr->type.type != Type_None, "???");
 
 	return expr->type;
 }
@@ -226,7 +241,7 @@ ast::Type Semantic::get_id_type(const std::string& id)
 	if (auto type = p_ctx.get_id_type(id))
 		return *type;
 
-	add_error("Undefined identifier {} used.", id);
+	add_error("Undefined identifier '{}' used", id);
 
 	return ast::Type(Type_None, 0);
 }

@@ -39,7 +39,11 @@ public:
 	template <typename T>
 	T* return_and_expect_semicolon(T* v)
 	{
+		if (!v)
+			return nullptr;
+
 		g_ctx.expect_semicolon = true;
+
 		return v;
 	}
 

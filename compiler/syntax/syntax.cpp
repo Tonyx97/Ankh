@@ -165,9 +165,9 @@ ast::Base* Syntax::parse_statement()
 		{
 			g_lexer->eat_expect(Token_ParenOpen);
 
-			auto init = g_lexer->is_current(Token_Semicolon) ? nullptr : parse_statement();	g_lexer->eat_expect(Token_Semicolon);
-			auto condition = g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression();	g_lexer->eat_expect(Token_Semicolon);
-			auto step = g_lexer->is_current(Token_ParenClose) ? nullptr : parse_statement();	g_lexer->eat_expect(Token_ParenClose);
+			auto init		= g_lexer->is_current(Token_Semicolon) ? nullptr : parse_statement();	g_lexer->eat_expect(Token_Semicolon);
+			auto condition	= g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression();	g_lexer->eat_expect(Token_Semicolon);
+			auto step		= g_lexer->is_current(Token_ParenClose) ? nullptr : parse_statement();	g_lexer->eat_expect(Token_ParenClose);
 
 			return _ALLOC(ast::StmtFor, condition, init, step, parse_body(nullptr));
 		}

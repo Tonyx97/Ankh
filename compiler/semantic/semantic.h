@@ -63,6 +63,8 @@ private:
 
 	void analyze_body(ast::StmtBody* body, semantic::BodyData data);
 
+	void analyze_stmt(ast::Base* stmt, semantic::BodyData data);
+
 	void analyze_if(ast::StmtIf* stmt, semantic::BodyData data);
 	void analyze_for(ast::StmtFor* stmt, semantic::BodyData data);
 	void analyze_while(ast::StmtWhile* stmt, semantic::BodyData data);

@@ -45,6 +45,22 @@ namespace ast
 
 		bool is_same_type(const Type& v) const			{ return type == v.type && indirection == v.indirection; }
 		bool is_same_type(TypeID v) const				{ return type == v && indirection == 0; }
+		bool is_arithmetic() const
+		{
+			switch (type)
+			{
+			case Type_u8:
+			case Type_i8:
+			case Type_u16:
+			case Type_i16:
+			case Type_u32:
+			case Type_i32:
+			case Type_u64:
+			case Type_i64:	return true;
+			}
+
+			return false;
+		}
 
 		size_t get_size() const
 		{
