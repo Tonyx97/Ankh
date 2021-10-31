@@ -10,7 +10,6 @@ namespace ast
 		StmtExpr,
 		StmtExpr_Begin,
 			StmtExpr_IntLiteral,
-			StmtExpr_StaticValue,
 			StmtExpr_Id,
 			StmtExpr_Decl,
 			StmtExpr_Assign,
@@ -83,7 +82,7 @@ namespace ast
 			auto rhs_type = rhs.type;
 
 			if (lhs_type == rhs_type)
-				return nullptr;
+				return &lhs;
 
 			const bool lhs_signed = !(lhs.flags & TypeFlag_Unsigned),
 					   rhs_signed = !(rhs.flags & TypeFlag_Unsigned);
@@ -118,7 +117,7 @@ namespace ast
 				else												return signed_t;
 			}
 
-			return nullptr;
+			return &lhs;
 		}
 
 		ir::Type to_ir_type(int indirection = 0) const

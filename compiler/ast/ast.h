@@ -157,11 +157,10 @@ namespace ast
 
 		bool intrinsic = false;
 
-		ExprCall(Prototype* prototype, const std::string& name, const Type& type, bool built_in = false) : prototype(prototype), intrinsic(intrinsic)
+		ExprCall(const std::string& name, bool built_in = false) : prototype(prototype), intrinsic(intrinsic)
 		{
 			stmt_type = StmtExpr_Call;
 			this->name = name;
-			this->type = type;
 		}
 
 		~ExprCall()
@@ -311,8 +310,6 @@ namespace ast
 		std::vector<Expr*> params;
 
 		std::string name;
-
-		Prototype* def = nullptr;
 
 		StmtBody* body = nullptr;
 

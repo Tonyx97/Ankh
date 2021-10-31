@@ -35,7 +35,6 @@ class Syntax
 {
 private:
 
-	syntax::PrototypeContext p_ctx {};
 	syntax::GlobalContext g_ctx {};
 
 	ast::AST* ast = nullptr;
@@ -66,7 +65,7 @@ public:
 	ast::TypeOpt parse_type(bool expect = false);
 
 	std::vector<ast::Expr*> parse_prototype_params_decl();
-	std::vector<ast::Expr*> parse_call_params(ast::Prototype* prototype);
+	std::vector<ast::Expr*> parse_call_params();
 };
 
 inline std::unique_ptr<Syntax> g_syntax;

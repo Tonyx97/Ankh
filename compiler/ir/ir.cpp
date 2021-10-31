@@ -35,7 +35,8 @@ void IR::add_prototype(ir::Prototype* prototype)
 ir::Prototype* IR::generate_prototype(ast::Prototype* ast_prototype)
 {
 	if (ast_prototype->is_decl())
-		return generate_prototype(ast_prototype->def);
+		check(false, "TODO");
+		//	return generate_prototype(ast_prototype->def);
 
 	auto prototype = ctx.pt = _ALLOC(ir::Prototype);
 

@@ -10,9 +10,258 @@ void Semantic::print_errors()
 		PRINT(Red, err);
 }
 
-void Semantic::add_variable(ast::ExprDecl* expr)
+void Semantic::enter_scope()
 {
-	p_ctx.decls.insert({ expr->name, expr });
+}
+
+void Semantic::exit_scope()
+{
+}
+
+void Semantic::analyze_function(ast::Prototype* function)
+{
+	p_ctx.clear();
+	p_ctx.pt = function;
+
+	for (const auto parameter : function->params) 
+		p_ctx.set_id_type(parameter->name, parameter->type);
+
+	analyze_body(function->body, semantic::BodyData{});
+}
+
+void Semantic::analyze_body(ast::StmtBody* body, semantic::BodyData body_data)
+{
+	enter_scope();
+
+	for (auto stmt : body->stmts)
+	{
+		if (auto body = rtti::cast<ast::StmtBody>(stmt))
+			analyze_body(body, semantic::BodyData{body_data.depth + 1, body_data.is_in_loop});
+		else if (auto expr = rtti::cast<ast::Expr>(stmt))					analyze_expr(expr);
+		else if (auto stmt_if = rtti::cast<ast::StmtIf>(stmt))				analyze_if(stmt_if, body_data);
+		else if (auto stmt_for = rtti::cast<ast::StmtFor>(stmt))			analyze_for(stmt_for, body_data);
+		else if (auto stmt_while = rtti::cast<ast::StmtWhile>(stmt))		analyze_while(stmt_while, body_data);
+		else if (auto stmt_do_while = rtti::cast<ast::StmtDoWhile>(stmt))	analyze_do_while(stmt_do_while, body_data);
+		else if (auto stmt_return = rtti::cast<ast::StmtReturn>(stmt))		analyze_return(stmt_return, body_data);
+		else if (rtti::cast<ast::StmtContinue>(stmt) || rtti::cast<ast::StmtBreak>(stmt))
+		{
+			if (!body_data.is_in_loop)
+				add_error("Cannot use continue and break when not in loop.");
+		}
+	}
+
+	exit_scope();
+}
+
+void Semantic::analyze_if(ast::StmtIf* stmt, semantic::BodyData data)
+{
+	enter_scope();
+
+	analyze_expr(stmt->expr);
+
+	for (auto if_ : stmt->ifs)
+		analyze_if(if_, data);
+
+	const auto new_data = semantic::BodyData{ data.depth + 1, data.is_in_loop };
+
+	analyze_body(stmt->if_body, new_data);
+	analyze_body(stmt->else_body, new_data);
+
+	exit_scope();
+}
+
+void Semantic::analyze_for(ast::StmtFor* stmt, semantic::BodyData data)
+{
+	enter_scope();
+
+	check(false, "TODO");
+
+	exit_scope();
+}
+
+void Semantic::analyze_while(ast::StmtWhile* stmt, semantic::BodyData data)
+{
+	enter_scope();
+
+	analyze_expr(stmt->condition);
+	analyze_body(stmt->body, semantic::BodyData{ data.depth + 1, true });
+
+	exit_scope();
+}
+
+void Semantic::analyze_do_while(ast::StmtDoWhile* stmt, semantic::BodyData data)
+{
+	enter_scope();
+
+	check(false, "TODO");
+
+	exit_scope();
+}
+
+void Semantic::analyze_return(ast::StmtReturn* stmt, semantic::BodyData data)
+{
+	auto return_type = p_ctx.pt->type;
+
+	if (!stmt->expr)
+	{
+		if (return_type.is_same_type(TypeID::Type_Void))
+			add_error("Cannot return void from non void function.");
+	}
+	else
+	{
+		implicit_cast_replace(stmt->expr, return_type);
+	}
+}
+
+void Semantic::analyze_expr(ast::Expr* expr)
+{
+	if (!expr || p_ctx.analyzed_exprs.find(expr) != p_ctx.analyzed_exprs.end())
+		return;
+
+	p_ctx.analyzed_exprs.insert(expr);
+
+	if (auto c_expr = rtti::cast<ast::ExprId>(expr))				analyze_expr_id(c_expr);
+	else if (auto c_expr = rtti::cast<ast::ExprDecl>(expr))			analyze_expr_decl(c_expr);
+	else if (auto c_expr = rtti::cast<ast::ExprAssign>(expr))		analyze_expr_assign(c_expr);
+	else if (auto c_expr = rtti::cast<ast::ExprBinaryAssign>(expr)) analyze_expr_bin_assign(c_expr);
+	else if (auto c_expr = rtti::cast<ast::ExprBinaryOp>(expr))		analyze_expr_bin_op(c_expr);
+	else if (auto c_expr = rtti::cast<ast::ExprUnaryOp>(expr))		analyze_expr_unary_op(c_expr);
+	else if (auto c_expr = rtti::cast<ast::ExprCall>(expr))			analyze_expr_call(c_expr);
+	else if (auto c_expr = rtti::cast<ast::ExprCast>(expr))			analyze_expr_cast(c_expr);
+
+	check(expr->type.type != Type_None, "???");
+}
+
+void Semantic::analyze_expr_id(ast::ExprId* expr) 
+{
+	expr->type = get_id_type(expr->name);
+}
+
+void Semantic::analyze_expr_decl(ast::ExprDecl* expr) 
+{
+	// Already has type filled.
+
+	p_ctx.set_id_type(expr->name, expr->type);
+	implicit_cast_replace(expr->rhs, expr->type);
+}
+
+void Semantic::analyze_expr_assign(ast::ExprAssign* expr) 
+{
+	const auto lhs_type = get_expr_type(expr->lhs);
+	implicit_cast_replace(expr->rhs, lhs_type);
+
+	expr->type = lhs_type;
+}
+
+void Semantic::analyze_expr_bin_assign(ast::ExprBinaryAssign* expr) 
+{
+	auto lhs_type = get_expr_type(expr->lhs);
+	implicit_cast_replace(expr->rhs, lhs_type);
+
+	expr->type = lhs_type;
+}
+
+void Semantic::analyze_expr_bin_op(ast::ExprBinaryOp* expr) {
+	// TODO: 
+	// 1. Check if types are arithmetic
+	// 2. Handle +/- for pointers
+
+	auto lhs_type = get_expr_type(expr->lhs);
+	auto rhs_type = get_expr_type(expr->rhs);
+	auto common_type = *lhs_type.binary_implicit_cast(rhs_type);
+
+	implicit_cast_replace(expr->lhs, common_type);
+	implicit_cast_replace(expr->rhs, common_type);
+
+	expr->type = common_type;
+}
+
+void Semantic::analyze_expr_unary_op(ast::ExprUnaryOp* expr) 
+{
+	auto type = get_expr_type(expr->lhs ? expr->lhs : expr->rhs);
+
+	if (expr->op == UnaryOpType_Mul) 
+	{
+		check(type.indirection > 0, "Cannot deref non-pointer.");
+		type.decrease_indirection();
+	}
+	else if (expr->op == UnaryOpType_And)
+	{
+		type.increase_indirection();
+	}
+
+	expr->type = type;
+}
+
+void Semantic::analyze_expr_call(ast::ExprCall* expr) 
+{
+	for (auto param : expr->exprs)
+		analyze_expr(param);
+
+	const auto prototype = g_ctx.get_prototype(expr->name);
+	if (!prototype)
+	{
+		add_error("Cannot call unknown function {}.", expr->name);
+		return;
+	}
+
+	check(expr->exprs.size() == prototype->params.size(), "Invalid parameter count.");
+
+	for (int i = 0; i < expr->exprs.size(); ++i)
+		implicit_cast_replace(expr->exprs[i], get_expr_type(prototype->params[i]));
+
+	expr->prototype = prototype;
+	expr->type = prototype->type;
+}
+
+void Semantic::analyze_expr_cast(ast::ExprCast* expr)
+{
+	analyze_expr(expr->rhs);
+}
+
+ast::Type Semantic::get_expr_type(ast::Expr* expr)
+{
+	analyze_expr(expr);
+
+	check(expr->type.type != Type_None, "???");
+
+	return expr->type;
+}
+
+ast::Type Semantic::get_id_type(const std::string& id)
+{
+	const auto type = p_ctx.get_id_type(id);
+
+	if (type)
+	{
+		return *type;
+	}
+	else
+	{
+		add_error("Undefined identifier {} used.", id);
+		return ast::Type(Type_None, 0);
+	}
+}
+
+ast::Expr* Semantic::implicit_cast(ast::Expr* expr, ast::Type type)
+{
+	const auto source_type = get_expr_type(expr);
+
+	if (source_type == type)
+		return expr;
+
+	if (source_type.indirection > 0 || type.indirection > 0)
+	{
+		add_error("Cannot implicit cast pointers.");
+		return expr;
+	}
+
+	return _ALLOC(ast::ExprCast, expr, type, true);
+}
+
+void Semantic::implicit_cast_replace(ast::Expr*& expr, ast::Type type)
+{
+	expr = implicit_cast(expr, type);
 }
 
 bool Semantic::run()
@@ -20,250 +269,39 @@ bool Semantic::run()
 	ast = g_syntax->get_ast();
 
 	for (auto prototype : ast->prototypes)
-		analyze_prototype(prototype);
+		g_ctx.add_prototype(prototype);
 
-	for (const auto& [name, prototype_decl] : g_ctx.prototype_decls)
-		if (auto it = g_ctx.prototype_defs.find(name); it == g_ctx.prototype_defs.end())
-		{
-			if (g_ctx.calls.find(name) == g_ctx.calls.end())
-				add_error("Unresolved prototype '{}' declared", name);
-			else add_error("Unresolved prototype '{}' referenced", name);
-		}
-		else if (auto prototype_def = it->second; !prototype_def->type.is_same_type(prototype_decl->type))
-			add_error("Cannot overload prototype '{}' by return type alone", name);
+	for (auto prototype : ast->prototypes)
+	{
+		if (prototype->body)
+			analyze_function(prototype);
+		else
+			add_error("Function {} doesn't have a body.", prototype->name);
+	}
 
 	return errors.empty();
 }
 
-bool Semantic::analyze_prototype(ast::Prototype* prototype)
+void semantic::PrototypeInfo::set_id_type(const std::string& id, ast::Type type)
 {
-	p_ctx = prototype;
-
-	// todo - allow prototype overloads
-
-	for (auto param_base : prototype->params)
+	auto it = id_types.find(id);
+	if (it == id_types.end())
 	{
-		auto param_decl = rtti::cast<ast::ExprDecl>(param_base);
-
-		if (p_ctx.has_decl(param_decl))
-			add_error("Parameter '{}' already defined in prototype declaration", param_decl->name);
-
-		add_variable(param_decl);
+		id_types[id] = type;
+		return;
 	}
 
-	if (prototype->is_decl())
+	if (it->second != type)
 	{
-		if (!prototype->def)
-			add_error("Unresolved prototype '{}' declared", prototype->name);
-
-		g_ctx.add_prototype_decl(prototype);
+		g_semantic->add_error("ID {} has differing types.", id);
 	}
-	else
-	{
-		g_ctx.add_prototype_def(prototype);
-
-		analyze_body(prototype->body);
-	}
-
-	return true;
 }
 
-bool Semantic::analyze_body(ast::StmtBody* body)
+ast::TypeOpt semantic::PrototypeInfo::get_id_type(const std::string& id)
 {
-	for (auto stmt : body->stmts)
-	{
-		if (auto body = rtti::cast<ast::StmtBody>(stmt))					analyze_body(body);
-		else if (auto expr = rtti::cast<ast::Expr>(stmt))					analyze_expr(expr);
-		else if (auto stmt_if = rtti::cast<ast::StmtIf>(stmt))				analyze_if(stmt_if);
-		else if (auto stmt_return = rtti::cast<ast::StmtReturn>(stmt))		analyze_return(stmt_return);
-	}
+	auto it = id_types.find(id);
+	if (it == id_types.end())
+		return std::nullopt;
 
-	return true;
-}
-
-bool Semantic::analyze_expr(ast::Expr* expr)
-{
-	if (auto id = rtti::cast<ast::ExprId>(expr))
-	{
-		if (!get_declared_variable(id->name))
-			add_error("'{}' identifier is undefined", id->name);
-	}
-	else if (auto decl = rtti::cast<ast::ExprDecl>(expr))
-	{
-		if (get_declared_variable(decl->name))
-			add_error("'{} {}' redefinition", decl->type.str(), decl->name);
-
-		add_variable(decl);
-
-		auto ok = analyze_expr(decl->rhs);
-
-		if (decl->rhs)
-		{
-			if (decl->type != decl->rhs->type)
-				add_error("Cannot convert from type '{}' to '{}'",
-					decl->rhs ? decl->rhs->type.str_full() : STRIFY_TYPE(Type_Void),
-					decl->type.str_full());
-		}
-
-		return ok;
-	}
-	else if (auto assign = rtti::cast<ast::ExprAssign>(expr))
-	{
-		if (!get_declared_variable(assign->name))
-			add_error("'{}' identifier is undefined", assign->name);
-
-		auto ok = analyze_expr(assign->rhs);
-
-		if (assign->type != assign->rhs->type)
-			add_error("Cannot convert from type '{}' to '{}'",
-				assign->rhs ? assign->rhs->type.str_full() : STRIFY_TYPE(Type_Void),
-				assign->type.str_full());
-
-		return ok;
-	}
-	else if (auto binary_op = rtti::cast<ast::ExprBinaryOp>(expr))
-	{
-		if (!binary_op->lhs || !analyze_expr(binary_op->lhs))
-			add_error("Expected an expression");
-
-		if (!binary_op->rhs || !analyze_expr(binary_op->rhs))
-			add_error("Expected an expression");
-
-		// update the binary op type
-		// this is temporary until we add gep to ast I think
-		
-		binary_op->type = binary_op->lhs->type;
-	}
-	else if (auto unary_op = rtti::cast<ast::ExprUnaryOp>(expr))
-	{
-		auto ok = analyze_expr(unary_op->rhs);
-
-		auto& unary_op_type = unary_op->type,
-		    & rhs_type = unary_op->rhs->type;
-
-		unary_op_type.update_indirection(rhs_type);
-
-		if (unary_op->op == UnaryOpType_And || unary_op->op == UnaryOpType_Mul)
-		{
-			//if (!rhs_type.lvalue)
-			//	add_error("Expression must be an lvalue or function designator");
-
-			if (unary_op->op == UnaryOpType_And)
-				unary_op_type.increase_indirection();
-			else if (unary_op->op == UnaryOpType_Mul)
-				if (!unary_op_type.decrease_indirection())
-					add_error("Cannot deref non-pointer");
-		}
-
-		return ok;
-	}
-	else if (auto cast = rtti::cast<ast::ExprCast>(expr))
-	{
-		auto ok = analyze_expr(cast->rhs);
-
-		return ok;
-	}
-	else if (auto call = rtti::cast<ast::ExprCall>(expr))
-	{
-		if (call->intrinsic)
-			return true;
-
-		const auto& prototype_name = call->name;
-
-		auto prototype = get_declared_prototype(prototype_name);
-		if (!prototype)
-			return add_error("Prototype identifier '{}' not found", prototype_name);
-
-		const auto original_params_length = prototype->params.size(),
-				   current_params_length = call->exprs.size();
-
-		if (current_params_length < original_params_length)
-			add_error("Too few arguments in function call '{}'", prototype_name);
-		else if (current_params_length > original_params_length)
-			add_error("Too many arguments in function call '{}'", prototype_name);
-
-		for (size_t i = 0ull; i < call->exprs.size() && i < prototype->params.size(); ++i)
-		{
-			const auto& original_param = rtti::cast<ast::ExprDecl>(prototype->params[i]);
-			const auto& current_param = call->exprs[i];
-
-			if (!analyze_expr(current_param))
-				return false;
-
-			if (!original_param->type.is_same_type(current_param->type))
-				add_error("Argument of type '{}' is incompatible with parameter of type '{}'",
-						  current_param->type.str(),
-						  original_param->type.str());
-		}
-
-		call->prototype = prototype;
-
-		g_ctx.add_call(prototype_name);
-	}
-
-	return true;
-}
-
-bool Semantic::analyze_if(ast::StmtIf* stmt_if)
-{
-	auto internal_analyze_if = [&](ast::StmtIf* curr_if)
-	{
-		if (!analyze_expr(curr_if->expr))
-			return false;
-
-		if (curr_if->if_body)
-			if (!analyze_body(curr_if->if_body))
-				return false;
-
-		if (curr_if->else_body)
-			if (!analyze_body(curr_if->else_body))
-				return false;
-
-		return true;
-	};
-
-	if (!internal_analyze_if(stmt_if))
-		return false;
-
-	for (auto else_if : stmt_if->ifs)
-		if (!internal_analyze_if(else_if))
-			return false;
-
-	return true;
-}
-
-bool Semantic::analyze_return(ast::StmtReturn* stmt_return)
-{
-	if (stmt_return->expr && !analyze_expr(stmt_return->expr))
-		return false;
-
-	if (stmt_return->expr ? p_ctx.pt->type.is_same_type(stmt_return->expr->type) : p_ctx.pt->type.is_same_type(Type_Void))
-		return true;
-
-	add_error("Return type '{}' does not match with function type '{}'",
-		stmt_return->expr ? stmt_return->expr->type.str_full() : STRIFY_TYPE(Type_Void),
-		p_ctx.pt->type.str_full());
-
-	return false;
-}
-
-ast::ExprDecl* Semantic::get_declared_variable(const std::string& name)
-{
-	auto it = p_ctx.decls.find(name);
-	return (it != p_ctx.decls.end() ? it->second : nullptr);
-}
-
-ast::Prototype* Semantic::get_declared_prototype(const std::string& name)
-{
-	auto it = g_ctx.prototype_decls.find(name);
-	if (it != g_ctx.prototype_decls.end())
-		return it->second;
-
-	return get_defined_prototype(name);
-}
-
-ast::Prototype* Semantic::get_defined_prototype(const std::string& name)
-{
-	auto it = g_ctx.prototype_defs.find(name);
-	return (it != g_ctx.prototype_defs.end() ? it->second : nullptr);
+	return it->second;
 }

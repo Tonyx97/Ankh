@@ -22,7 +22,10 @@ void Syntax::print_ast()
 void Syntax::run()
 {
 	while (!g_lexer->eof())
-		ast->prototypes.push_back(parse_prototype());
+	{
+		if (auto prototype = parse_prototype())
+			ast->prototypes.push_back(prototype);
+	}
 }
 
 ast::Prototype* Syntax::parse_prototype()
@@ -38,26 +41,41 @@ ast::Prototype* Syntax::parse_prototype()
 
 	auto prototype = _ALLOC(ast::Prototype, id_name, type.value());
 
-	p_ctx = prototype;
-
 	prototype->params = parse_prototype_params_decl();
 
-	if (auto paren_close = g_lexer->eat_expect(Token_ParenClose))
+	g_lexer->eat_expect(Token_ParenClose);
+
+	// we add the prototype here because a call inside this prototype
+	// could make it recursive
+
+	auto prev_prototype = g_ctx.get_prototype(id_name);
+	if (!prev_prototype)
 	{
-		// we add the prototype here because a call inside this prototype
-		// could make it recursive
-
 		g_ctx.add_prototype(prototype);
+	}
+	else
+	{
+		check(prototype->type == prev_prototype->type, "Function {} has mismatched return types.", prototype->name);
+		check(prototype->params.size() == prev_prototype->params.size(), "Function {} has different number of parameters.", prototype->name);
 
-		if (!g_lexer->eat_if_current_is(Token_Semicolon))
-			prototype->body = parse_body(nullptr);
+		for (int i = 0; i < prototype->params.size(); ++i) 
+		{
+			check(prototype->params[i]->type == prev_prototype->params[i]->type,
+				"Function {} has mismatched parameters.", prototype->name);
+		}
 
-		if (auto previous_pt = g_ctx.get_prototype(id_name))
-			if (previous_pt->is_decl())
-				previous_pt->def = prototype;
+		_FREE(prototype);
+
+		prototype = prev_prototype;
 	}
 
-	return prototype;
+	if (!g_lexer->eat_if_current_is(Token_Semicolon))
+	{
+		check(!prototype->body, "Function {} already has body.", prototype->name);
+		prototype->body = parse_body(nullptr);
+	}
+
+	return prev_prototype ? nullptr : prototype;
 }
 
 ast::StmtBody* Syntax::parse_body(ast::StmtBody* body)
@@ -183,8 +201,6 @@ ast::Base* Syntax::parse_statement()
 		case Token_Continue:	return return_and_expect_semicolon(_ALLOC(ast::StmtContinue));
 		case Token_Return:
 		{
-			auto& ret = p_ctx.fn->type;
-
 			if (auto expr_value = g_lexer->is_current(Token_Semicolon) ? nullptr : parse_expression())
 				return _ALLOC(ast::StmtReturn, expr_value);
 
@@ -228,27 +244,36 @@ ast::Expr* Syntax::parse_expression_precedence(ast::Expr* lhs, int min_precedenc
 
 		if (op->flags & TokenFlag_Assignation)
 		{
-			auto new_op = Token_None;
+			TokenID new_operator = Token_None;
 
 			switch (op->id)
 			{
-			case Token_ShrAssign:	new_op = Token_Shr;	break;
-			case Token_ShlAssign:	new_op = Token_Shl;	break;
-			case Token_AddAssign:	new_op = Token_Add;	break;
-			case Token_SubAssign:	new_op = Token_Sub;	break;
-			case Token_MulAssign:	new_op = Token_Mul;	break;
-			case Token_ModAssign:	new_op = Token_Mod;	break;
-			case Token_DivAssign:	new_op = Token_Div;	break;
-			case Token_AndAssign:	new_op = Token_And;	break;
-			case Token_OrAssign:	new_op = Token_Or;	break;
-			case Token_XorAssign:	new_op = Token_Xor;	break;
+			case Token_ShrAssign: new_operator = Token_Shr; break;
+			case Token_ShlAssign: new_operator = Token_Shl; break;
+			case Token_AddAssign: new_operator = Token_Add; break;
+			case Token_SubAssign: new_operator = Token_Sub; break;
+			case Token_MulAssign: new_operator = Token_Mul; break;
+			case Token_ModAssign: new_operator = Token_Mod; break;
+			case Token_DivAssign: new_operator = Token_Div; break;
+			case Token_AndAssign: new_operator = Token_And; break;
+			case Token_OrAssign: new_operator = Token_Or; break;
+			case Token_XorAssign: new_operator = Token_Xor; break;
 			}
 
-			if (new_op != Token_None)
-				lhs = _ALLOC(ast::ExprBinaryAssign, lhs, rhs, Token::to_bin_op_type(new_op));
-			else lhs = _ALLOC(ast::ExprAssign, lhs, rhs);
+			if (new_operator != Token_None)
+			{
+				lhs = _ALLOC(ast::ExprBinaryAssign, lhs, rhs, Token::to_bin_op_type(new_operator));
+			}
+			else
+			{
+				lhs = _ALLOC(ast::ExprAssign, lhs, rhs);
+			}
 		}
-		else lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op->to_bin_op_type(), lhs->type);
+		else
+		{
+			auto op_type = op->to_bin_op_type();
+			lhs = _ALLOC(ast::ExprBinaryOp, lhs, rhs, op_type, lhs->type);
+		}
 	}
 
 	return lhs;
@@ -281,16 +306,18 @@ ast::Expr* Syntax::parse_primary_expression()
 		{
 			g_lexer->eat();
 
-			auto called_prototype = g_ctx.get_prototype(id->value);
-			auto call = _ALLOC(ast::ExprCall, called_prototype, id->value, called_prototype->type, g_intrin->is_intrinsic(called_prototype->name));
+			auto call = _ALLOC(ast::ExprCall, id->value, g_intrin->is_intrinsic(id->value));
 
-			call->exprs = parse_call_params(called_prototype);
+			call->exprs = parse_call_params();
 
 			g_lexer->eat_expect(Token_ParenClose);
 
 			ret_expr = call;
 		}
-		else ret_expr = _ALLOC(ast::ExprId, id->value);
+		else
+		{
+			ret_expr = _ALLOC(ast::ExprId, id->value);
+		}
 	}
 	else if (g_lexer->eat_if_current_is(Token_ParenOpen))
 	{
@@ -359,7 +386,7 @@ std::vector<ast::Expr*> Syntax::parse_prototype_params_decl()
 	return exprs;
 }
 
-std::vector<ast::Expr*> Syntax::parse_call_params(ast::Prototype* prototype)
+std::vector<ast::Expr*> Syntax::parse_call_params()
 {
 	std::vector<ast::Expr*> exprs;
 
@@ -371,12 +398,7 @@ std::vector<ast::Expr*> Syntax::parse_call_params(ast::Prototype* prototype)
 		if (!expr_param)
 			break;
 
-		if (auto param_decl = prototype->get_param(param_index))
-		{
-			exprs.push_back(expr_param);
-
-			++param_index;
-		}
+		exprs.push_back(expr_param);
 
 		if (!g_lexer->is_current(Token_Comma))
 			break;

@@ -33,13 +33,14 @@ int main()
 		g_syntax->run();
 	}
 
-	//const bool semantic_ok = g_semantic->run();
-
-	//PRINT(Cyan, "\n---------- AST ----------\n");
+	PRINT(Cyan, "\n---------- AST ----------\n");
 
 	g_syntax->print_ast();
 
-	/*PRINT(Cyan, "\n---------- Semantic Analysis ----------\n");
+	const bool semantic_ok = g_semantic->run();
+
+
+	PRINT(Cyan, "\n---------- Semantic Analysis ----------\n");
 
 	if (!semantic_ok)
 	{
@@ -47,6 +48,12 @@ int main()
 
 		goto finish;
 	}
+
+	PRINT(Cyan, "\n---------- AST after semantic ----------\n");
+
+	g_syntax->print_ast();
+
+	/*
 
 	PRINT(Cyan, "\n---------- IR Generation ----------\n");
 
