@@ -81,7 +81,7 @@ void Semantic::analyze_for(ast::StmtFor* stmt, semantic::BodyData data)
 	analyze_stmt(stmt->init, data);
 	analyze_expr(stmt->condition);
 	analyze_stmt(stmt->step, data);
-	analyze_body(stmt->body, data);
+	analyze_body(stmt->body, semantic::BodyData { data.depth + 1, true });
 
 	exit_scope();
 }
