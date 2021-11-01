@@ -183,11 +183,7 @@ namespace ast
 			case Token_I64:		new_type = Type_i64;  break;
 			}
 
-			return
-			{
-				.type = new_type,
-				.indirection = this->indirection + indirection,
-			};
+			return ir::Type(new_type, this->indirection + indirection);
 		}
 
 		std::string indirection_str() const

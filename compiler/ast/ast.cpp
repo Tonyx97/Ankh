@@ -209,23 +209,11 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 {
 	if (expr->type.flags & TypeFlag_Unsigned)
 	{
-		switch (auto size = expr->type.get_size())
-		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->integer.u8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->integer.u16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->integer.u32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (u{}) '{}'", size, expr->integer.u64); break;
-		}
+		PRINT_TABS_NL(Yellow, curr_level, "int ({}) '{}'", expr->type.str(), expr->integer.u64);
 	}
 	else
 	{
-		switch (auto size = expr->type.get_size())
-		{
-		case 8:  PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->integer.i8);  break;
-		case 16: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->integer.i16); break;
-		case 32: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->integer.i32); break;
-		case 64: PRINT_TABS_NL(Yellow, curr_level, "int (i{}) '{}'", size, expr->integer.i64); break;
-		}
+		PRINT_TABS_NL(Yellow, curr_level, "int ({}) '{}'", expr->type.str(), expr->integer.i64);
 	}
 }
 

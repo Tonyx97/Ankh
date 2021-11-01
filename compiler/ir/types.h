@@ -6,9 +6,12 @@ namespace ir
 {
 	struct Type
 	{
-		TypeID type = TypeID::Type_None;
+		TypeID type = Type_None;
 
 		int indirection = 0;
+
+		Type() {}
+		Type(TypeID type, int indirection = 0) : type(type), indirection(indirection) {}
 
 		bool is_same_type(const Type& v) const	{ return type == v.type && indirection == v.indirection; }
 		bool is_same_type(TypeID v) const		{ return type == v && !is_pointer(); }

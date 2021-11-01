@@ -5,15 +5,6 @@ union Int
 	uint64_t u64;
 	int64_t i64;
 
-	uint32_t u32;
-	int32_t i32;
-
-	uint16_t u16;
-	int16_t i16;
-
-	uint8_t u8;
-	int8_t i8;
-
 	template <typename T>
 	Int& operator = (T v)					{ u64 = v; return *this; }
 
@@ -199,4 +190,19 @@ inline std::string STRIFY_UNARY_OP(UnaryOpType id)
 	}
 
 	return "unknown_unary_op";
+}
+
+inline bool IS_COMPARE_OPERATOR(BinOpType id)
+{
+	switch (id)
+	{
+	case BinOpType_Equal:
+	case BinOpType_NotEqual:
+	case BinOpType_Gt:
+	case BinOpType_Lt:
+	case BinOpType_Gte:
+	case BinOpType_Lte: return true;
+	}
+
+	return false;
 }

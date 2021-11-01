@@ -48,8 +48,8 @@ namespace ir
 	{
 		auto stack_alloc = _ALLOC(StackAlloc);
 
-		stack_alloc->type = type.ref();
 		stack_alloc->size = size;
+		stack_alloc->type = type.ref();
 
 		add_instruction(stack_alloc);
 
@@ -76,6 +76,7 @@ namespace ir
 
 		store->ptr = ptr;
 		store->v = value;
+		store->type = Type(Type_Void);
 
 		add_instruction(store);
 
@@ -103,7 +104,7 @@ namespace ir
 		bin_op->op_type = op;
 		bin_op->lhs = lhs;
 		bin_op->rhs = rhs;
-		bin_op->type = lhs->type; // ?
+		bin_op->type = IS_COMPARE_OPERATOR(op) ? Type(Type_u8) : lhs->type;
 
 		add_instruction(bin_op);
 
@@ -141,6 +142,7 @@ namespace ir
 		auto ret = _ALLOC(Return);
 
 		ret->v = value;
+		ret->type = Type(Type_Void);
 
 		add_instruction(ret);
 
@@ -152,6 +154,7 @@ namespace ir
 		auto branch = _ALLOC(Branch);
 
 		branch->target = target;
+		branch->type = Type(Type_Void);
 
 		add_instruction(branch);
 
@@ -167,6 +170,7 @@ namespace ir
 		branch->cond = cond;
 		branch->true_target = true_target;
 		branch->false_target = false_target;
+		branch->type = Type(Type_Void);
 
 		add_instruction(branch);
 
