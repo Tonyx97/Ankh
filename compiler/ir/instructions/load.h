@@ -10,10 +10,10 @@ namespace ir
 	{
 		Value* ptr = nullptr;
 
-		Load() { value_type = ValueType_Load; }
+		Load()								{ value_type = ValueType_Load; }
 
 		void print();
 
-		static bool check_class(Value* v) { return v->value_type == ValueType_Load; }
+		static bool check_class(Value* v)	{ return v->value_type == ValueType_Load; }
 	};
 }

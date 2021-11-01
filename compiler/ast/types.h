@@ -69,10 +69,12 @@ namespace ast
 
 		bool decrease_indirection()						{ return --indirection >= 0; }
 		bool is_unsigned() const						{ return (flags & TypeFlag_Unsigned); }
-
 		bool is_same_type(const Type& v) const			{ return type == v.type && indirection == v.indirection; }
 		bool is_same_type(TypeID v) const				{ return type == v && !is_pointer(); }
 		bool is_pointer() const							{ return !(indirection == 0); }
+		bool operator == (const Type& v) const			{ return is_same_type(v); }
+		bool operator == (TypeID v) const				{ return is_same_type(v); }
+
 		bool is_arithmetic() const
 		{
 			switch (type)
@@ -206,9 +208,6 @@ namespace ast
 		std::string str_ir() const						{ return STRIFY_TYPE_IR(type); }
 		std::string str_full() const					{ return str() + indirection_str(); }
 		std::string str_full_ir() const					{ return str_ir() + indirection_str(); }
-
-		bool operator == (const Type& v) const			{ return is_same_type(v); }
-		bool operator == (TypeID v) const				{ return is_same_type(v); }
 	};
 
 	using TypeOpt = std::optional<Type>;

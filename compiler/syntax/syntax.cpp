@@ -49,12 +49,12 @@ ast::Prototype* Syntax::parse_prototype()
 
 	if (prev_prototype)
 	{
-		check(prototype->type == prev_prototype->type, "Function {} has mismatched return types.", prototype->name);
-		check(prototype->params.size() == prev_prototype->params.size(), "Function {} has different number of parameters.", prototype->name);
+		check(prototype->type == prev_prototype->type, "Function {} has mismatched return types", prototype->name);
+		check(prototype->params.size() == prev_prototype->params.size(), "Function {} has different number of parameters", prototype->name);
 
 		for (int i = 0; i < prototype->params.size(); ++i)
 			check(prototype->params[i]->type == prev_prototype->params[i]->type,
-				"Function {} has mismatched parameters.", prototype->name);
+				"Function {} has mismatched parameters", prototype->name);
 
 		_FREE(prototype);
 
@@ -64,7 +64,7 @@ ast::Prototype* Syntax::parse_prototype()
 
 	if (!g_lexer->eat_if_current_is(Token_Semicolon))
 	{
-		check(!prototype->body, "Function {} already has body.", prototype->name);
+		check(!prototype->body, "Function {} already has body", prototype->name);
 		prototype->body = parse_body(nullptr);
 	}
 

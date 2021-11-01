@@ -6,16 +6,23 @@
 #include <semantic/semantic.h>
 #include <ir/ir.h>
 
+#include <ir/instructions/phi.h>
+
 void test_ir() {
 	auto prototype = new ir::Prototype("test", ir::Type{ Type_i32, 2 }, { ir::Type{ Type_i64, 0 } , ir::Type{ Type_i8, 1} });
 
 	auto blk = prototype->create_block();
-	auto ptr = blk->stackalloc(ir::Type{ Type_i16, 2 });
-	auto ld = blk->load(ptr);
-	blk->load(ld);
-	auto res = blk->load(prototype->params[1]);
-	blk->store(prototype->params[1], res);
+	auto ptr = blk->add_stack_alloc(ir::Type{ Type_i16, 2 });
+	auto ld = blk->add_load(ptr);
+	blk->add_load(ld);
+	auto res = blk->add_load(prototype->params[1]);
+	blk->add_store(prototype->params[1], res);
+	
+	auto phi = blk->add_phi(ir::Type {Type_i64, 1});
 
+	phi->add_values(res, blk, ld, blk, ptr, blk);
+
+	blk->add_store(prototype->params[1], res);
 
 	prototype->print();
 
@@ -27,8 +34,6 @@ void test_ir() {
 int main()
 {
 	setup_console();
-
-	test_ir();
 
 	g_intrin = std::make_unique<Intrinsic>();
 	g_lexer = std::make_unique<Lexer>();
@@ -84,6 +89,8 @@ int main()
 	PRINT(Cyan, "\n---------- IR ----------\n");
 
 	//g_ir->print();
+
+	test_ir();
 
 finish:
 

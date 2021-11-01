@@ -3,7 +3,6 @@
 #include <lexer/lexer.h>
 
 #include "types.h"
-#include "..\ir\items\prototype.h"
 
 namespace ast
 {

@@ -11,10 +11,10 @@ void ir::Load::print()
 	PRINT_INSTRUCTION(1,
 		Yellow, str(), White, " = ",
 		Green, "load ",
-		Blue, type.full_str(),
-		White, ", ",
-		Blue, ptr->type.full_str(),
-		White, " ",
+		Blue, type.str(),
+		White, type.indirection, White, ", ",
+		Blue, ptr->type.str(),
+		White, type.indirection, White, " ",
 		Yellow, ptr->str()
 	);
 }

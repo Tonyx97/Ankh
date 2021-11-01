@@ -245,9 +245,12 @@
     <ClCompile Include="gv\gv.cpp" />
     <ClCompile Include="intrin\intrin.cpp" />
     <ClCompile Include="ir\instructions\binary_op.cpp" />
+    <ClCompile Include="ir\instructions\branch.cpp" />
+    <ClCompile Include="ir\instructions\branch_cond.cpp" />
     <ClCompile Include="ir\instructions\call.cpp" />
     <ClCompile Include="ir\instructions\cast.cpp" />
     <ClCompile Include="ir\instructions\load.cpp" />
+    <ClCompile Include="ir\instructions\phi.cpp" />
     <ClCompile Include="ir\instructions\return.cpp" />
     <ClCompile Include="ir\instructions\stack_alloc.cpp" />
     <ClCompile Include="ir\instructions\store.cpp" />
@@ -262,6 +265,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mem\mem.cpp" />
     <ClCompile Include="semantic\semantic.cpp" />
+    <ClCompile Include="stl\linked_list.cpp" />
     <ClCompile Include="syntax\syntax.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -273,11 +277,13 @@
     <ClInclude Include="gv\gv.h" />
     <ClInclude Include="intrin\intrin.h" />
     <ClInclude Include="ir\instructions\binary_op.h" />
+    <ClInclude Include="ir\instructions\branch.h" />
+    <ClInclude Include="ir\instructions\branch_cond.h" />
     <ClInclude Include="ir\instructions\call.h" />
     <ClInclude Include="ir\instructions\cast.h" />
     <ClInclude Include="ir\instructions\load.h" />
+    <ClInclude Include="ir\instructions\phi.h" />
     <ClInclude Include="ir\instructions\unary_op.h" />
-    <ClInclude Include="ir\item_base.h" />
     <ClInclude Include="ir\instructions\return.h" />
     <ClInclude Include="ir\instructions\stack_alloc.h" />
     <ClInclude Include="ir\instructions\store.h" />
@@ -292,6 +298,7 @@
     <ClInclude Include="mem\mem.h" />
     <ClInclude Include="rtti\rtti.h" />
     <ClInclude Include="semantic\semantic.h" />
+    <ClInclude Include="stl\linked_list.h" />
     <ClInclude Include="syntax\syntax.h" />
     <ClInclude Include="utils\utils.h" />
   </ItemGroup>

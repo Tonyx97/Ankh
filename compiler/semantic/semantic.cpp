@@ -209,7 +209,7 @@ void Semantic::analyze_expr_unary_op(ast::ExprUnaryOp* expr)
 	{
 	case UnaryOpType_Mul:
 	{
-		check(type.indirection > 0, "Cannot deref non-pointer.");
+		check(type.indirection > 0, "Cannot deref non-pointer");
 		type.decrease_indirection();
 		break;
 	}

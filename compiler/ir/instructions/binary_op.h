@@ -11,7 +11,7 @@ namespace ir
 		Value* lhs = nullptr,
 			 * rhs = nullptr;
 
-		BinaryOp()								{ value_type = ValueType_BinOp; }
+		BinaryOp()							{ value_type = ValueType_BinOp; }
 
 		void print();
 

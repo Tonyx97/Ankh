@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ir/item_base.h>
+#include <ir/types.h>
 
 namespace ir
 {
@@ -10,37 +10,39 @@ namespace ir
 		ValueType_ConstantInt,
 		ValueType_Parameter,
 		ValueType_BeginInstructionType,
-		ValueType_Cast,
-		ValueType_BinOp,
-		ValueType_UnaryOp,
-		ValueType_Call,
-		ValueType_StackAlloc,
-		ValueType_Store,
-		ValueType_Load,
-		ValueType_Block,
-		ValueType_BranchCond,
-		ValueType_Branch,
-		ValueType_Return,
-		ValueType_Phi,
-		// TODO: GetElementPointer
-		//       Select
+			ValueType_StackAlloc,
+			ValueType_Load,
+			ValueType_Store,
+			ValueType_Cast,
+			ValueType_BinOp,
+			ValueType_UnaryOp,
+			ValueType_Call,
+			ValueType_Return,
+			ValueType_Branch,
+			ValueType_BranchCond,
+			ValueType_Gep,
+			ValueType_Select,
+			ValueType_Phi,
 		ValueType_EndInstructionType,
 	};
 
 	struct Value
 	{
-		Type type{};
-		ValueType value_type{};
+		Type type {};
 
-		bool is_void() { return type.is_same_type(Type_Void); }
+		ValueType value_type {};
+
+		struct Block* parent = nullptr;
 
 		int index = -1;
 
-		std::string str() const { return "v" + std::to_string(index); }
-
 		virtual ~Value() = default;
 
-		static bool check_class(Value* v) { return true; }
+		bool is_void()						{ return type.is_same_type(Type_Void); }
+
+		std::string str() const				{ return "v" + std::to_string(index); }
+
+		static bool check_class(Value* v)	{ return true; }
 	};
 
 	struct ValueParam : public Value 
@@ -58,11 +60,10 @@ namespace ir
 	{
 		Int integer = { 0 };
 		
-		ValueInt(const Type& type, Int integer)
+		ValueInt(const Type& type, Int integer) : integer(integer)
 		{
 			this->value_type = ValueType_ConstantInt;
 			this->type = type;
-			this->integer = integer;
 		}
 
 		static bool check_class(Value* v) { return v->value_type == ValueType_ConstantInt; }

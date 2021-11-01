@@ -10,10 +10,10 @@ namespace ir
 	{
 		Value* source = nullptr;
 
-		Cast() { value_type = ValueType_Cast; }
+		Cast()								{ value_type = ValueType_Cast; }
 
 		void print();
 
-		static bool check_class(Value* v) { return v->value_type == ValueType_Cast; }
+		static bool check_class(Value* v)	{ return v->value_type == ValueType_Cast; }
 	};
 }

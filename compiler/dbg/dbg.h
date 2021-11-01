@@ -189,6 +189,21 @@ static inline void fullprint_vec(ColorType color, const std::vector<T>& vec, con
 }
 
 template <typename Tx, typename T, typename F>
+static inline void fullprint_vec_obj(ColorType color, const std::vector<T>& vec, const std::string& separator, const F& fn)
+{
+	if (vec.empty())
+		return;
+
+	for (int i = 0; i < vec.size() - 1; ++i)
+	{
+		fn(vec[i]);
+		make_text(White, "{}", separator).print();
+	}
+
+	fn(vec.back());
+}
+
+template <typename Tx, typename T, typename F>
 static inline void print_set(ColorType color, const std::set<T>& set, const std::string& separator, const F& fn)
 {
 	if (set.empty())

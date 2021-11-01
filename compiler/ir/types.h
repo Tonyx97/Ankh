@@ -7,7 +7,19 @@ namespace ir
 	struct Type
 	{
 		TypeID type = TypeID::Type_None;
+
 		int indirection = 0;
+
+		bool is_same_type(const Type& v) const	{ return type == v.type && indirection == v.indirection; }
+		bool is_same_type(TypeID v) const		{ return type == v && !is_pointer(); }
+		bool is_pointer() const					{ return !(indirection == 0); }
+		bool operator == (const Type& v) const	{ return is_same_type(v); }
+		bool operator == (TypeID v) const		{ return is_same_type(v); }
+
+		Type deref() const						{ return Type { type, indirection - 1 }; }
+		Type ref() const						{ return Type { type, indirection + 1 }; }
+
+		std::string str() const					{ return STRIFY_TYPE(type); }
 
 		std::string indirection_str() const
 		{
@@ -23,13 +35,14 @@ namespace ir
 			return str;
 		}
 
-		std::string str() const					{ return STRIFY_TYPE(type); }
 		std::string full_str() const			{ return str() + indirection_str(); }
-		Type deref() { return Type{ type, indirection - 1 }; }
-		Type ref() { return Type{ type, indirection + 1 }; }
+	};
+}
 
-		bool is_same_type(const Type& v) const	{ return type == v.type && indirection == v.indirection; }
-		bool is_same_type(TypeID v) const		{ return type == v && indirection == 0; }
-		bool operator == (const Type& v) const	{ return is_same_type(v); }
+namespace std
+{
+	template <> struct hash<ir::Type>
+	{
+		size_t operator()(const ir::Type& v) const { return (hash<decltype(v.type)>()(v.type) ^ hash<decltype(v.indirection)>()(v.indirection)); }
 	};
 }

@@ -15,8 +15,18 @@ union Int
 	int8_t i8;
 
 	template <typename T>
-	Int& operator = (T v) { u64 = v; return *this; }
+	Int& operator = (T v)					{ u64 = v; return *this; }
+
+	bool operator == (const Int& v) const	{ return u64 == v.u64; }
 };
+
+namespace std
+{
+	template <> struct hash<Int>
+	{
+		size_t operator()(const Int& v) const { return hash<decltype(v.u64)>()(v.u64); }
+	};
+}
 
 enum TokenFlag : unsigned __int64
 {
