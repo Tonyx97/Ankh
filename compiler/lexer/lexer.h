@@ -100,20 +100,18 @@ struct Token
 
 		switch (id)
 		{
-		case Token_Void:	v.type = Type_Void; break;
-		case Token_U8:		v.type = Type_u8;   break;
-		case Token_I8:		v.type = Type_i8;   break;
-		case Token_U16:		v.type = Type_u16;  break;
-		case Token_I16:		v.type = Type_i16;  break;
-		case Token_U32:		v.type = Type_u32;  break;
-		case Token_I32:		v.type = Type_i32;  break;
-		case Token_U64:		v.type = Type_u64;  break;
-		case Token_I64:		v.type = Type_i64;  break;
+		case Token_Void:	v.set_type(Type_Void); break;
+		case Token_U8:		v.set_type(Type_u8);   break;
+		case Token_I8:		v.set_type(Type_i8);   break;
+		case Token_U16:		v.set_type(Type_u16);  break;
+		case Token_I16:		v.set_type(Type_i16);  break;
+		case Token_U32:		v.set_type(Type_u32);  break;
+		case Token_I32:		v.set_type(Type_i32);  break;
+		case Token_U64:		v.set_type(Type_u64);  break;
+		case Token_I64:		v.set_type(Type_i64);  break;
 		}
 
 		v.indirection = indirection;
-
-		if (flags & TokenFlag_Unsigned)		v.flags |= TypeFlag_Unsigned;
 
 		return v;
 	}

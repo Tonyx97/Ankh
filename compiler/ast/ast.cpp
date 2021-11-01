@@ -183,7 +183,7 @@ void ast::Printer::print_expr(Expr* expr)
 
 void ast::Printer::print_decl(ExprDecl* decl)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "decl.{} ({}) '{}'", decl->rhs ? " assignment" : "", decl->type.str(), decl->name);
+	PRINT_TABS_NL(Yellow, curr_level, "decl.{} ({}) '{}'", decl->rhs ? " assignment" : "", decl->type.str_full(), decl->name);
 
 	if (decl->rhs)
 		print_expr(decl->rhs);
@@ -231,7 +231,7 @@ void ast::Printer::print_expr_int(ExprIntLiteral* expr)
 
 void ast::Printer::print_id(ast::ExprId* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "id ({}) '{}'", expr->type.str(), expr->name);
+	PRINT_TABS_NL(Yellow, curr_level, "id ({}) '{}'", expr->type.str_full(), expr->name);
 }
 
 void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
@@ -247,7 +247,7 @@ void ast::Printer::print_expr_unary_op(ast::ExprUnaryOp* expr)
 
 void ast::Printer::print_expr_binary_op(ExprBinaryOp* expr)
 {
-	PRINT_TABS_NL(Yellow, curr_level, "binary op ({})", STRIFY_BIN_OP(expr->op));
+	PRINT_TABS_NL(Yellow, curr_level, "binary op ({} | {})", STRIFY_BIN_OP(expr->op), expr->type.str_full());
 
 	++curr_level;
 
@@ -283,8 +283,8 @@ void ast::Printer::print_cast(ExprCast* expr)
 {
 	PRINT_TABS_NL(Yellow, curr_level, "{} cast {} to {}",
 		expr->implicit ? "implicit" : "explicit",
-		expr->rhs->type.str(),
-		expr->type.str());
+		expr->rhs->type.str_full(),
+		expr->type.str_full());
 
 	print_expr(expr->rhs);
 }

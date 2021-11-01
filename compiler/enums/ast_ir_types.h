@@ -104,16 +104,6 @@ inline std::string STRIFY_TYPE(TypeID id)
 	{
 	case Type_None: return "none";
 	case Type_Void: return "void";
-#ifdef TURBO_IR_TOOLS	// oof :(
-	case Type_u8:	return "u8";
-	case Type_u16:	return "u16";
-	case Type_u32:	return "u32";
-	case Type_u64:	return "u64";
-	case Type_i8:	return "u8";
-	case Type_i16:	return "u16";
-	case Type_i32:	return "u32";
-	case Type_i64:	return "u64";
-#else
 	case Type_u8:	return "u8";
 	case Type_u16:	return "u16";
 	case Type_u32:	return "u32";
@@ -122,10 +112,32 @@ inline std::string STRIFY_TYPE(TypeID id)
 	case Type_i16:	return "i16";
 	case Type_i32:	return "i32";
 	case Type_i64:	return "i64";
-#endif
 	}
 
 	return "unknown";
+}
+
+inline std::string STRIFY_TYPE_IR(TypeID id)
+{
+#ifdef TURBO_IR_TOOLS	// oof :(
+	switch (id)
+	{
+	case Type_None: return "none";
+	case Type_Void: return "void";
+	case Type_u8:	return "u8";
+	case Type_u16:	return "u16";
+	case Type_u32:	return "u32";
+	case Type_u64:	return "u64";
+	case Type_i8:	return "u8";
+	case Type_i16:	return "u16";
+	case Type_i32:	return "u32";
+	case Type_i64:	return "u64";
+	}
+
+	return "unknown";
+#else
+	return STRIFY_TYPE(id);
+#endif
 }
 
 inline std::string STRIFY_BIN_OP(BinOpType id)

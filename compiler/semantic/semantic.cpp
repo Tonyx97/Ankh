@@ -169,33 +169,64 @@ void Semantic::analyze_expr_bin_assign(ast::ExprBinaryAssign* expr)
 
 void Semantic::analyze_expr_bin_op(ast::ExprBinaryOp* expr)
 {
-	// TODO: 
-	// 2. Handle +/- for pointers
-
 	auto lhs_type = get_expr_type(expr->lhs);
 	auto rhs_type = get_expr_type(expr->rhs);
 
-	if (lhs_type.is_arithmetic() && rhs_type.is_arithmetic())
+	const auto lhs_arithmetic = lhs_type.is_arithmetic(),
+			   rhs_arithmetic = rhs_type.is_arithmetic();
+
+	const auto lhs_ptr = lhs_type.is_pointer(),
+			   rhs_ptr = rhs_type.is_pointer();
+
+	if (lhs_arithmetic && rhs_arithmetic && !lhs_ptr && !rhs_ptr)
 	{
 		const auto& common_type = expr->type = *lhs_type.binary_implicit_cast(rhs_type);
 
 		implicit_cast_replace(expr->lhs, common_type);
 		implicit_cast_replace(expr->rhs, common_type);
 	}
-	else add_error("Binary operation must treat with arithmetic types only");
+	else if (expr->op == BinOpType_Add)
+	{
+		if (lhs_arithmetic && rhs_ptr && !lhs_ptr)		expr->type = ast::Type(rhs_type.type, rhs_type.indirection);
+		else if (rhs_arithmetic && lhs_ptr && !rhs_ptr) expr->type = ast::Type(lhs_type.type, lhs_type.indirection);
+		else											add_error("Invalid binary operation");
+	}
+	else if (expr->op == BinOpType_Sub)
+	{
+		if (rhs_ptr && lhs_ptr)				expr->type = ast::Type(Type_i64);
+		else if (lhs_arithmetic && rhs_ptr)	expr->type = ast::Type(rhs_type.type, rhs_type.indirection);
+		else if (rhs_arithmetic && lhs_ptr) expr->type = ast::Type(lhs_type.type, lhs_type.indirection);
+		else								add_error("Invalid binary operation");
+	}
+	else add_error("Binary operation must have arithmetic types only");
 }
 
 void Semantic::analyze_expr_unary_op(ast::ExprUnaryOp* expr) 
 {
 	auto type = get_expr_type(expr->lhs ? expr->lhs : expr->rhs);
 
-	if (expr->op == UnaryOpType_Mul) 
+	switch (expr->op)
+	{
+	case UnaryOpType_Mul:
 	{
 		check(type.indirection > 0, "Cannot deref non-pointer.");
 		type.decrease_indirection();
+		break;
 	}
-	else if (expr->op == UnaryOpType_And)
+	case UnaryOpType_And:
+	{
 		type.increase_indirection();
+		break;
+	}
+	case UnaryOpType_Dec:
+	case UnaryOpType_Inc:
+	{
+		if (!type.is_arithmetic() && !type.is_pointer())
+			add_error("Cannot use increment and decrement operators on non-arithmetic values");
+
+		break;
+	}
+	}
 
 	expr->type = type;
 }
@@ -243,7 +274,7 @@ ast::Type Semantic::get_id_type(const std::string& id)
 
 	add_error("Undefined identifier '{}' used", id);
 
-	return ast::Type(Type_None, 0);
+	return ast::Type();
 }
 
 ast::Expr* Semantic::implicit_cast(ast::Expr* expr, const ast::Type& type)

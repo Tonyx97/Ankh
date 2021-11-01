@@ -37,14 +37,42 @@ namespace ast
 
 		int indirection = -1;
 
+		Type() {}
+		Type(TypeID type, int indirection = 0) : type(type), indirection(indirection)
+														{ update_signedness(); }
+
 		void update_indirection(const Type& v)			{ indirection = v.indirection; }
 		void update_indirection(int v)					{ indirection = v; }
 		void increase_indirection()						{ ++indirection; }
+
+		void set_type(TypeID v)
+		{
+			type = v;
+
+			update_signedness();
+		}
+
+		void update_signedness()
+		{
+			switch (type)
+			{
+			case Type_u8:
+			case Type_u16:
+			case Type_u32:
+			case Type_u64:	flags |= TypeFlag_Unsigned;
+			case Type_i8:
+			case Type_i16:
+			case Type_i32:
+			case Type_i64:	flags &= ~TypeFlag_Unsigned;
+			}
+		}
+
 		bool decrease_indirection()						{ return --indirection >= 0; }
 		bool is_unsigned() const						{ return (flags & TypeFlag_Unsigned); }
 
 		bool is_same_type(const Type& v) const			{ return type == v.type && indirection == v.indirection; }
-		bool is_same_type(TypeID v) const				{ return type == v && indirection == 0; }
+		bool is_same_type(TypeID v) const				{ return type == v && !is_pointer(); }
+		bool is_pointer() const							{ return !(indirection == 0); }
 		bool is_arithmetic() const
 		{
 			switch (type)
@@ -175,7 +203,9 @@ namespace ast
 		}
 
 		std::string str() const							{ return STRIFY_TYPE(type); }
+		std::string str_ir() const						{ return STRIFY_TYPE_IR(type); }
 		std::string str_full() const					{ return str() + indirection_str(); }
+		std::string str_full_ir() const					{ return str_ir() + indirection_str(); }
 
 		bool operator == (const Type& v) const			{ return is_same_type(v); }
 		bool operator == (TypeID v) const				{ return is_same_type(v); }

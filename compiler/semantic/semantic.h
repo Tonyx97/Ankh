@@ -94,10 +94,9 @@ public:
 	bool run();
 
 	template <typename... A>
-	inline bool add_error(const std::string& format, A... args)
+	inline void add_error(const std::string& format, A... args)
 	{
 		errors.push_back(std::format(format, args...));
-		return false;
 	}
 };
 
