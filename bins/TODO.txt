@@ -1,4 +1,1 @@
-· Add id_types to global scopes too.
-· Instead of having binary op for each op assignment (AddAssign for example), we should consider it a special assignment.
-· Fix parsing expressions like this: 1 + (*b)--;
-· We need to avoid double unary ops, for example: ++a--;
+· Implement semantic scopes thing.
