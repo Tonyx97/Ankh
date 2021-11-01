@@ -8,13 +8,12 @@ namespace ir
 	{
 		UnaryOpType op_type = UnaryOpType_None;
 
-		Value* v1 = nullptr;
+		Value* v = nullptr;
 
-		UnaryOp()								{ item_type = ItemType_UnaryOp; }
-		~UnaryOp()								{ _FREE(v1); }
+		UnaryOp() { value_type = ValueType_UnaryOp; }
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_UnaryOp; }
+		static bool check_class(Value* v) { return v->value_type == ValueType_UnaryOp; }
 	};
 }

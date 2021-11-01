@@ -8,6 +8,7 @@
 
 void ir::UnaryOp::print()
 {
+	/*
 	PRINT_INSTRUCTION(1,
 		Yellow, *v->ir_name,
 		White, " = ",
@@ -15,4 +16,5 @@ void ir::UnaryOp::print()
 		Blue, v->type.str(),
 		White, v->type.indirection, White, " ",
 		Yellow, *v1->ir_name);
+		*/
 }

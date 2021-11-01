@@ -4,50 +4,67 @@
 
 namespace ir
 {
-	struct Value : public ItemBase
+	enum ValueType
 	{
-		optional_str name,
-					 ir_name;
+		ValueType_None,
+		ValueType_ConstantInt,
+		ValueType_Parameter,
+		ValueType_BeginInstructionType,
+		ValueType_Cast,
+		ValueType_BinOp,
+		ValueType_UnaryOp,
+		ValueType_Call,
+		ValueType_StackAlloc,
+		ValueType_Store,
+		ValueType_Load,
+		ValueType_Block,
+		ValueType_BranchCond,
+		ValueType_Branch,
+		ValueType_Return,
+		ValueType_Phi,
+		// TODO: GetElementPointer
+		//       Select
+		ValueType_EndInstructionType,
+	};
 
-		std::string data;
+	struct Value
+	{
+		Type type{};
+		ValueType value_type{};
 
-		Type type {};
+		bool is_void() { return type.is_same_type(Type_Void); }
 
-		bool in_stack = false;
+		int index = -1;
 
-		Value* param_value = nullptr;
+		std::string str() const { return "v" + std::to_string(index); }
 
 		virtual ~Value() = default;
 
-		Value* clone();
+		static bool check_class(Value* v) { return true; }
 	};
 
-	struct ValueId : public Value
+	struct ValueParam : public Value 
 	{
-		ValueId(const Type& type, const optional_str& ir_name, const optional_str& name)
+		ValueParam(const Type& type)
 		{
-			item_type = ItemType_ValueId;
-			v = this;
-			v->name = name;
-			v->ir_name = ir_name;
-			v->type = type;
+			this->value_type = ValueType_Parameter;
+			this->type = type;
 		}
 
-		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_ValueId; }
+		static bool check_class(Value* v) { return v->value_type == ValueType_Parameter; }
 	};
 
 	struct ValueInt : public Value
 	{
-		Int vi = { 0 };
+		Int integer = { 0 };
 		
-		ValueInt(const Type& type, const optional_str& name = {})
+		ValueInt(const Type& type, Int integer)
 		{
-			item_type = ItemType_ValueInt;
-			v = this;
-			v->name = v->ir_name = name;
-			v->type = type;
+			this->value_type = ValueType_ConstantInt;
+			this->type = type;
+			this->integer = integer;
 		}
 
-		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_ValueInt; }
+		static bool check_class(Value* v) { return v->value_type == ValueType_ConstantInt; }
 	};
 }

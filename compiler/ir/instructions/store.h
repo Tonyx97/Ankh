@@ -8,13 +8,13 @@ namespace ir
 
 	struct Store : public Instruction
 	{
-		Value* v1 = nullptr;
+		Value* ptr = nullptr;
+		Value* v = nullptr;
 
-		Store()									{ item_type = ItemType_Store; }
-		~Store()								{ _FREE(v1); }
+		Store() { value_type = ValueType_Store; }
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_Store; }
+		static bool check_class(Value* v) { return v->value_type == ValueType_Store; }
 	};
 }

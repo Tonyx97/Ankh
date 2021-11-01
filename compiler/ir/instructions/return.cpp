@@ -8,14 +8,20 @@
 
 void ir::Return::print()
 {
-	if (v)
+	if (v->is_void())
+	{
 		PRINT_INSTRUCTION(1,
 			Green, "ret ",
-			Blue, v->type.str(),
-			White, v->type.indirection, White, " ",
-			Yellow, *v->ir_name);
+			Blue ,"void"
+		);
+	}
 	else
+	{
 		PRINT_INSTRUCTION(1,
 			Green, "ret ",
-			Blue, "void");
+			Blue, v->type.full_str(),
+			White, " ",
+			Yellow, v->str()
+		);
+	}
 }

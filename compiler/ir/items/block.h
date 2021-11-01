@@ -4,47 +4,28 @@
 
 namespace ir
 {
-	enum BlockFlag
+	struct Block
 	{
-		BlockFlag_None = 0,
-		BlockFlag_Entry,
-	};
+	private:
+		void add_instruction(Instruction* instruction);
 
-	struct Block : public ItemBase
-	{
-		std::vector<Instruction*> items;
+	public:
 
-		std::string name;
+		std::vector<Instruction*> instructions;
+		struct Prototype* parent = nullptr;
+		int index = -1;
 
-		uint32_t flags = BlockFlag_None;
-
-		Block()					{ item_type = ItemType_Block; }
 		~Block();
 
 		void print();
 
-		bool is_entry() const	{ return flags & BlockFlag_Entry; }
-
-		template <typename T, typename... A>
-		T* create_item(const A&... args)
-		{
-			return _ALLOC(T, args...);
-		}
-
-		template <typename T>
-		T* add_item(T* item)
-		{
-			items.push_back(item);
-
-			return item;
-		}
-
-		template <typename T, typename... A>
-		T* add_new_item(const A&... args)
-		{
-			return add_item(create_item<T>(args...));
-		}
-
-		static bool check_class(ItemBase* i) { return i->item_type == ItemType_Block; }
+		struct BinaryOp* binary_op(Value* lhs, BinOpType op, Value* rhs);
+		struct Call* call(Prototype* callee, const std::vector<Value*>& params);
+		struct Cast* cast(Value* value, Type target_type);
+		struct Load* load(Value* ptr);
+		struct Store* store(Value* ptr, Value* value);
+		struct Return* ret(Value* value);
+		struct StackAlloc* stackalloc(Type type);
+		struct UnaryOp* unary_op(UnaryOpType op, Value* v);
 	};
 }

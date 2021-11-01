@@ -48,9 +48,6 @@
     <ClCompile Include="ir\items\prototype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ir\items\body.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ir\instructions\return.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -79,6 +76,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="intrin\intrin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ir_gen\ir_gen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -125,9 +125,6 @@
     <ClInclude Include="ir\items\prototype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ir\items\body.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ir\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -168,6 +165,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="intrin\intrin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ir_gen\ir_gen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

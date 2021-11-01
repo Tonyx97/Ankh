@@ -8,13 +8,12 @@ namespace ir
 
 	struct Load : public Instruction
 	{
-		Value* v1 = nullptr;
+		Value* ptr = nullptr;
 
-		Load()									{ item_type = ItemType_Load; }
-		~Load()									{ _FREE(v1); }
+		Load() { value_type = ValueType_Load; }
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_Load; }
+		static bool check_class(Value* v) { return v->value_type == ValueType_Load; }
 	};
 }

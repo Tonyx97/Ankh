@@ -9,9 +9,9 @@
 void ir::StackAlloc::print()
 {
 	PRINT_INSTRUCTION(1,
-		Yellow, *v->ir_name,
+		Yellow, str(),
 		White, " = ",
 		Green, "stackalloc ",
-		Blue, v->type.str(),
-		White, v->type.indirection - 1);
+		Blue, type.deref().full_str()
+	);
 }

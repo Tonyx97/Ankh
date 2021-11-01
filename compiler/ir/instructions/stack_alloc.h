@@ -6,10 +6,10 @@ namespace ir
 {
 	struct StackAlloc : public Instruction
 	{
-		StackAlloc()							{ item_type = ItemType_StackAlloc; }
+		StackAlloc() { value_type = ValueType_StackAlloc; }
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_StackAlloc; }
+		static bool check_class(Value* v) { return v->value_type == ValueType_StackAlloc; }
 	};
 }

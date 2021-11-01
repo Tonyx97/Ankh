@@ -254,10 +254,10 @@
     <ClCompile Include="ir\instructions\unary_op.cpp" />
     <ClCompile Include="ir\ir.cpp" />
     <ClCompile Include="ir\items\block.cpp" />
-    <ClCompile Include="ir\items\body.cpp" />
     <ClCompile Include="ir\instructions\instruction.cpp" />
     <ClCompile Include="ir\items\prototype.cpp" />
     <ClCompile Include="ir\items\value.cpp" />
+    <ClCompile Include="ir_gen\ir_gen.cpp" />
     <ClCompile Include="lexer\lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mem\mem.cpp" />
@@ -283,11 +283,11 @@
     <ClInclude Include="ir\instructions\store.h" />
     <ClInclude Include="ir\ir.h" />
     <ClInclude Include="ir\items\block.h" />
-    <ClInclude Include="ir\items\body.h" />
     <ClInclude Include="ir\instructions\instruction.h" />
     <ClInclude Include="ir\types.h" />
     <ClInclude Include="ir\items\prototype.h" />
     <ClInclude Include="ir\items\value.h" />
+    <ClInclude Include="ir_gen\ir_gen.h" />
     <ClInclude Include="lexer\lexer.h" />
     <ClInclude Include="mem\mem.h" />
     <ClInclude Include="rtti\rtti.h" />

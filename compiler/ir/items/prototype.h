@@ -4,92 +4,28 @@
 
 namespace ir
 {
-	struct Instruction;
-	struct Body;
-	struct Value;
-	struct ValueId;
-	struct ValueInt;
-
-	struct PrototypeIrCtx
-	{
-		Block* block = nullptr;
-	};
-
 	struct Prototype
 	{
-		std::vector<Block*> blocks;
-
-		std::vector<Instruction*> returns;
-
-		std::vector<Value*> values,
-							id_values,
-							int_values,
-							params;
-
-		std::unordered_map<std::string, Value*> values_map;
-
 		std::string name;
 
-		PrototypeIrCtx ir_ctx {};
-
-		Type ret_type {};
+		Type return_type{};
+		std::vector<ValueParam*> params;
+		
+		std::vector<Block*> blocks;
 
 		Block* entry = nullptr;
 
-		Body* body = nullptr;
+		int next_value_index = 0;
+		int next_block_index = 0;
 
-		Prototype() {}
+		void set_value_index(Value* value);
+		void on_new_instruction(Instruction* instruction);
+
+		Prototype(const std::string& name, Type return_type, const std::vector<Type>& param_types);
 		~Prototype();
 
-		void print();
-
-		bool has_blocks() const					{ return !blocks.empty(); }
-		bool has_values() const					{ return !values.empty(); }
-		bool has_returns() const				{ return !returns.empty(); }
-
 		Block* create_block();
-		Block* add_block(Block* block);
-		Block* add_new_block();
 
-		Value* find_value(const std::string& name);
-		Value* save_value(Value* v);
-		ValueId* add_parameter(const Type& type, const optional_str& name);
-		ValueId* add_new_value_id(const Type& type, const optional_str& name = {});
-		ValueInt* add_new_value_int(const Type& type, const optional_str& name = {});
-
-		Return* add_return(Instruction* item);
-
-		template <typename T, typename... A>
-		T* create_item(const A&... args)
-		{
-			check(ir_ctx.block, "There must be an bound block when adding an item");
-
-			return ir_ctx.block->create_item<T>(args...);
-		}
-
-		template <typename T>
-		T* add_item(T* item)
-		{
-			check(ir_ctx.block, "There must be an bound block when adding an item");
-
-			return ir_ctx.block->add_item<T>(item);
-		}
-
-		void add_items() {}
-
-		template <typename T, typename... A>
-		void add_items(T* item, const A&... args)
-		{
-			add_item(item);
-			add_items(args...);
-		}
-
-		template <typename T, typename... A>
-		T* add_new_item(const A&... args)
-		{
-			check(ir_ctx.block, "There must be an bound block when adding an item");
-
-			return ir_ctx.block->add_new_item<T>(args...);
-		}
+		void print();
 	};
 }

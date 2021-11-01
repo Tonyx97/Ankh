@@ -8,6 +8,7 @@
 
 void ir::Call::print()
 {
+	/*
 	if (prototype->ret_type.type == Type_Void)
 	{
 		PRINT_INSTRUCTION_NNL(1,
@@ -34,4 +35,5 @@ void ir::Call::print()
 	});
 
 	PRINT_INSTRUCTION(0, White, ")");
+	*/
 }

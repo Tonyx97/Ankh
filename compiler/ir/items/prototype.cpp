@@ -3,131 +3,100 @@
 #include <lexer/lexer.h>
 #include <ir/ir.h>
 
-#include <ir/instructions/return.h>
-
 #include "prototype.h"
-#include "body.h"
 #include "value.h"
 
 namespace ir
 {
+	void Prototype::set_value_index(Value* value)
+	{
+		check(value->index == -1, "Index already set.");
+
+		value->index = next_value_index++;
+	}
+
+	void Prototype::on_new_instruction(Instruction* instruction)
+	{
+		if (!instruction->type.is_same_type(Type_Void))
+		{
+			set_value_index(instruction);
+		}
+	}
+
+	Prototype::Prototype(const std::string& name, Type return_type, const std::vector<Type>& param_types)
+	{
+		this->name = name;
+		this->return_type = return_type;
+
+		for (auto param_type : param_types)
+		{
+			auto value = _ALLOC(ValueParam, param_type);
+			set_value_index(value);
+			params.push_back(value);
+		}
+	}
+
 	Prototype::~Prototype()
 	{
-		for (auto value : values)
-			_FREE(value);
+		for (auto param : params)
+			_FREE(param);
 
 		for (auto block : blocks)
 			_FREE(block);
-
-		_FREE(body);
-	}
-
-	void Prototype::print()
-	{
-		PRINT_INSTRUCTION_NNL(0,
-			Blue, ret_type.str(),
-			White, ret_type.indirection, White, " ",
-			Yellow, name, White, "(");
-
-		fullprint_vec<Value>(White, params, ", ", [](auto param)
-		{
-			PRINT_INSTRUCTION_NNL(0,
-				Blue, param->type.str(),
-				White, param->type.indirection, White, " ",
-				Yellow, *param->ir_name);
-		});
-
-		if (has_blocks())
-		{
-			PRINT(White, ")");
-
-			PRINT(White, "{{");
-
-			for (auto block : blocks)
-				block->print();
-
-			PRINT(White, "}}");
-		}
-		else PRINT(White, ") {{}}");
-
-		PRINT_NL;
 	}
 
 	Block* Prototype::create_block()
 	{
-		return (ir_ctx.block = _ALLOC(Block));
-	}
+		auto block = _ALLOC(Block);
 
-	Block* Prototype::add_block(Block* block)
-	{
-		if (!has_blocks())
-		{
+		block->index = next_block_index++;
+		block->parent = this;
+
+		if (!entry)
 			entry = block;
-			entry->name = "entry";
-			entry->flags |= BlockFlag_Entry;
-		}
-		else block->name = "block_" + std::to_string(blocks.size());
 
 		blocks.push_back(block);
 
 		return block;
 	}
 
-	Block* Prototype::add_new_block()
+	void Prototype::print()
 	{
-		return add_block(create_block());
-	}
+		PRINT_INSTRUCTION_NNL(0,
+			Blue, return_type.full_str(), 
+			White, " ",
+			Yellow, name,
+			White, "("
+		);
 
-	Value* Prototype::find_value(const std::string& name)
-	{
-		if (auto it = values_map.find(name); it != values_map.end())
+		bool need_comma = false;
+		for (auto param : params)
 		{
-			auto value = it->second;
-			auto param_value = value->param_value;
-			
-			return param_value ? param_value : value;
+			if (need_comma)
+				PRINT_INSTRUCTION_NNL(0, White, ", ");
+
+			PRINT_INSTRUCTION_NNL(0,
+				Blue, param->type.full_str(),
+				White, " ",
+				Yellow, param->str());
+
+			need_comma = true;
 		}
 
-		return nullptr;
-	}
+		PRINT_INSTRUCTION(0, White, ")");
+		PRINT_INSTRUCTION(0, White, "{");
 
-	Value* Prototype::save_value(Value* v)
-	{
-		if (rtti::cast<ValueId>(v))	 id_values.push_back(v);
-		if (rtti::cast<ValueInt>(v)) int_values.push_back(v);
+		bool need_newline = false;
+		for (auto block : blocks)
+		{
+			if (need_newline)
+				PRINT_INSTRUCTION(0);
 
-		values.push_back(v);
+			block->print();
 
-		if (v->name.has_value())
-			values_map.insert({ v->name.value(), v });
+			need_newline = true;
+		}
 
-		return v;
-	}
-
-	ValueId* Prototype::add_parameter(const Type& type, const optional_str& name)
-	{
-		auto param = add_new_value_id(type, name);
-
-		params.push_back(param);
-
-		return param;
-	}
-
-	ValueId* Prototype::add_new_value_id(const Type& type, const optional_str& name)
-	{
-		auto v = _ALLOC(ValueId, type, "v" + std::to_string(id_values.size()), name);
-
-		return rtti::cast<ValueId>(save_value(v));
-	}
-
-	ValueInt* Prototype::add_new_value_int(const Type& ir_type, const optional_str& name)
-	{
-		return rtti::cast<ValueInt>(save_value(_ALLOC(ValueInt, ir_type, name)));
-	}
-
-	Return* Prototype::add_return(Instruction* item)
-	{
-		returns.push_back(item);
-		return rtti::cast<Return>(add_item(item));
+		PRINT_INSTRUCTION(0, White, "}");
 	}
 }

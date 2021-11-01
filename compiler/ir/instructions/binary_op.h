@@ -8,18 +8,13 @@ namespace ir
 	{
 		BinOpType op_type = BinOpType_None;
 
-		Value* v1 = nullptr,
-			 * v2 = nullptr;
+		Value* lhs = nullptr,
+			 * rhs = nullptr;
 
-		BinaryOp()								{ item_type = ItemType_BinOp; }
-		~BinaryOp()
-		{
-			_FREE(v1);
-			_FREE(v2);
-		}
+		BinaryOp()								{ value_type = ValueType_BinOp; }
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_BinOp; }
+		static bool check_class(Value* v)	{ return v->value_type == ValueType_BinOp; }
 	};
 }

@@ -8,6 +8,7 @@
 
 void ir::BinaryOp::print()
 {
+	/*
 	PRINT_INSTRUCTION(1,
 		Yellow, *v->ir_name,
 		White, " = ",
@@ -16,4 +17,5 @@ void ir::BinaryOp::print()
 		White, v->type.indirection, White, " ",
 		Yellow, *v1->ir_name, White, ", ",
 		Yellow, *v2->ir_name);
+		*/
 }

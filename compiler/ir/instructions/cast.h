@@ -8,13 +8,12 @@ namespace ir
 
 	struct Cast : public Instruction
 	{
-		Value* v1 = nullptr;
+		Value* source = nullptr;
 
-		Cast()									{ item_type = ItemType_Cast; }
-		~Cast()									{ _FREE(v1); }
+		Cast() { value_type = ValueType_Cast; }
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_Cast; }
+		static bool check_class(Value* v) { return v->value_type == ValueType_Cast; }
 	};
 }

@@ -6,12 +6,12 @@ namespace ir
 {
 	struct Return : public Instruction
 	{
-		Type type {};
+		Value* v = nullptr;
 
-		Return()								{ item_type = ItemType_Return; }
+		Return() { value_type = ValueType_Return; }
 
 		void print();
 
-		static bool check_class(ItemBase* i)	{ return i->item_type == ItemType_Return; }
+		static bool check_class(Value* v) { return v->value_type == ValueType_Return; }
 	};
 }

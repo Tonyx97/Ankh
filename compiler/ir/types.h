@@ -4,35 +4,29 @@
 
 namespace ir
 {
-	enum ItemType
-	{
-		ItemType_None,
-		ItemType_BeginValueType,
-		ItemType_ValueId,
-		ItemType_ValueInt,
-		ItemType_EndValueType,
-		ItemType_Body,
-		ItemType_Cast,
-		ItemType_BinOp,
-		ItemType_UnaryOp,
-		ItemType_Call,
-		ItemType_StackAlloc,
-		ItemType_Store,
-		ItemType_Load,
-		ItemType_Block,
-		ItemType_BranchCond,
-		ItemType_Branch,
-		ItemType_Return,
-		ItemType_Phi,
-	};
-
 	struct Type
 	{
-		TypeID type;
+		TypeID type = TypeID::Type_None;
+		int indirection = 0;
 
-		int indirection;
+		std::string indirection_str() const
+		{
+			if (indirection <= 0)
+				return {};
+
+			std::string str;
+
+			str.resize(indirection);
+
+			std::fill_n(str.begin(), indirection, '*');
+
+			return str;
+		}
 
 		std::string str() const					{ return STRIFY_TYPE(type); }
+		std::string full_str() const			{ return str() + indirection_str(); }
+		Type deref() { return Type{ type, indirection - 1 }; }
+		Type ref() { return Type{ type, indirection + 1 }; }
 
 		bool is_same_type(const Type& v) const	{ return type == v.type && indirection == v.indirection; }
 		bool is_same_type(TypeID v) const		{ return type == v && indirection == 0; }

@@ -6,15 +6,35 @@
 #include <semantic/semantic.h>
 #include <ir/ir.h>
 
+void test_ir() {
+	auto prototype = new ir::Prototype("test", ir::Type{ Type_i32, 2 }, { ir::Type{ Type_i64, 0 } , ir::Type{ Type_i8, 1} });
+
+	auto blk = prototype->create_block();
+	auto ptr = blk->stackalloc(ir::Type{ Type_i16, 2 });
+	auto ld = blk->load(ptr);
+	blk->load(ld);
+	auto res = blk->load(prototype->params[1]);
+	blk->store(prototype->params[1], res);
+
+
+	prototype->print();
+
+	std::cout << std::endl;
+
+	delete prototype;
+}
+
 int main()
 {
 	setup_console();
+
+	test_ir();
 
 	g_intrin = std::make_unique<Intrinsic>();
 	g_lexer = std::make_unique<Lexer>();
 	g_syntax = std::make_unique<Syntax>();
 	g_semantic = std::make_unique<Semantic>();
-	g_ir = std::make_unique<IR>();
+	//g_ir = std::make_unique<IR>();
 
 	PRINT(Cyan, "---------- Lexic Analysis ----------\n");
 
@@ -53,22 +73,21 @@ int main()
 
 	g_syntax->print_ast();
 
-	/*
 
 	PRINT(Cyan, "\n---------- IR Generation ----------\n");
 
 	{
 		PROFILE("IR Time");
-		g_ir->run();
+		//g_ir->run();
 	}
 
 	PRINT(Cyan, "\n---------- IR ----------\n");
 
-	g_ir->print();*/
+	//g_ir->print();
 
 finish:
 
-	g_ir.reset();
+	//g_ir.reset();
 	g_semantic.reset();
 	g_syntax.reset();
 	g_lexer.reset();
